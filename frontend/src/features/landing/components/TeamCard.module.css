@@ -1,0 +1,106 @@
+/* Tarjeta con efecto tilt 3D por hover (sin JS). Basado en grid 5x5 de "trackers". */
+
+.container {
+  position: relative;
+  width: 260px;  /* podés ajustar */
+  height: 340px; /* podés ajustar */
+  transition: 200ms;
+}
+.container:active {
+  transform: scale(0.98);
+}
+
+.canvas {
+  /* 5x5 celdas invisibles donde "hoverea" el mouse */
+  perspective: 800px;
+  inset: 0;
+  z-index: 200;
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows:    repeat(5, 1fr);
+}
+
+.tracker {
+  position: relative;
+  z-index: 200;
+  width: 100%;
+  height: 100%;
+}
+.tracker:hover { cursor: pointer; }
+
+/* La tarjeta real */
+.card {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  transition: 300ms ease;
+  /* Gradiente estilo “glass” suave; el contenido (Tailwind) define color y tipografía */
+  background: linear-gradient(43deg, rgba(65,88,208,0.9) 0%, rgba(146, 80, 200, 0.9) 46%, rgba(255, 121, 112, 0.9) 100%);
+  overflow: hidden;
+}
+
+/* Glow difuso detrás (aumenta con hover) */
+.card::before {
+  content: '';
+  background: linear-gradient(43deg, rgb(65, 88, 208) 0%, rgb(136, 80, 200) 46%, rgb(255, 204, 112) 100%);
+  filter: blur(2rem);
+  opacity: 0.25;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  transition: 200ms;
+}
+.container:hover .card::before { opacity: 0.5; }
+
+/* Mostrar/ocultar prompt en hover (opcional) */
+.prompt {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  z-index: 20;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0.9;
+  transition: 200ms ease;
+}
+.tracker:hover ~ .card .prompt { opacity: 0; }
+
+/* --- Tilt 3D por zona --- */
+.tr-1:hover  ~ .card { transform: rotateX(20deg)  rotateY(-10deg); }
+.tr-2:hover  ~ .card { transform: rotateX(20deg)  rotateY(-5deg); }
+.tr-3:hover  ~ .card { transform: rotateX(20deg)  rotateY(0deg);  }
+.tr-4:hover  ~ .card { transform: rotateX(20deg)  rotateY(5deg);  }
+.tr-5:hover  ~ .card { transform: rotateX(20deg)  rotateY(10deg); }
+
+.tr-6:hover  ~ .card { transform: rotateX(10deg)  rotateY(-10deg); }
+.tr-7:hover  ~ .card { transform: rotateX(10deg)  rotateY(-5deg); }
+.tr-8:hover  ~ .card { transform: rotateX(10deg)  rotateY(0deg);  }
+.tr-9:hover  ~ .card { transform: rotateX(10deg)  rotateY(5deg);  }
+.tr-10:hover ~ .card { transform: rotateX(10deg)  rotateY(10deg); }
+
+.tr-11:hover ~ .card { transform: rotateX(0deg)   rotateY(-10deg); }
+.tr-12:hover ~ .card { transform: rotateX(0deg)   rotateY(-5deg);  }
+.tr-13:hover ~ .card { transform: rotateX(0deg)   rotateY(0deg);   }
+.tr-14:hover ~ .card { transform: rotateX(0deg)   rotateY(5deg);   }
+.tr-15:hover ~ .card { transform: rotateX(0deg)   rotateY(10deg);  }
+
+.tr-16:hover ~ .card { transform: rotateX(-10deg) rotateY(-10deg); }
+.tr-17:hover ~ .card { transform: rotateX(-10deg) rotateY(-5deg);  }
+.tr-18:hover ~ .card { transform: rotateX(-10deg) rotateY(0deg);   }
+.tr-19:hover ~ .card { transform: rotateX(-10deg) rotateY(5deg);   }
+.tr-20:hover ~ .card { transform: rotateX(-10deg) rotateY(10deg);  }
+
+.tr-21:hover ~ .card { transform: rotateX(-20deg) rotateY(-10deg); }
+.tr-22:hover ~ .card { transform: rotateX(-20deg) rotateY(-5deg);  }
+.tr-23:hover ~ .card { transform: rotateX(-20deg) rotateY(0deg);   }
+.tr-24:hover ~ .card { transform: rotateX(-20deg) rotateY(5deg);   }
+.tr-25:hover ~ .card { transform: rotateX(-20deg) rotateY(10deg);  }
+
+@media (hover: none) {
+  .card { transform: none !important; }
+}

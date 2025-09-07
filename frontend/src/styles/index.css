@@ -1,0 +1,13 @@
+/* 
+    Este archivo index.css importa los estilos de Tailwind CSS y define algunas variables CSS personalizadas para la marca.
+    - La línea @import "tailwindcss"; incluye todas las utilidades y estilos base de Tailwind en el proyecto.
+    - En :root se definen dos variables CSS: --brand-beige y --brand-brown, que pueden usarse en todo el proyecto para mantener la coherencia de colores.
+    - El selector body establece la fuente predeterminada del sitio a 'Roboto', usando 'sans-serif' como respaldo.
+*/
+@import "tailwindcss";
+
+:root {
+  --brand-beige: #f5f1e8;
+  --brand-brown: #5d5448;
+}
+body { font-family: 'Roboto', sans-serif; }
