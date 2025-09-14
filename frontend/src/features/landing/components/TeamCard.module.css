@@ -14,7 +14,7 @@
   /* 5x5 celdas invisibles donde "hoverea" el mouse */
   perspective: 800px;
   inset: 0;
-  z-index: 200;
+  z-index: 50;
   position: absolute;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -23,7 +23,7 @@
 
 .tracker {
   position: relative;
-  z-index: 200;
+  z-index: 50;
   width: 100%;
   height: 100%;
 }
@@ -39,14 +39,14 @@
   border-radius: 20px;
   transition: 300ms ease;
   /* Gradiente estilo “glass” suave; el contenido (Tailwind) define color y tipografía */
-  background: linear-gradient(43deg, rgba(65,88,208,0.9) 0%, rgba(146, 80, 200, 0.9) 46%, rgba(255, 121, 112, 0.9) 100%);
+  background: linear-gradient(43deg, rgba(60,38,38,1) 0%, rgba(189, 175, 158, 1) 46%, rgba(60,38,38, 1) 100%);
   overflow: hidden;
 }
 
 /* Glow difuso detrás (aumenta con hover) */
 .card::before {
   content: '';
-  background: linear-gradient(43deg, rgb(65, 88, 208) 0%, rgb(136, 80, 200) 46%, rgb(255, 204, 112) 100%);
+  background: linear-gradient(43deg, rgb(60,38,38) 0%, rgb(189, 175, 158) 46%, rgb(243, 239, 230) 100%);
   filter: blur(2rem);
   opacity: 0.25;
   width: 100%;

@@ -14,9 +14,9 @@ export default function Navbar() {
   return (
     <nav
       className={[
-        "sticky top-0 z-50",
-        "border-b border-white/30",
-        "bg-white/40 backdrop-blur-md", 
+        "sticky top-0 z-[9999]",
+        "border-b border-white/40",
+        "bg-white/75 backdrop-blur-md", 
         scrolled ? "shadow-sm" : "",
       ].join(" ")}
     >
