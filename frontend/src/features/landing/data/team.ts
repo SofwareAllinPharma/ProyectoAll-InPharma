@@ -33,7 +33,7 @@ export const TEAM: TeamMember[] = [
   {
     id: "qa",
     name: "Maxi27 Rossa",
-    phrase: "Lo que no se prueba, no existe.",
+    phrase: "Cuando veas la sombra de un gigante, no te asustes. Fijate dónde está el sol, porque puede ser la sombra que proyecta un enano",
     photo: "/images/team/maxi.jpg",
   },
   {
