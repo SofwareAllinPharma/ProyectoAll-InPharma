@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-export default function PreLoginLoyout() {
+export default function PreLoginLayout() {
   return (
     <div className="min-h-screen bg-[#f5f1e8] text-[#5d5448]">
       <Navbar />

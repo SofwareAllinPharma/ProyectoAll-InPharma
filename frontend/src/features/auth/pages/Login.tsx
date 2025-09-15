@@ -1,6 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // TODO: reemplazar por autenticación real
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 600));
+      navigate("/perfiles", { replace: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="py-16">
       <div className="mx-auto max-w-md px-4 sm:px-6">
@@ -11,7 +27,7 @@ export default function Login() {
 
         <form
           className="rounded-2xl border border-[#5d5448] bg-white/70 backdrop-blur p-6 shadow-sm"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={onSubmit}
         >
           <label className="block text-sm mb-1" htmlFor="email">
             Email
@@ -19,9 +35,9 @@ export default function Login() {
           <input
             id="email"
             type="email"
-            className="w-full rounded-lg border border-[#5d5448]/40 px-4 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/40 bg-white"
-            placeholder="tu@correo.com"
             required
+            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
+            placeholder="tu@email.com"
           />
 
           <label className="block text-sm mb-1" htmlFor="password">
@@ -30,17 +46,19 @@ export default function Login() {
           <input
             id="password"
             type="password"
-            className="w-full rounded-lg border border-[#5d5448]/40 px-4 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/40 bg-white"
-            placeholder="••••••••"
             required
+            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
+            placeholder="••••••••"
           />
 
           <button
             type="submit"
-            className="w-full rounded-lg border border-[#5d5448] bg-[#5d5448] text-white font-semibold py-2.5 hover:opacity-90 transition"
+            disabled={loading}
+            className="w-full rounded-lg bg-[#5d5448] text-white px-4 py-2 font-medium hover:bg-[#5d5448]/90 disabled:opacity-60"
           >
-            Ingresar
+            {loading ? "Ingresando..." : "Ingresar"}
           </button>
+
 
           <div className="mt-4 text-sm flex items-center justify-between">
             <Link to="/" className="underline">
