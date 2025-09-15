@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import NavbarPostLogin from "../components/NavbarPostLogin";
+import NavbarPostLogin from "../components/Navbar";
 
 export default function PostLoginLoyout() {
   return (

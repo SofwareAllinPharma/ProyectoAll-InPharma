@@ -1,8 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import ConfirmLogoutModal from "./nav/ConfirmLogoutModal";
+import NavbarButtons from "./nav/NavbarButtons";
 
 export default function Navbar() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -11,41 +16,46 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const path = location.pathname;
+  let variant: "landing" | "login" | "profiles" | "dashboard" = "landing";
+  if (path === "/" || path.startsWith("/quienes-somos")) variant = "landing";
+  else if (path.startsWith("/auth/login")) variant = "login";
+  else if (path.startsWith("/perfiles")) variant = "profiles";
+  else if (path.startsWith("/tecnico") || path.startsWith("/atencion") || path.startsWith("/admin")) variant = "dashboard";
+
+  const handleLogout = () => {
+    setShowConfirm(false);
+    navigate("/", { replace: true });
+  };
+
   return (
-    <nav
-      className={[
-        "sticky top-0 z-[9999]",
-        "border-b border-white/40",
-        "bg-white/75 backdrop-blur-md", 
-        scrolled ? "shadow-sm" : "",
-      ].join(" ")}
-    >
-      <div className="mx-auto max-w-7xl px-4 h-16 flex justify-between items-center text-[#5d5448]">
-        <Link to="/" className="flex items-center gap-2.5 text-2xl font-bold whitespace-nowrap">
-          <img
-            src="/images/team/LogoCapsula.svg"  
-            alt="All-In Pharma"
-            className="h-8 w-8 flex-shrink-0"
+    <>
+      <nav
+        className={[
+          "sticky top-0 z-[9999]",
+          "bg-white/80 backdrop-blur",
+          "border-b border-[#5d5448]/20",
+          scrolled ? "shadow-sm" : "",
+        ].join(" ")}
+      >
+        <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between text-[#5d5448]">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
+            <span>All-In Pharma</span>
+          </Link>
+
+          <NavbarButtons
+            variant={variant}
+            onLogoutClick={() => setShowConfirm(true)}
           />
-          <span>All-In Pharma</span>
-        </Link>
-
-        <div className="flex items-center gap-6">
-          <Link
-            to="/quienes-somos"
-            className="border border-[#5d5448] px-4 py-2 rounded-lg hover:bg-[#5d5448] hover:text-white transition"
-          >
-            ¿Quiénes somos?
-          </Link>
-
-          <Link
-            to="/auth/login"
-            className="border border-[#5d5448] px-4 py-2 rounded-lg hover:bg-[#5d5448] hover:text-white transition"
-          >
-            Iniciar Sesión
-          </Link>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      <ConfirmLogoutModal
+        open={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleLogout}
+      />
+    </>
   );
 }
