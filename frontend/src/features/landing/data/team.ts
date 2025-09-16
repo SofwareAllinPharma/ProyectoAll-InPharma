@@ -10,13 +10,13 @@ export const TEAM: TeamMember[] = [
     id: "po",
     name: "Juani Arrigoni",
     phrase: "Primero el valor, después la escala.",
-    photo: "/images/team/juani.jpg",
+    photo: "/images/team/juani.jpeg",
   },
   {
     id: "tl",
     name: "Olivia Osella",
     phrase: "Decisiones simples, arquitectura sólida.",
-    photo: "/images/team/oli.jpg",
+    photo: "/images/team/oli.jpeg",
   },
   {
     id: "fe",

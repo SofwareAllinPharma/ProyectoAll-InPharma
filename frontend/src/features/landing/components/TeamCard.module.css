@@ -1,9 +1,7 @@
-/* Tarjeta con efecto tilt 3D por hover (sin JS). Basado en grid 5x5 de "trackers". */
-
 .container {
   position: relative;
-  width: 260px;  /* podés ajustar */
-  height: 340px; /* podés ajustar */
+  width: 260px; 
+  height: 340px;
   transition: 200ms;
 }
 .container:active {
@@ -11,7 +9,6 @@
 }
 
 .canvas {
-  /* 5x5 celdas invisibles donde "hoverea" el mouse */
   perspective: 800px;
   inset: 0;
   z-index: 50;
@@ -29,7 +26,6 @@
 }
 .tracker:hover { cursor: pointer; }
 
-/* La tarjeta real */
 .card {
   position: absolute;
   inset: 0;
@@ -38,12 +34,10 @@
   align-items: center;
   border-radius: 20px;
   transition: 300ms ease;
-  /* Gradiente estilo “glass” suave; el contenido (Tailwind) define color y tipografía */
   background: linear-gradient(43deg, rgba(60,38,38,1) 0%, rgba(189, 175, 158, 1) 46%, rgba(60,38,38, 1) 100%);
   overflow: hidden;
 }
 
-/* Glow difuso detrás (aumenta con hover) */
 .card::before {
   content: '';
   background: linear-gradient(43deg, rgb(60,38,38) 0%, rgb(189, 175, 158) 46%, rgb(243, 239, 230) 100%);
@@ -57,7 +51,6 @@
 }
 .container:hover .card::before { opacity: 0.5; }
 
-/* Mostrar/ocultar prompt en hover (opcional) */
 .prompt {
   position: absolute;
   bottom: 10px;
@@ -70,7 +63,6 @@
 }
 .tracker:hover ~ .card .prompt { opacity: 0; }
 
-/* --- Tilt 3D por zona --- */
 .tr-1:hover  ~ .card { transform: rotateX(20deg)  rotateY(-10deg); }
 .tr-2:hover  ~ .card { transform: rotateX(20deg)  rotateY(-5deg); }
 .tr-3:hover  ~ .card { transform: rotateX(20deg)  rotateY(0deg);  }

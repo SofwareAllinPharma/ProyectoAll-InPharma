@@ -1,5 +1,5 @@
 import { FaReact, FaNodeJs } from "react-icons/fa";
-import { SiTypescript, SiTailwindcss, SiPrisma, SiPostgresql, SiDocker } from "react-icons/si";
+import { SiTypescript, SiTailwindcss, SiPrisma, SiPostgresql, SiDocker, SiRailway } from "react-icons/si";
 
 export default function About() {
   return (
@@ -47,6 +47,10 @@ export default function About() {
             <div className="flex items-center gap-2">
               <SiDocker className="text-sky-600 text-xl" />
               <span className="text-sm font-medium">Docker</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <SiRailway className="text-sky-600 text-xl" />
+              <span className="text-sm font-medium">Railway</span>
             </div>
           </div>
         </div>
