@@ -15,13 +15,13 @@ export const TEAM: TeamMember[] = [
   {
     id: "tl",
     name: "Olivia Osella",
-    phrase: "Decisiones simples, arquitectura sólida.",
+    phrase: "Como decía Fangio, la carrera no se gana en la primera curva sino cuando baja la bandera.",
     photo: "/images/team/oli.jpeg",
   },
   {
     id: "fe",
     name: "Nacho Samocachan",
-    phrase: "Es mucho mas facil desactivar un átomo que un preconcepto",
+    phrase: "Es mucho mas facil desactivar un átomo que un neutrón",
     photo: "/images/team/samo.jpg",
   },
   {
@@ -39,7 +39,7 @@ export const TEAM: TeamMember[] = [
   {
     id: "ds",
     name: "Joa Bonugli",
-    phrase: "Datos confiables, decisiones mejores.",
+    phrase: "Nosotros eramos Bruce Willis en Sexto Sentido, el único que no sabía que estaba muerto era él. A nosotros nos daban por muertos antes de empezar la película.",
     photo: "/images/team/joa.jpg",
   },
 ];
