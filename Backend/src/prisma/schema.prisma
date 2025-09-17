@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  mail       String @id @db.VarChar(255)
+  contrasena String @map("contraseña") @db.VarChar(255)
+
+  persona       Persona?
+  sesiones      Sesion[]
+  perfiles      UsuarioPerfil[]
+  passwordReset PasswordReset?
+
+  @@map("USUARIO")
+}
+
+model Persona {
+  dni     String  @id @db.VarChar(32)
+  mail    String  @unique @db.VarChar(255)
+  usuario Usuario @relation(fields: [mail], references: [mail])
+
+  nombre   String? @db.VarChar(120)
+  apellido String? @db.VarChar(120)
+  telefono String? @db.VarChar(40)
+
+  @@map("PERSONA")
+}
+
+model Sesion {
+  email   String  @db.VarChar(255)
+  usuario Usuario @relation(fields: [email], references: [mail])
+
+  fechaHoraInicio DateTime
+  fechaHoraFin    DateTime?
+
+  @@id([email, fechaHoraInicio])
+  @@index([email])
+  @@map("SESION")
+}
+
+model Perfil {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @db.VarChar(120)
+  descripcion String? @db.VarChar(255)
+
+  usuarios UsuarioPerfil[]
+
+  @@map("PERFIL")
+}
+
+model UsuarioPerfil {
+  mail     String
+  idPerfil Int
+
+  usuario Usuario @relation(fields: [mail], references: [mail])
+  perfil  Perfil  @relation(fields: [idPerfil], references: [id])
+
+  @@id([mail, idPerfil])
+  @@index([idPerfil])
+  @@index([mail])
+  @@map("USUARIOxPERFIL")
+}
+
+model PasswordReset {
+  mail      String   @id
+  usuario   Usuario  @relation(fields: [mail], references: [mail])
+  tokenHash String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("PASSWORD_RESET")
+}
