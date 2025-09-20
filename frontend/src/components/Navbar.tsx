@@ -2,12 +2,27 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ConfirmLogoutModal from "./nav/ConfirmLogoutModal";
 import NavbarButtons from "./nav/NavbarButtons";
+import { apiFetch, setToken } from "../lib/api"; // Asegúrate de que la ruta sea correcta
+
+function useLogout() {
+  const navigate = useNavigate();
+  return async () => {
+    try {
+      await apiFetch("/auth/logout", { method: "POST" });
+    } catch {
+      // Error intentionally ignored
+    }
+    setToken(null);
+    navigate("/auth/login", { replace: true });
+  };
+}
 
 export default function Navbar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const logout = useLogout();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -22,11 +37,6 @@ export default function Navbar() {
   else if (path.startsWith("/auth/login")) variant = "login";
   else if (path.startsWith("/perfiles")) variant = "profiles";
   else if (path.startsWith("/tecnico") || path.startsWith("/atencion") || path.startsWith("/admin")) variant = "dashboard";
-
-  const handleLogout = () => {
-    setShowConfirm(false);
-    navigate("/", { replace: true });
-  };
 
   return (
     <>
@@ -54,7 +64,7 @@ export default function Navbar() {
       <ConfirmLogoutModal
         open={showConfirm}
         onCancel={() => setShowConfirm(false)}
-        onConfirm={handleLogout}
+        onConfirm={logout}
       />
     </>
   );
