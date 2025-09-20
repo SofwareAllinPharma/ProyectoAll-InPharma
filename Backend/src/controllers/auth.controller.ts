@@ -6,45 +6,12 @@ import { signAccessToken } from '../utils/token';
 import { RegisterDto, LoginDto, ForgotDto, ResetDto } from '../schemas/auth.dto';
 import { sendPasswordResetEmail } from '../services/email.service';
 
-const ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
-
-/** POST /auth/register */
-export async function register(req: Request, res: Response) {
-  try {
-    const parse = RegisterDto.safeParse(req.body);
-    if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
-    const { mail, password, dni, nombre, apellido, telefono } = parse.data;
-
-    const exists = await prisma.usuario.findUnique({ where: { mail } });
-    if (exists) return res.status(409).json({ error: 'El mail ya está registrado' });
-
-    const hash = await bcrypt.hash(password, ROUNDS);
-
-    await prisma.usuario.create({
-      data: {
-        mail,
-        contrasena: hash,
-        persona: dni ? { create: { dni, nombre: nombre ?? null, apellido: apellido ?? null, telefono: telefono ?? null } } : undefined,
-      },
-    });
-
-
-    await prisma.sesion.create({
-      data: { email: mail, fechaHoraInicio: new Date() } as any,
-    });
-
-    const token = signAccessToken(mail);
-    return res.status(201).json({ accessToken: token });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Error registrando usuario' });
-  }
-}
+const saltingEncriptacion = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 
 /** POST /auth/login */
 export async function login(req: Request, res: Response) {
   try {
-    const parse = LoginDto.safeParse(req.body);
+    const parse = LoginDto.safeParse(req.body); 
     if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
 
     const { mail, password } = parse.data;
@@ -85,7 +52,6 @@ export async function forgotPassword(req: Request, res: Response) {
     const tokenHash = await bcrypt.hash(token, 8);
     const expires = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Upsert en una tabla simple de reseteo (recomendado):
     // Si no tenés la tabla, podés guardar en Redis o en columnas del usuario.
     await prisma.passwordReset.upsert({
       where: { mail },
@@ -116,7 +82,7 @@ export async function resetPassword(req: Request, res: Response) {
     const match = await bcrypt.compare(token, rec.tokenHash);
     if (!match) return res.status(400).json({ error: 'Token inválido' });
 
-    const hash = await bcrypt.hash(newPassword, ROUNDS);
+    const hash = await bcrypt.hash(newPassword, saltingEncriptacion);
 
     await prisma.$transaction([
       prisma.usuario.update({
@@ -130,5 +96,39 @@ export async function resetPassword(req: Request, res: Response) {
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'Error en reset-password' });
+  }
+}
+
+
+/** / POST /auth/register por el momento no la usariamos ya que no hacemos el registro en el spring 1*/
+export async function register(req: Request, res: Response) {
+  try {
+    const parse = RegisterDto.safeParse(req.body);
+    if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+    const { mail, password, dni, nombre, apellido, telefono } = parse.data;
+
+    const exists = await prisma.usuario.findUnique({ where: { mail } });
+    if (exists) return res.status(409).json({ error: 'El mail ya está registrado' });
+
+    const hash = await bcrypt.hash(password, saltingEncriptacion);
+
+    await prisma.usuario.create({
+      data: {
+        mail,
+        contrasena: hash,
+        persona: dni ? { create: { dni, nombre: nombre ?? null, apellido: apellido ?? null, telefono: telefono ?? null } } : undefined,
+      },
+    });
+
+
+    await prisma.sesion.create({
+      data: { email: mail, fechaHoraInicio: new Date() } as any,
+    });
+
+    const token = signAccessToken(mail);
+    return res.status(201).json({ accessToken: token });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error registrando usuario' });
   }
 }

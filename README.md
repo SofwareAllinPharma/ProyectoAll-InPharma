@@ -59,7 +59,8 @@ node -v
 
 ### 2.1 Variables del contenedor
 
-Crear el archivo **`.env.docker`** en la raíz del directorio backend :
+Crear el archivo **`.env`** en la raíz del directorio backend con los valores de las variables especificadas en discord.
+Podes sino directamente bajarte el .env del discord y adjuntarlo en la raiz del backend si no queres hacer todas las variables a mano:
 
 ``` env
 POSTGRES_USER=userexample
@@ -70,11 +71,13 @@ POSTGRES_PORT=0000
 
 ### 2.2 Levantar el contenedor
 
-El archivo `docker-compose.yml` ya está versionado en el repo. Ejecutar:
+El archivo `docker-compose.yml` ya está creado en el repo.
+Este va a tener toda la informacion para que tu contenedor de docker ande perfecto.
+Para crearlo tenes que ejecutar obviamente parado en ./backend:
 
 ``` bash
 docker compose up -d
-docker compose ps       # comprobar estado (running/healthy)
+docker compose ps   # comprobar estado (running/healthy)
 ```
 
 Ver logs si hay problemas:
@@ -82,17 +85,21 @@ Ver logs si hay problemas:
 ``` bash
 docker compose logs -f postgres
 ```
-
+Una vez ejecutados con exito estos comandos les deberia aparecer en el docker desktop el contenedor de la bd creado.
+Si quieren entender mas de docker fijense que hicieron con cada comando ejecutado y mas abajo hay más comandos por si quieren investigarlos.
+Tip: si no pueden abrir el docker desktop intenten desde el ^ de la barra de inicio.
+Cuando ejectuas el logs obviamente te tiene que aparecer "database system is ready to accept connections"
 ------------------------------------------------------------------------
 
 ## 🛠 3. Conectar a la base de datos
 
-### 3.1 Desde el contenedor
+### 3.1 Desde el contenedor 
+en este paso conectas nuestra bd (local de cada compu) con el contenedor que acabas de crear
 
 ``` bash
 docker exec -it allinpharma_pg psql -U admin -d allinpharma
 ```
-
+Esto si no tenes ningun error te va a abrir una consola de postgresql podes ejecutar una consulta para ver que todo ande bien
 Dentro de `psql`:
 
 ``` sql
@@ -100,7 +107,7 @@ SELECT version();
 \q
 ```
 
-### 3.2 Desde pgAdmin
+### 3.2 Desde pgAdmin (si tenes ganas de usar este gestor de base de datos... Pgadmin es el gestor de bd nativo de postgresql) 
 
 -   **Host:** `localhost`\
 -   **Port:** `0000` (o el que definiste en `.env.docker`)\
@@ -120,8 +127,10 @@ SELECT version();
     cd backend
     ```
 
-2.  Crear archivo `.env` a partir de `.env.example`:
-
+2.  En `.env` a partir de `.env.example`:
+  Si es que creas la variable a mano,me parece mejor adjuntarla desde el discord y listo 
+  Copiar y pegar bien desde el discord el .env que esta ahi
+    ``` bash
     ``` .env.example
     DATABASE_URL="postgresql://userexample:passwordexample@localhost:0000/allinpharma?schema=public"
     ```
@@ -130,7 +139,8 @@ SELECT version();
 
 ## 🗂 5. Migrar tablas por primera vez
 
-Cuando ya exista `prisma/schema.prisma` en el repo (tooodo el modelo de base de datos definido por el equipo):
+Ya existe un prisma/schema.prisma en nuestro backend, alli se va a definir el esquema unificado de nuestra bd.
+En este paso lo que hacemos es migrar la informacion que tiene el ORM prisma a la bd psql que tiene nuestro contenedor creado.
 
 ``` bash
 cd backend
@@ -142,11 +152,10 @@ Esto: - Crea las tablas en la DB local. - Guarda las migraciones en
 `prisma/migrations`.
 
 Para ver los datos:
-
 ``` bash
 npx prisma studio
 ```
-
+Podes usar este gestor online de prisma si te da paja usar pgadmin o la consola psql.
 ------------------------------------------------------------------------
 
 ## 📊 6. Visualizar con pgAdmin
@@ -184,7 +193,6 @@ Allí podés ver y consultar los datos cargados.
 ## ✅ 8. Checklist por dev
 
 -   [ ] Docker instalado y corriendo\
--   [ ] `.env.docker` creado desde `.env.docker.example`\
 -   [ ] Contenedor PostgreSQL corriendo (`docker compose ps`)\
 -   [ ] `.env` creado en `backend/` con la `DATABASE_URL` correcta\
 -   [ ] Dependencias instaladas (`npm install`)\
@@ -204,7 +212,6 @@ trabajar en el backend de forma consistente con el resto del equipo.
   "start": "node dist/index.js"
 }
 ```
-
 ---
 
 ## 🎨 Frontend – Instalación

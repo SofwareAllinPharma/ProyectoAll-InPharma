@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// Zod es una librería de validación para TypeScript/JS.
+// Te permite definir un esquema de cómo deben ser los datos y luego validarlos en runtime.
+// Así te asegurás de que req.body tenga la forma correcta antes de guardarlo en la BD.
+
 export const RegisterDto = z.object({
   mail: z.string().email(),
   password: z.string().min(6),
