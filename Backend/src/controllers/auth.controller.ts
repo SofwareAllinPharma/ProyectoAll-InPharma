@@ -29,13 +29,39 @@ export async function login(req: Request, res: Response) {
 
     const token = signAccessToken(mail);
 
-    
+
     return res.json({ accessToken: token, user: { mail: user.mail } });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'Error de autenticación' });
   }
 }
+
+/** GET /auth/me */
+export async function me(req: Request, res: Response) {
+  const mail = (req as any).user?.mail as string | undefined;
+  if (!mail) return res.status(401).json({ error: 'No autenticado' });
+
+  const dbUser = await prisma.usuario.findUnique({
+    where: { mail },
+    select: {
+      mail: true,
+      persona: { select: { nombre: true, apellido: true } },
+      perfiles: { select: { perfil: { select: { nombre: true } } } },
+    },
+  });
+
+  return res.json({
+    user: {
+      mail: dbUser?.mail,
+      name: [dbUser?.persona?.nombre, dbUser?.persona?.apellido]
+              .filter(Boolean).join(' ') || null,
+      roles: (dbUser?.perfiles ?? []).map(p => p.perfil.nombre),
+    },
+  });
+}
+
+
 
 /** POST /auth/forgot-password */
 export async function forgotPassword(req: Request, res: Response) {
