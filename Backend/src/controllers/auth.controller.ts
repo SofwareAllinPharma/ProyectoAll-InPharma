@@ -28,6 +28,8 @@ export async function login(req: Request, res: Response) {
     });
 
     const token = signAccessToken(mail);
+
+    
     return res.json({ accessToken: token, user: { mail: user.mail } });
   } catch (e) {
     console.error(e);

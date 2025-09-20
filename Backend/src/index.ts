@@ -31,10 +31,9 @@ app.get('/health', async (_req, res) => {
 
 
 // Routes
-app.use('/', (req, res) => {
-  res.send('API corriendo correctamente');
-});
 
+app.use('/auth', authRoutes);
 
+app.use('/', (_req, res) => res.send('API corriendo correctamente'));
 
 app.listen(PORT, () => console.log(`API http://localhost:${PORT}`));
