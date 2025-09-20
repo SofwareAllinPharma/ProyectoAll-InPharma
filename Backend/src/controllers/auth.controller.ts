@@ -61,7 +61,25 @@ export async function me(req: Request, res: Response) {
   });
 }
 
+/** POST /auth/logout */
 
+export async function logout(req: Request, res: Response) {
+  try {
+    const { mail } = (req as any).user as { mail: string };
+
+    // Cerrar sesiones abiertas de este usuario (si las manejás en BD)
+    await prisma.sesion.updateMany({
+      where: { email: mail, fechaHoraFin: null },
+      data: { fechaHoraFin: new Date() },
+    });
+
+    // Si tu logout es stateless (solo borrar token en el cliente), con esto alcanza:
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error en logout' });
+  }
+}
 
 /** POST /auth/forgot-password */
 export async function forgotPassword(req: Request, res: Response) {
