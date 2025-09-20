@@ -31,10 +31,13 @@ app.get('/health', async (_req, res) => {
 
 
 // Routes
-app.use('/', (req, res) => {
-  res.send('API corriendo correctamente');
-});
 
+
+
+app.get('/', (_req, res) => res.send('API corriendo correctamente'));
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found', path: req.originalUrl, method: req.method });
+});
 
 
 app.listen(PORT, () => console.log(`API http://localhost:${PORT}`));
