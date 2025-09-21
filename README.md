@@ -34,6 +34,9 @@ npm install express cors bcrypt jsonwebtoken nodemailer zod @prisma/client
 # Instalar dependencias de desarrollo
 npm install -D prisma typescript tsx @types/node @types/express @types/cors @types/jsonwebtoken @types/bcrypt @types/nodemailer
 
+# Instalar nodemon para actualizacion automatica de servidor
+npm i -D nodemon
+
 ```
 
 # Guía de Configuración de Backend con Base de datos --- All-In Pharma
