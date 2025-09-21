@@ -1,4 +1,9 @@
 services:
+  backend:
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
   postgres:
     image: postgres:17
     container_name: allinpharma_pg
@@ -17,5 +22,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
 volumes:
   pgdata:
