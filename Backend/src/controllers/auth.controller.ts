@@ -36,7 +36,8 @@ export async function login(req: Request, res: Response) {
     return res.status(500).json({ error: 'Error de autenticación' });
   }
 }
-
+// Esta ruta devuelve los datos del usuario autenticado, incluyendo sus roles.
+// base para el front (hide/show páginas y botones) y para back (proteger rutas con authorizedRoles).
 /** GET /auth/me */
 export async function me(req: Request, res: Response) {
   const mail = (req as any).user?.mail as string | undefined;
