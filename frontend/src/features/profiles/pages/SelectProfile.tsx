@@ -2,8 +2,8 @@ import ProfileCard from "../components/ProfileCard";
 import { useAuth } from '../../../lib/auth';
 
 import tecnicoIcon from "../../../assets/icons/tecnico/tecnico_icono_perfil.png";
-import atencionIcon from "../../../assets/icons/atencion/atencion_icono_perfil.png";
-import adminIcon from "../../../assets/icons/admin/admin_icono_perfil.png";
+import atencionIcon from "../../../assets/icons/adminfab/adminfab_icono_perfil.png";
+import adminIcon from "../../../assets/icons/adminsis/admin_icono_perfil.png";
 
 const ROLES = [
     { key: "tecnico", roleCode: 'TECNICO', label: "Técnico", description: "Gestión técnica y operaciones.", icon: tecnicoIcon, path: "/tecnico" },
