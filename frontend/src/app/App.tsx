@@ -5,6 +5,8 @@ import RequireAuth from "../lib/RequireAuth";
 import LandingPage from "../features/landing/pages/LandingPage";
 import Login from "../features/auth/pages/Login";
 import QuienesSomos from "../features/landing/pages/QuienesSomos";
+import ForgotPassword from "../features/auth/pages/ForgotPassword";
+import ResetPassword from "../features/auth/pages/ResetPassword";
 
 // privado
 import SelectProfile from "../features/profiles/pages/SelectProfile";
@@ -21,6 +23,8 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/quienes-somos" element={<QuienesSomos />} />
+          <Route path="/auth/forgot" element={<ForgotPassword />} />
+          <Route path="/auth/reset" element={<ResetPassword />} />
         </Route>
 
         {/* Post-login - privado */}

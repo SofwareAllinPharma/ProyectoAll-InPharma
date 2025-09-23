@@ -1,5 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import api from './api';
+import { api }  from './api';
+import { apiFetch } from './api';
+// --- Centralización de llamadas forgot/reset ---
+export type OkResponse = { ok: true };
+
+export const authApi = {
+  forgotPassword: (mail: string) =>
+    apiFetch<OkResponse>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ mail }),
+    }),
+
+  resetPassword: (mail: string, token: string, newPassword: string) =>
+    apiFetch<OkResponse>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ mail, token, newPassword }),
+    }),
+};
 
 type User = {
   mail: string | null;
