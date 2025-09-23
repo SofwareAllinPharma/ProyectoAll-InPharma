@@ -19,7 +19,7 @@ export default function ProfileCard({
         <Link
             to={to}
             data-role={role}
-            className="bg-[#faf8f2] border border-[#5d5448] rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-110 hover:shadow-lg"
+            className="bg-[#faf8f2] border border-[#5d5448] rounded-lg p-6 flex flex-col items-center justify-between text-center transition-transform transform hover:scale-110 hover:shadow-lg max-w-xs w-full mx-2 h-56"
         >
             {/* Contenedor para que el ícono no se deforme */}
             <div className="w-24 h-24 mb-4 flex items-center justify-center">
@@ -30,8 +30,8 @@ export default function ProfileCard({
                 />
             </div>
 
-            <h2 className="text-xl font-bold">{title}</h2>
-            <p className="text-sm opacity-80 mt-2">{description}</p>
+            <h2 className="text-lg font-bold h-12 overflow-hidden">{title}</h2>
+            <p className="text-sm opacity-80 mt-2 h-6 overflow-hidden">{description}</p>
         </Link>
     );
 }

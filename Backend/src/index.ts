@@ -3,9 +3,15 @@ import express from 'express';
 import cors from 'cors';
 import { prisma } from './lib/prisma'; // prisma es la instancia única del Prisma Client, sirve para hablar con la base de datos PostgreSQL usando schema.prisma
 import authRoutes from './routes/auth.routes';
+import adminFabRoutes from './routes/adminFab.routes';
+import adminSisRoutes from './routes/adminSis.routes';
+import tecnicoRoutes from './routes/tecnico.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
+app.use('/adminfab', adminFabRoutes);
+app.use('/adminsis', adminSisRoutes);
+app.use('/tecnico', tecnicoRoutes);
 
 // Middlewares
 app.use(cors());
