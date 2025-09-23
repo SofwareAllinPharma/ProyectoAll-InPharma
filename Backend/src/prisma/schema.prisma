@@ -76,7 +76,7 @@ model PasswordReset {
 
   @@map("PASSWORD_RESET")
 }
-model Insumos {
+model Insumo {
   id                      Int      @id @default(autoincrement())
   nombre                  String   @unique
   cal_100g                Float

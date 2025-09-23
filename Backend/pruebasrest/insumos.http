@@ -9,7 +9,7 @@ POST http://localhost:4000/insumos
 Content-Type: application/json
 
 {
-  "nombre": "Nuevo uinsumo",
+  "nombre": "Nuevo insumo",
   "cal_100g": 100,
   "grasasTotales_100g": 5,
   "grasasTrans_100g": 0,
