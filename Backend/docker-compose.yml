@@ -1,9 +1,13 @@
 services:
   backend:
+    image: node:20
+    working_dir: /usr/src/app
     command: sh -c "npx prisma migrate deploy && npm run dev"
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
+    depends_on:
+      - postgres
   postgres:
     image: postgres:17
     container_name: allinpharma_pg

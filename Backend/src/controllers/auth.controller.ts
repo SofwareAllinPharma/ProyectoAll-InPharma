@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
+import { normalizeRoleName, type RoleCode } from '../utils/roles';
 import { signAccessToken } from '../utils/token';
 import { RegisterDto, LoginDto, ForgotDto, ResetDto } from '../schemas/auth.dto';
 import { sendPasswordResetEmail } from '../services/email.service';
@@ -9,7 +10,7 @@ import { sendPasswordResetEmail } from '../services/email.service';
 const saltingEncriptacion = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 
 /** POST /auth/login */
-export async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response) {  
   try {
     const parse = LoginDto.safeParse(req.body); 
     if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
@@ -43,7 +44,13 @@ export async function me(req: Request, res: Response) {
   const mail = (req as any).user?.mail as string | undefined;
   if (!mail) return res.status(401).json({ error: 'No autenticado' });
 
-  const dbUser = await prisma.usuario.findUnique({
+  type DBUser = {
+    mail?: string | null;
+    persona?: { nombre?: string | null; apellido?: string | null } | null;
+    perfiles?: { perfil: { nombre: string } }[] | null;
+  } | null;
+
+  const dbUser: DBUser = await prisma.usuario.findUnique({
     where: { mail },
     select: {
       mail: true,
@@ -52,12 +59,14 @@ export async function me(req: Request, res: Response) {
     },
   });
 
-  return res.json({
+  return res.json({ 
     user: {
       mail: dbUser?.mail,
       name: [dbUser?.persona?.nombre, dbUser?.persona?.apellido]
               .filter(Boolean).join(' ') || null,
-      roles: (dbUser?.perfiles ?? []).map(p => p.perfil.nombre),
+      roles: (dbUser?.perfiles ?? [])
+        .map((p) => normalizeRoleName(p.perfil.nombre))
+        .filter((x): x is RoleCode => x !== null),
     },
   });
 }

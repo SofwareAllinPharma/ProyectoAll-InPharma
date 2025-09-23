@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import PreLoginLayout from "../layouts/PreLoginLayout";
 import PostLoginLayout from "../layouts/PostLoginLayout";
+import RequireAuth from "../lib/RequireAuth";
 import LandingPage from "../features/landing/pages/LandingPage";
 import Login from "../features/auth/pages/Login";
 import QuienesSomos from "../features/landing/pages/QuienesSomos";
@@ -8,8 +9,8 @@ import QuienesSomos from "../features/landing/pages/QuienesSomos";
 // privado
 import SelectProfile from "../features/profiles/pages/SelectProfile";
 import TecnicoDashboard from "../features/views/tecnico/TecnicoDashboard";
-import AtencionDashboard from "../features/views/atencion/AtencionDashboard";
-import AdminDashboard from "../features/views/admin/AdminDashboard";
+import AtencionDashboard from "../features/views/adminFab/AdminFabricaDashboard";
+import AdminDashboard from "../features/views/adminSis/AdminSistemaDashboard";
 
 export default function App() {
   return (
@@ -23,7 +24,9 @@ export default function App() {
         </Route>
 
         {/* Post-login - privado */}
-        <Route element={<PostLoginLayout />}>
+        <Route
+          element={<RequireAuth><PostLoginLayout /></RequireAuth>}
+        >
           <Route path="/perfiles" element={<SelectProfile />} />
           <Route path="/tecnico" element={<TecnicoDashboard />} />
           <Route path="/atencion" element={<AtencionDashboard />} />

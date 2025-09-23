@@ -1,0 +1,9 @@
+DATABASE_URL="postgresql://admin:Seminarioutn2025@localhost:5432/allinpharma?schema=public"
+JWT_SECRET="jnfghigebtgniewjt35298636jqterno"
+JWT_EXPIRES_IN="1h"           
+BCRYPT_ROUNDS="10" 
+
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=Seminarioutn2025
+POSTGRES_DB=allinpharma
+POSTGRES_PORT=5432

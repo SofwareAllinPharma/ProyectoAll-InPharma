@@ -1,19 +1,21 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from '../../../lib/auth';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { login, loading } = useAuth();
+  const [mail, setMail] = useState('');
+  const [password, setPassword] = useState('');
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: reemplazar por autenticación real
-    setLoading(true);
     try {
-      await new Promise((res) => setTimeout(res, 600));
-      navigate("/perfiles", { replace: true });
-    } finally {
-      setLoading(false);
+      await login(mail, password);
+      navigate('/perfiles', { replace: true });
+    } catch (err) {
+      // mostrar error simple
+      alert('Credenciales inválidas');
     }
   };
 
@@ -36,6 +38,8 @@ export default function Login() {
             id="email"
             type="email"
             required
+            value={mail}
+            onChange={(e) => setMail(e.target.value)}
             className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="tu@email.com"
           />
@@ -47,6 +51,8 @@ export default function Login() {
             id="password"
             type="password"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="••••••••"
           />

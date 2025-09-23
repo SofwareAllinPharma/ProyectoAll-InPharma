@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 type ProfileCardProps = {
-    role: "tecnico" | "atencion" | "admin";
+    role: "tecnico" | "adminFab" | "adminSis";
     title: string;
     description: string;
     to: string;
@@ -19,10 +19,10 @@ export default function ProfileCard({
         <Link
             to={to}
             data-role={role}
-            className="bg-[#faf8f2] border border-[#5d5448] rounded-lg p-6 flex flex-col items-center transition-transform transform hover:scale-110 hover:shadow-lg"
+            className="bg-[#faf8f2] border border-[#5d5448] rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-110 hover:shadow-lg"
         >
             {/* Contenedor para que el ícono no se deforme */}
-            <div className="w-30 h-30 mb-4 flex items-center justify-center">
+            <div className="w-24 h-24 mb-4 flex items-center justify-center">
                 <img
                     src={icon}
                     alt={title}
@@ -31,7 +31,7 @@ export default function ProfileCard({
             </div>
 
             <h2 className="text-xl font-bold">{title}</h2>
-            <p className="text-sm opacity-80 text-center">{description}</p>
+            <p className="text-sm opacity-80 mt-2">{description}</p>
         </Link>
     );
 }
