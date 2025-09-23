@@ -13,7 +13,7 @@ export default function Login() {
     try {
       await login(mail, password);
       navigate('/perfiles', { replace: true });
-    } catch (err) {
+    } catch {
       // mostrar error simple
       alert('Credenciales inválidas');
     }
@@ -70,9 +70,9 @@ export default function Login() {
             <Link to="/" className="underline">
               ← Volver al inicio
             </Link>
-            <a href="#" className="underline">
+            <Link to="/auth/forgot" className="underline">
               Olvidé mi contraseña
-            </a>
+            </Link>
           </div>
         </form>
       </div>
