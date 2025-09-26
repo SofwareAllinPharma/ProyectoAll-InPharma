@@ -204,7 +204,7 @@ export default function InsumosPage() {
 
       {/* Información adicional */}
       <div className="text-center text-sm text-gray-500">
-        <p>💡 <strong>Tip:</strong> Haz doble clic en cualquier fila para editar o eliminar un insumo</p>
+        <p>💡 <strong>Tip:</strong> Usa el botón de tres puntos en cada fila para ver las opciones de editar o eliminar</p>
       </div>
 
       {/* Modales */}

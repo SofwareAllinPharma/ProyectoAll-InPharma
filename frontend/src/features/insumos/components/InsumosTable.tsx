@@ -25,17 +25,12 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
     return value % 1 === 0 ? value.toString() : value.toFixed(2);
   };
 
-  const handleRowDoubleClick = (insumo: Insumo) => {
-    onInsumoDoubleClick(insumo);
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-[#5d5448] text-white">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre</th>
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Calorías</th>
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Grasas Tot.</th>
@@ -46,6 +41,7 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Sodio</th>
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fibra</th>
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Otros</th>
+              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -60,14 +56,11 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
                 <tr
                   key={insumo.id}
                   className={`
-                    cursor-pointer transition-colors duration-200
+                    transition-colors duration-200
                     hover:bg-[#f5f1e8] hover:shadow-sm
                     ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                   `}
-                  onDoubleClick={() => handleRowDoubleClick(insumo)}
-                  title="Doble clic para editar"
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{insumo.id}</td>
                   <td className="px-4 py-3 text-sm text-gray-900 font-medium">{insumo.nombre}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.cal_100g)}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasTotales_100g)}g</td>
@@ -78,6 +71,17 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.sodio_100g)}mg</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.fibra_100g)}g</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.otro_100g)}g</td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => onInsumoDoubleClick(insumo)}
+                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                      title="Ver opciones"
+                    >
+                      <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

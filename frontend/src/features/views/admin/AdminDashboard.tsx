@@ -215,14 +215,14 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-full">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0">
-        <nav className="p-4 space-y-2">
+      <div className="w-40 bg-white border-r border-gray-200 flex-shrink-0">
+        <nav className="p-3 space-y-2">
           {navigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
               className={`
-                w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left
+                w-full flex items-center gap-2 px-2 py-2 rounded-lg text-left text-sm
                 transition-all duration-200
                 ${activeSection === item.id
                   ? 'bg-[#5d5448] text-white'
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="p-4">
           {renderContent()}
         </div>
       </div>
