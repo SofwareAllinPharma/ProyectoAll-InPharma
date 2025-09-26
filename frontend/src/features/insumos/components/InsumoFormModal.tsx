@@ -58,7 +58,7 @@ export default function InsumoFormModal({
         grasasSaturadas_100g: insumo.grasasSaturadas_100g,
         proteinas_100g: insumo.proteinas_100g,
         carbohidratos_100g: insumo.carbohidratos_100g,
-        sodio_100g: insumo.sodio_100g,
+        sodio_100g: insumo.sodio_100g * 1000, // Convertir gramos a mg para mostrar
         fibra_100g: insumo.fibra_100g,
         otro_100g: insumo.otro_100g,
       });
@@ -118,7 +118,12 @@ export default function InsumoFormModal({
     e.preventDefault();
     
     if (validateForm()) {
-      onSave(formData);
+      // Convertir sodio de mg a gramos antes de enviar
+      const dataToSend = {
+        ...formData,
+        sodio_100g: formData.sodio_100g / 1000
+      };
+      onSave(dataToSend);
     }
   };
 
