@@ -1,0 +1,56 @@
+### Listar todas las fórmulas
+GET http://localhost:4000/formulas
+
+### Listar fórmulas protegidas
+GET http://localhost:4000/formulas?estado=protegida
+
+### Listar fórmulas no protegidas
+GET http://localhost:4000/formulas?estado=no_protegida
+
+### Buscar fórmula por nombre
+GET http://localhost:4000/formulas?search=Fórmula 
+
+### Obtener detalle de una fórmula por ID
+GET http://localhost:4000/formulas/5
+
+### Crear una nueva fórmula
+POST http://localhost:4000/formulas
+Content-Type: application/json
+
+{
+  "nombre": "Postre 1",
+  "esProtegida": true,
+  "insumos": [
+    { "idInsumo": 3, "cantidadInsumo": 60 },
+    { "idInsumo": 2, "cantidadInsumo": 50 },
+    { "idInsumo": 5, "cantidadInsumo": 10 }
+  ]
+}
+
+### Modificar una fórmula existente
+PUT http://localhost:4000/formulas/5
+Content-Type: application/json
+
+{
+  "nombre": "Fórmula Test Modifi",
+  "esProtegida": false,
+  "insumos": [
+    { "idInsumo": 3, "cantidadInsumo": 70 },
+    { "idInsumo": 2, "cantidadInsumo": 40 }
+  ]
+}
+
+### Clonar una fórmula protegida
+POST http://localhost:4000/formulas/6/clone
+Content-Type: application/json
+
+{
+  "nombre": "Postre 1 (copia)",
+  "insumos": [
+    { "idInsumo": 3, "cantidadInsumo": 60 },
+    { "idInsumo": 2, "cantidadInsumo": 55 }
+  ]
+}
+
+### Eliminar (baja lógica) una fórmula
+DELETE http://localhost:4000/formulas/4
