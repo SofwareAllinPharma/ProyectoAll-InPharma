@@ -88,5 +88,6 @@ model Insumo {
   sodio_100g              Float
   fibra_100g              Float
   otro_100g               Float
+  activo                  Boolean  @default(true)
   @@map("INSUMOS")
 }
