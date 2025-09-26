@@ -138,6 +138,30 @@ export default function InsumoFormModal({
     }
   };
 
+  const handleNumericInputChange = (field: keyof CreateInsumoDto, inputValue: string) => {
+    // Si el campo actual es 0 y el usuario empieza a escribir, reemplazar el 0
+    const currentValue = formData[field] as number;
+    let newValue: number;
+    
+    // Si el input está vacío, poner 0
+    if (inputValue === '' || inputValue === null || inputValue === undefined) {
+      newValue = 0;
+    } else {
+      // Si el valor actual es 0 y el usuario escribió algo que no sea '0', usar solo el nuevo valor
+      if (currentValue === 0 && inputValue !== '0' && inputValue !== '0.') {
+        // Si es un número válido, parsearlo, sino mantener 0
+        const parsed = parseFloat(inputValue);
+        newValue = isNaN(parsed) ? 0 : parsed;
+      } else {
+        // Comportamiento normal
+        const parsed = parseFloat(inputValue);
+        newValue = isNaN(parsed) ? 0 : parsed;
+      }
+    }
+
+    handleInputChange(field, newValue);
+  };
+
   if (!open) return null;
 
   const isEditing = !!insumo;
@@ -162,7 +186,7 @@ export default function InsumoFormModal({
             {/* Nombre */}
             <div className="md:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre del Insumo *
+                Nombre del Insumo
               </label>
               <input
                 ref={nameRef}
@@ -192,7 +216,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.cal_100g}
-                onChange={(e) => handleInputChange('cal_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('cal_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -215,7 +239,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.grasasTotales_100g}
-                onChange={(e) => handleInputChange('grasasTotales_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('grasasTotales_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -238,7 +262,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.grasasTrans_100g}
-                onChange={(e) => handleInputChange('grasasTrans_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('grasasTrans_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -261,7 +285,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.grasasSaturadas_100g}
-                onChange={(e) => handleInputChange('grasasSaturadas_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('grasasSaturadas_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -284,7 +308,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.proteinas_100g}
-                onChange={(e) => handleInputChange('proteinas_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('proteinas_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -307,7 +331,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.carbohidratos_100g}
-                onChange={(e) => handleInputChange('carbohidratos_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('carbohidratos_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -330,7 +354,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.sodio_100g}
-                onChange={(e) => handleInputChange('sodio_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('sodio_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -353,7 +377,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.fibra_100g}
-                onChange={(e) => handleInputChange('fibra_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('fibra_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
@@ -376,7 +400,7 @@ export default function InsumoFormModal({
                 step="0.01"
                 min="0"
                 value={formData.otro_100g}
-                onChange={(e) => handleInputChange('otro_100g', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumericInputChange('otro_100g', e.target.value)}
                 className={`
                   w-full px-3 py-2 border rounded-lg 
                   focus:ring-[#5d5448] focus:border-[#5d5448] 
