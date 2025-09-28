@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from '../../../lib/auth';
+import PasswordField from "../../../components/PasswordField"; // ajustá la ruta si es distinta
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ export default function Login() {
       await login(mail, password);
       navigate('/perfiles', { replace: true });
     } catch {
-      // mostrar error simple
       alert('Credenciales inválidas');
     }
   };
@@ -44,16 +44,13 @@ export default function Login() {
             placeholder="tu@email.com"
           />
 
-          <label className="block text-sm mb-1" htmlFor="password">
-            Contraseña
-          </label>
-          <input
+          {/* Ahora usamos PasswordField para que tenga el mismo toggle 👁️ */}
+          <PasswordField
             id="password"
-            type="password"
+            label="Contraseña"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="••••••••"
           />
 
@@ -64,7 +61,6 @@ export default function Login() {
           >
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
-
 
           <div className="mt-4 text-sm flex items-center justify-between">
             <Link to="/" className="underline">
