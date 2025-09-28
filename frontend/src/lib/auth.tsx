@@ -4,6 +4,7 @@ import { apiFetch } from './api';
 // --- Centralización de llamadas forgot/reset ---
 export type OkResponse = { ok: true };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const authApi = {
   forgotPassword: (mail: string) =>
     apiFetch<OkResponse>("/auth/forgot-password", {
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   async function fetchMe() {
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await api.post('/auth/logout');
-    } catch (e) {
+    } catch {
       // ignorar
     } finally {
       localStorage.removeItem('accessToken');
@@ -92,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');

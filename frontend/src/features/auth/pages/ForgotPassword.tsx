@@ -1,9 +1,11 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { authApi } from "../../../lib/auth";
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [mail, setMail] = useState("");
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: string; msg: string } | null>(null);
@@ -18,11 +20,8 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       await authApi.forgotPassword(mail.trim());
-      setAlert({
-        type: "success",
-        msg: "Si el correo existe, te enviamos un email con el código y un enlace válido por 15 minutos.",
-      });
-      setMail("");
+      // Redirigir a la pantalla de reset y pasar el mail en la query para autocompletar
+      navigate(`/auth/reset?mail=${encodeURIComponent(mail.trim())}&sent=1`);
     } catch (err: unknown) {
       let message = "Ocurrió un error";
       if (err instanceof Error) {

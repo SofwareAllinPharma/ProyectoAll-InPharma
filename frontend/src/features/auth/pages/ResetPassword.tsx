@@ -11,6 +11,7 @@ export default function ResetPassword() {
   const q = useQuery();
   const [mail, setMail] = useState(q.get("mail") ?? "");
   const [token, setToken] = useState(q.get("token") ?? "");
+  const sentFlag = q.get("sent") === "1";
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,6 +52,12 @@ export default function ResetPassword() {
           Ingresá el código que recibiste por mail y tu nueva contraseña.
         </p>
 
+        {/* If redirected from forgot-password with sent=1, show a success box including the email */}
+        {sentFlag && (
+          <div className={`mb-4 rounded-lg px-4 py-2 text-sm bg-green-100 text-green-800`}>
+            {`Si el correo ${mail} tiene un usuario registrado, te enviaremos un email con el código y un enlace válido por 15 minutos.`}
+          </div>
+        )}
         {alert && (
           <div className={`mb-4 rounded-lg px-4 py-2 text-sm ${
             alert.type === "success"
@@ -80,7 +87,7 @@ export default function ResetPassword() {
             placeholder="tu@email.com"
           />
           <label className="block text-sm mb-1" htmlFor="token">
-            Código (token)
+            Código
           </label>
           <input
             id="token"
