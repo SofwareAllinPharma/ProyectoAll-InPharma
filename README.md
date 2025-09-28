@@ -161,6 +161,11 @@ npx prisma studio
 Podes usar este gestor online de prisma si te da paja usar pgadmin o la consola psql.
 ------------------------------------------------------------------------
 
+
+# migrar datos por primera vez
+``` bash
+npx prisma db seed
+```
 ## 📊 6. Visualizar con pgAdmin
 
 Abrí pgAdmin → expandí **Databases → allinpharma → Schemas → public →
