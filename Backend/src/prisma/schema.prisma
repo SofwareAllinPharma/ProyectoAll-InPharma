@@ -76,3 +76,18 @@ model PasswordReset {
 
   @@map("PASSWORD_RESET")
 }
+model Insumo {
+  id                      Int      @id @default(autoincrement())
+  nombre                  String   @unique
+  cal_100g                Float
+  grasasTotales_100g      Float
+  grasasTrans_100g        Float
+  grasasSaturadas_100g    Float
+  proteinas_100g          Float
+  carbohidratos_100g      Float
+  sodio_100g              Float
+  fibra_100g              Float
+  otro_100g               Float
+  activo                  Boolean  @default(true)
+  @@map("INSUMOS")
+}

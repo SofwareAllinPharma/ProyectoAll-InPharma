@@ -1,0 +1,42 @@
+### Obtener todos los insumos
+GET http://localhost:4000/insumos
+
+### Obtener un insumo por ID
+GET http://localhost:4000/insumos/2
+
+### Crear un nuevo insumo
+POST http://localhost:4000/insumos
+Content-Type: application/json
+
+{
+  "nombre": "Nuevo insumo",
+  "cal_100g": 100,
+  "grasasTotales_100g": 5,
+  "grasasTrans_100g": 0,
+  "grasasSaturadas_100g": 2,
+  "proteinas_100g": 3,
+  "carbohidratos_100g": 20,
+  "sodio_100g": 50,
+  "fibra_100g": 1,
+  "otro_100g": 0
+}
+
+### Modificar un insumo
+PUT http://localhost:4000/insumos/1
+Content-Type: application/json
+
+{
+  "nombre": "Insumo Modificado",
+  "cal_100g": 120,
+  "grasasTotales_100g": 6,
+  "grasasTrans_100g": 0,
+  "grasasSaturadas_100g": 3,
+  "proteinas_100g": 4,
+  "carbohidratos_100g": 22,
+  "sodio_100g": 55,
+  "fibra_100g": 2,
+  "otro_100g": 1
+}
+
+### Eliminar un insumo
+DELETE http://localhost:4000/insumos/1
