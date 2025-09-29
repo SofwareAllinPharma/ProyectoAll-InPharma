@@ -12,7 +12,11 @@ export class FormulasRepository {
           : {}),
       },
       orderBy: { nombre: "asc" },
-      include: { formulaInsumos: true },
+      include: {
+        formulaInsumos: {
+          include: { insumo: true },
+        },
+      },
     });
   }
 
@@ -39,7 +43,15 @@ export class FormulasRepository {
           },
         });
       }
-      return formula;
+      // Retornar la fórmula completa con los insumos usando la transacción
+      return tx.formula.findUnique({
+        where: { id: formula.id },
+        include: {
+          formulaInsumos: {
+            include: { insumo: true },
+          },
+        },
+      });
     });
   }
 
@@ -56,7 +68,15 @@ export class FormulasRepository {
           },
         });
       }
-      return formula;
+      // Retornar la fórmula completa con los insumos usando la transacción
+      return tx.formula.findUnique({
+        where: { id },
+        include: {
+          formulaInsumos: {
+            include: { insumo: true },
+          },
+        },
+      });
     });
   }
 

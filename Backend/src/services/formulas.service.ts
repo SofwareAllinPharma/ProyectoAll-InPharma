@@ -31,6 +31,11 @@ export class FormulasService {
     if (!dto.nombre || typeof dto.nombre !== "string" || !dto.nombre.trim()) {
       throw new Error("El nombre es obligatorio");
     }
+
+    if (!Array.isArray(dto.insumos) || dto.insumos.length === 0) {
+      throw new Error("Debes agregar al menos un insumo a la fórmula");
+    }
+
     const nombreExistente = await prisma.formula.findFirst({
       where: { nombre: { equals: dto.nombre, mode: "insensitive" } },
     });
@@ -122,6 +127,10 @@ export class FormulasService {
     if (formula.esProtegida)
       throw new Error("No se puede modificar una fórmula protegida");
 
+    if (!Array.isArray(dto.insumos) || dto.insumos.length === 0) {
+      throw new Error("Debes agregar al menos un insumo a la fórmula");
+    }
+
     // Calcular porción como suma de cantidades
     const porcion = dto.insumos.reduce(
       (acc: number, curr: any) => acc + Number(curr.cantidadInsumo),
@@ -190,7 +199,7 @@ export class FormulasService {
       sodio: nutrientes.sodio,
       fibra: nutrientes.fibra,
       otros: nutrientes.otros,
-      esProtegida: false, // Siempre permanece no protegida
+      esProtegida: !!dto.esProtegida,
       activo: true,
     };
 

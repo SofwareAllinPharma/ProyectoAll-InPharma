@@ -3,9 +3,6 @@ import type { Insumo, CreateInsumoDto, UpdateInsumoDto } from '../types/insumo.t
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export class InsumoService {
-  /**
-   * Obtiene todos los insumos
-   */
   static async getAllInsumos(): Promise<Insumo[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/insumos`, {
@@ -26,9 +23,6 @@ export class InsumoService {
     }
   }
 
-  /**
-   * Obtiene un insumo por ID
-   */
   static async getInsumoById(id: number): Promise<Insumo> {
     try {
       const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
@@ -49,9 +43,6 @@ export class InsumoService {
     }
   }
 
-  /**
-   * Crea un nuevo insumo
-   */
   static async createInsumo(insumo: CreateInsumoDto): Promise<Insumo> {
     try {
       const response = await fetch(`${API_BASE_URL}/insumos`, {
@@ -73,9 +64,6 @@ export class InsumoService {
     }
   }
 
-  /**
-   * Actualiza un insumo existente
-   */
   static async updateInsumo(id: number, insumo: UpdateInsumoDto): Promise<Insumo> {
     try {
       const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
@@ -97,9 +85,6 @@ export class InsumoService {
     }
   }
 
-  /**
-   * Elimina un insumo
-   */
   static async deleteInsumo(id: number): Promise<void> {
     try {
       const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
@@ -118,9 +103,6 @@ export class InsumoService {
     }
   }
 
-  /**
-   * Busca insumos por nombre
-   */
   static async searchInsumos(searchTerm: string): Promise<Insumo[]> {
     try {
       const allInsumos = await this.getAllInsumos();

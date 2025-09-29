@@ -115,7 +115,7 @@ export default function InsumosPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Insumos</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Insumos</h1>
             <p className="text-sm text-gray-600 mt-1">Gestiona el inventario de insumos de la fábrica</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function InsumosPage() {
       {/* Header con título y botón agregar */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Insumos</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Insumos</h1>
           <p className="text-sm text-gray-600 mt-1">
             Gestiona el inventario de insumos de la fábrica
           </p>
