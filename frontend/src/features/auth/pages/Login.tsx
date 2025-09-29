@@ -1,14 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from '../../../lib/auth';
-import PasswordField from "../../../components/PasswordField"; // ajustá la ruta si es distinta
 
 export default function Login() {
   const navigate = useNavigate();
   const { login, loading } = useAuth();
   const [mail, setMail] = useState('');
   const [password, setPassword] = useState('');
-  const [alert, setAlert] = useState<{ type: string; msg: string } | null>(null);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +14,8 @@ export default function Login() {
       await login(mail, password);
       navigate('/perfiles', { replace: true });
     } catch {
-      setAlert({ type: 'danger', msg: 'Credenciales inválidas. Mail y/o contraseña incorrectos. Por favor, intente nuevamente.' });
+      // mostrar error simple
+      alert('Credenciales inválidas');
     }
   };
 
@@ -32,17 +31,6 @@ export default function Login() {
           className="rounded-2xl border border-[#5d5448] bg-white/70 backdrop-blur p-6 shadow-sm"
           onSubmit={onSubmit}
         >
-          {alert && (
-            <div className={`mb-4 rounded-lg px-4 py-2 text-sm ${
-              alert.type === 'success'
-                ? 'bg-green-100 text-green-800'
-                : alert.type === 'danger'
-                ? 'bg-red-100 text-red-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {alert.msg}
-            </div>
-          )}
           <label className="block text-sm mb-1" htmlFor="email">
             Email
           </label>
@@ -51,18 +39,21 @@ export default function Login() {
             type="email"
             required
             value={mail}
-            onChange={(e) => { setMail(e.target.value); if (alert) setAlert(null); }}
+            onChange={(e) => setMail(e.target.value)}
             className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="tu@email.com"
           />
 
-          {/* Ahora usamos PasswordField para que tenga el mismo toggle 👁️ */}
-          <PasswordField
+          <label className="block text-sm mb-1" htmlFor="password">
+            Contraseña
+          </label>
+          <input
             id="password"
-            label="Contraseña"
+            type="password"
             required
             value={password}
-            onChange={(e) => { setPassword(e.target.value); if (alert) setAlert(null); }}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="••••••••"
           />
 
@@ -73,6 +64,7 @@ export default function Login() {
           >
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
+
 
           <div className="mt-4 text-sm flex items-center justify-between">
             <Link to="/" className="underline">
