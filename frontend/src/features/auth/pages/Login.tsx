@@ -7,15 +7,16 @@ export default function Login() {
   const { login, loading } = useAuth();
   const [mail, setMail] = useState('');
   const [password, setPassword] = useState('');
+  const [alert, setAlert] = useState<{ type: string; msg: string } | null>(null);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setAlert(null);
     try {
       await login(mail, password);
       navigate('/perfiles', { replace: true });
     } catch {
-      // mostrar error simple
-      alert('Credenciales inválidas');
+      setAlert({ type: 'danger', msg: 'Credenciales inválidas. Mail y/o contraseña incorrectos. Por favor, intente nuevamente' });
     }
   };
 
@@ -26,6 +27,18 @@ export default function Login() {
         <p className="text-sm opacity-80 mb-8">
           Accede a tu cuenta para gestionar el sistema All-In Pharma.
         </p>
+
+        {alert && (
+          <div className={`mb-4 rounded-lg px-4 py-2 text-sm ${
+            alert.type === 'success'
+              ? 'bg-green-100 text-green-800'
+              : alert.type === 'danger'
+              ? 'bg-red-100 text-red-800'
+              : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            {alert.msg}
+          </div>
+        )}
 
         <form
           className="rounded-2xl border border-[#5d5448] bg-white/70 backdrop-blur p-6 shadow-sm"
@@ -39,7 +52,7 @@ export default function Login() {
             type="email"
             required
             value={mail}
-            onChange={(e) => setMail(e.target.value)}
+            onChange={(e) => { setMail(e.target.value); setAlert(null); }}
             className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="tu@email.com"
           />
@@ -52,7 +65,7 @@ export default function Login() {
             type="password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); setAlert(null); }}
             className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
             placeholder="••••••••"
           />
