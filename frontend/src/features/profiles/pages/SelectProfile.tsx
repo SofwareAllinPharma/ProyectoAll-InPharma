@@ -7,8 +7,8 @@ import adminIcon from "../../../assets/icons/adminsis/admin_icono_perfil.png";
 
 const ROLES = [
     { key: "tecnico", roleCode: 'TECNICO', label: "Técnico", description: "Gestión técnica y operaciones.", icon: tecnicoIcon, path: "/tecnico" },
-    { key: "adminFab", roleCode: 'ADMINFAB', label: "Administrador de Fábrica", description: "Varios.", icon: atencionIcon, path: "/atencion" },
-    { key: "adminSis", roleCode: 'ADMINSIS', label: "Administrador del Sistema", description: "Configuración y usuarios.", icon: adminIcon, path: "/admin" },
+    { key: "adminFab", roleCode: 'ADMINFAB', label: "Administrador de Fábrica", description: "Varios.", icon: atencionIcon, path: "/adminFab" },
+    { key: "adminSis", roleCode: 'ADMINSIS', label: "Administrador del Sistema", description: "Configuración y usuarios.", icon: adminIcon, path: "/adminSis" },
 ];
 
 export default function SelectProfile() {

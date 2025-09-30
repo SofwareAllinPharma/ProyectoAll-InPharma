@@ -103,7 +103,7 @@ const ConfiguracionComponent = () => (
   </div>
 );
 
-export default function AdminDashboard() {
+export default function AdminSisDashboard() {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('resumen');
 

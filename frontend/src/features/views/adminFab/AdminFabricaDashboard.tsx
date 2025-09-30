@@ -1,4 +1,4 @@
-export default function AtencionDashboard() {
+export default function AdminFabDashboard() {
   return (
     <div className="space-y-2">
       <h1 className="text-2xl font-bold">Panel Administrador de Fábrica</h1>
