@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { InsumosPage } from '../../insumos';
 import { FormulasPage } from '../../formulas/pages/FormulasPage';
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
-import { Sidebar } from '../../../components/Sidebar';
-import type { SidebarItem } from '../../../components/Sidebar';
+// sidebar items ahora los maneja PostLoginLayout a través de la ruta
 
 const ResumenComponent = () => {
   const [insumosCount, setInsumosCount] = useState(0);
@@ -104,35 +104,19 @@ const ConfiguracionComponent = () => (
 );
 
 export default function AdminDashboard() {
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('resumen');
 
-  const sidebarItems: SidebarItem[] = [
-    {
-      id: 'resumen',
-      label: 'Resumen',
-      icon: <span></span>,
-    },
-    {
-      id: 'insumos',
-      label: 'Insumos',
-      icon: <span></span>,
-    },
-    {
-      id: 'formulas',
-      label: 'Fórmulas',
-      icon: <span></span>,
-    },
-    {
-      id: 'usuarios',
-      label: 'Usuarios',
-      icon: <span></span>,
-    },
-    {
-      id: 'configuracion',
-      label: 'Configuración',
-      icon: <span></span>,
-    },
-  ];
+  useEffect(() => {
+    const path = location.pathname.replace(/^\/adminsis\/?/, '');
+    if (!path || path === '') return setActiveSection('resumen');
+    if (path.startsWith('insumos')) return setActiveSection('insumos');
+    if (path.startsWith('formulas')) return setActiveSection('formulas');
+    if (path.startsWith('usuarios')) return setActiveSection('usuarios');
+    if (path.startsWith('configuracion')) return setActiveSection('configuracion');
+  }, [location.pathname]);
+
+  // sidebar items ahora los maneja PostLoginLayout a través de la ruta
 
   const renderContent = () => {
     switch (activeSection) {
@@ -152,16 +136,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar
-        title="Panel Admin"
-        items={sidebarItems}
-        activeItem={activeSection}
-        onItemClick={setActiveSection}
-      />
-      <div className="flex-1">
-        <div className="p-6">{renderContent()}</div>
-      </div>
+    <div className="">
+      <div className="p-6">{renderContent()}</div>
     </div>
   );
 }

@@ -84,7 +84,6 @@ export default function DeleteConfirmModal({
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="text-sm">
             <p><span className="font-medium text-gray-700">Nombre:</span> {insumo.nombre}</p>
-            <p><span className="font-medium text-gray-700">ID:</span> {insumo.id}</p>
             <p className="text-xs text-gray-500 mt-2">
               Se eliminarán todos los datos nutricionales asociados a este insumo.
             </p>

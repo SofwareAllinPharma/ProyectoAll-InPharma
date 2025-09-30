@@ -68,7 +68,7 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasSaturadas_100g)}g</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.proteinas_100g)}g</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.carbohidratos_100g)}g</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.sodio_100g)}mg</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.sodio_100g * 1000)}mg</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.fibra_100g)}g</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.otro_100g)}g</td>
                   <td className="px-4 py-3 text-center">

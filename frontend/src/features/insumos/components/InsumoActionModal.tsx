@@ -76,9 +76,6 @@ export default function InsumoActionModal({
           <p className="text-sm text-gray-600">
             <span className="font-medium">Nombre:</span> {insumo.nombre}
           </p>
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">ID:</span> {insumo.id}
-          </p>
         </div>
 
         <div className="space-y-3">

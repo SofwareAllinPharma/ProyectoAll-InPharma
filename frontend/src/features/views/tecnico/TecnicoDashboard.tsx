@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { Sidebar } from '../../../components/Sidebar';
-import type { SidebarItem } from '../../../components/Sidebar';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // Componentes de ejemplo para las secciones técnicas
 const OperacionesComponent = () => (
@@ -25,25 +24,15 @@ const ReportesComponent = () => (
 );
 
 export default function TecnicoDashboard() {
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('operaciones');
 
-  const sidebarItems: SidebarItem[] = [
-    {
-      id: 'operaciones',
-      label: 'Operaciones',
-      icon: <span></span>,
-    },
-    {
-      id: 'mantenimiento',
-      label: 'Mantenimiento',
-      icon: <span></span>,
-    },
-    {
-      id: 'reportes',
-      label: 'Reportes',
-      icon: <span></span>,
-    },
-  ];
+  useEffect(() => {
+    const path = location.pathname.replace(/^\/tecnico\/?/, '');
+    if (!path || path === '') return setActiveSection('operaciones');
+    if (path.startsWith('mantenimiento')) return setActiveSection('mantenimiento');
+    if (path.startsWith('reportes')) return setActiveSection('reportes');
+  }, [location.pathname]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -59,16 +48,8 @@ export default function TecnicoDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar
-        title="Panel Técnico"
-        items={sidebarItems}
-        activeItem={activeSection}
-        onItemClick={setActiveSection}
-      />
-      <div className="flex-1">
-        <div className="p-6">{renderContent()}</div>
-      </div>
+    <div className="">
+      <div className="p-6">{renderContent()}</div>
     </div>
   );
 }

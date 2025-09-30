@@ -34,6 +34,9 @@ npm install express cors bcrypt jsonwebtoken nodemailer zod @prisma/client
 # Instalar dependencias de desarrollo
 npm install -D prisma typescript tsx @types/node @types/express @types/cors @types/jsonwebtoken @types/bcrypt @types/nodemailer
 
+# Instalar nodemon para actualizacion automatica de servidor
+npm i -D nodemon
+
 ```
 
 # Guía de Configuración de Backend con Base de datos --- All-In Pharma
@@ -158,6 +161,11 @@ npx prisma studio
 Podes usar este gestor online de prisma si te da paja usar pgadmin o la consola psql.
 ------------------------------------------------------------------------
 
+
+# migrar datos por primera vez
+``` bash
+npx prisma db seed
+```
 ## 📊 6. Visualizar con pgAdmin
 
 Abrí pgAdmin → expandí **Databases → allinpharma → Schemas → public →
