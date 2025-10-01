@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
+
+  // 1) Perfiles
   const perfiles = [
     { id: 1, nombre: 'tecnico',  descripcion: 'tecnico' },
     { id: 2, nombre: 'adminfab', descripcion: 'administrador de fabrica' },
@@ -105,6 +107,39 @@ async function main() {
   })
 
   console.log('✔ Seed ejecutado OK')
+
+  // 5) Depósitos
+
+   const depositos = [
+    {
+      nombre: "Depósito Central",
+      direccion: "Av. Siempre Viva 123",
+      responsable: "Juan Pérez",
+      capacidadTotal: 5000,
+      capacidadUsada: 0,
+      estado: true, // activo
+    },
+    {
+      nombre: "Depósito Secundario",
+      direccion: "Ruta 9 Km 25",
+      responsable: "María Gómez",
+      capacidadTotal: 2500,
+      capacidadUsada: 0,
+      estado: true, // activo
+    },
+
+  ];
+
+  for (const d of depositos) {
+    await prisma.deposito.upsert({
+      where: { nombre: d.nombre },
+      update: { ...d },
+      create: { ...d },
+    });
+  }
+
+  console.log("Seed de DEPOSITOS ejecutado OK");
+
 }
 
 main()

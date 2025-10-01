@@ -5,6 +5,7 @@ import { prisma } from "./lib/prisma"; // prisma es la instancia única del Pris
 import authRoutes from "./routes/auth.routes";
 import insumosRoutes from "./routes/insumos.routes";
 import formulasRoutes from "./routes/formulas.routes";
+import depositosRoutes from "./routes/depositos.routes";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -36,6 +37,7 @@ app.get("/health", async (_req, res) => {
 app.use("/insumos", insumosRoutes);
 app.use("/auth", authRoutes);
 app.use("/formulas", formulasRoutes);
+app.use("/depositos", depositosRoutes);
 app.use("/", (req, res) => {
   res.send("API corriendo correctamente");
 });
