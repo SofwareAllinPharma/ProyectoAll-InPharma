@@ -69,12 +69,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onToggleCollapsed?.(next);
   };
 
-  // activo por ruta si no pasa activeItem
+  // activo por ruta (sin marcar el ítem raíz cuando estoy en una subruta)
   const isActive = (item: SidebarItem) => {
     if (activeItem) return activeItem === item.id;
     if (!item.to) return false;
-    if (item.to === "/adminfab") return location.pathname === "/adminfab";
-    return location.pathname.startsWith(item.to);
+
+    const norm = (p: string) => p.replace(/\/+$/, ""); // quita barra final
+    const path = norm(location.pathname);
+    const to = norm(item.to);
+
+    const isRoot = /^\/[^/]+$/.test(to); // "/tecnico", "/adminfab", etc.
+
+    // raíz => exacto | no raíz => exacto o prefijo (para sub-rutas)
+    return isRoot ? path === to : path === to || path.startsWith(to + "/");
   };
 
   const widthClass = collapsed ? collapsedWidthClass : expandedWidthClass;
