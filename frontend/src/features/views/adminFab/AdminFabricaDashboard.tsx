@@ -23,9 +23,9 @@ const MostradorComponent = () => (
   </div>
 );
 
-export default function AdminFabricaDashboard() {
+export default function AdminFabDashboard() {
   const location = useLocation();
-  const [activeSection, setActiveSection] = useState('operaciones');
+  const [activeSection, setActiveSection] = useState<'pedidos'|'stock'|'mostrador'>('pedidos');
 
   useEffect(() => {
     const path = location.pathname.replace(/^\/adminfab\/?/, '');
