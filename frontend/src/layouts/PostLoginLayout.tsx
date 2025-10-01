@@ -7,13 +7,13 @@ export default function PostLoginLoyout() {
   const location = useLocation();
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
-    if (pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/adminsis')) {
       return [
-        { id: 'resumen', label: 'Resumen', to: '/admin' },
-        { id: 'insumos', label: 'Insumos', to: '/admin/insumos' },
-        { id: 'formulas', label: 'Fórmulas', to: '/admin/formulas' },
-        { id: 'usuarios', label: 'Usuarios', to: '/admin/usuarios' },
-        { id: 'configuracion', label: 'Configuración', to: '/admin/configuracion' },
+        { id: 'resumen', label: 'Resumen', to: '/adminsis' },
+        { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos' },
+        { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas' },
+        { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios' },
+        { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion' },
       ];
     }
     if (pathname.startsWith('/tecnico')) {
@@ -25,9 +25,9 @@ export default function PostLoginLoyout() {
     }
     if (pathname.startsWith('/adminfab')) {
       return [
-        { id: 'ventas', label: 'Ventas', to: '/atencion' },
-        { id: 'turnos', label: 'Turnos', to: '/atencion/turnos' },
-        { id: 'mostrador', label: 'Mostrador', to: '/atencion/mostrador' },
+        { id: 'pedidos', label: 'Pedidos', to: '/adminfab' },
+        { id: 'stock', label: 'Stock', to: '/adminfab/stock' },
+        { id: 'mostrador', label: 'Mostrador', to: '/adminfab/mostrador' },
       ];
     }
 

@@ -5,7 +5,7 @@ import { requireRoles } from "../middleware/roles";
 const router = Router();
 
 router.get("/ping", requireAuth, requireRoles("ADMINFAB"), (_req, res) => {
-  res.json({ ok: true, area: "adminFab" });
+  res.json({ ok: true, area: "adminfab" });
 });
 
 export default router;

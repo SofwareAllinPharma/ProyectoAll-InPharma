@@ -21,7 +21,7 @@ export default function Navbar() {
   if (path === "/" || path.startsWith("/quienes-somos")) variant = "landing";
   else if (path.startsWith("/auth/login")) variant = "login";
   else if (path.startsWith("/perfiles")) variant = "profiles";
-  else if (path.startsWith("/tecnico") || path.startsWith("/atencion") || path.startsWith("/admin")) variant = "dashboard";
+  else if (path.startsWith("/tecnico") || path.startsWith("/adminfab") || path.startsWith("/adminsis")) variant = "dashboard";
 
   const handleLogout = () => {
     setShowConfirm(false);

@@ -2,13 +2,13 @@ import ProfileCard from "../components/ProfileCard";
 import { useAuth } from '../../../lib/auth';
 
 import tecnicoIcon from "../../../assets/icons/tecnico/tecnico_icono_perfil.png";
-import atencionIcon from "../../../assets/icons/adminfab/adminfab_icono_perfil.png";
-import adminIcon from "../../../assets/icons/adminsis/admin_icono_perfil.png";
+import adminFabIcon from "../../../assets/icons/adminfab/adminfab_icono_perfil.png";
+import adminSisIcon from "../../../assets/icons/adminsis/admin_icono_perfil.png";
 
 const ROLES = [
     { key: "tecnico", roleCode: 'TECNICO', label: "Técnico", description: "Gestión técnica y operaciones.", icon: tecnicoIcon, path: "/tecnico" },
-    { key: "adminFab", roleCode: 'ADMINFAB', label: "Administrador de Fábrica", description: "Varios.", icon: atencionIcon, path: "/adminFab" },
-    { key: "adminSis", roleCode: 'ADMINSIS', label: "Administrador del Sistema", description: "Configuración y usuarios.", icon: adminIcon, path: "/adminSis" },
+    { key: "adminfab", roleCode: 'ADMINFAB', label: "Administrador de Fábrica", description: "Varios.", icon: adminFabIcon, path: "/adminfab" },
+    { key: "adminsis", roleCode: 'ADMINSIS', label: "Administrador del Sistema", description: "Configuración y usuarios.", icon: adminSisIcon, path: "/adminsis" },
 ];
 
 export default function SelectProfile() {
@@ -38,7 +38,7 @@ export default function SelectProfile() {
                     visible.map((r) => (
                         <ProfileCard
                             key={r.key}
-                            role={r.key as "tecnico" | "adminFab" | "adminSis"}
+                            role={r.key as "tecnico" | "adminfab" | "adminsis"}
                             title={r.label}
                             description={r.description}
                             to={r.path}

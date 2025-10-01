@@ -23,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   items,
   activeItem,
   onItemClick,
+  /*collapsed = false,*/
 }) => {
   const location = useLocation();
 
@@ -35,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-[#5d5448] h-full">
+    <div className="w-64 bg-[#5d5448] h-full min-h-screen sticky top-0 flex flex-col">
       <div className="p-6">
         <h1 className="text-xl font-bold text-white">{title}</h1>
       </div>

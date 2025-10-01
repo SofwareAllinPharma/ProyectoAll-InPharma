@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 type ProfileCardProps = {
-    role: "tecnico" | "adminFab" | "adminSis";
+    role: "tecnico" | "adminfab" | "adminsis";
     title: string;
     description: string;
     to: string;
