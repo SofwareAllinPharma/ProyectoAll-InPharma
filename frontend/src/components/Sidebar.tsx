@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export interface SidebarItem {
   id: string;
   label: string;
-  icon?: React.ReactNode; // opcional (no hay fallback)
+  icon?: React.ReactNode;
   to?: string;
 }
-
 interface SidebarProps {
   title: string;
   items: SidebarItem[];
-  activeItem?: string;
-  onItemClick?: (itemId: string) => void;
-  collapsedControlled?: boolean; // opcional: controlar desde padre
+  onItemClick?: (id: string) => void;
+  collapsedControlled?: boolean;
   onToggleCollapsed?: (next: boolean) => void;
-  expandedWidthClass?: string; // default "w-64"
-  collapsedWidthClass?: string; // default "w-12" (solo botón)
+  expandedWidthClass?: string;
+  collapsedWidthClass?: string;
 }
 
-const HamburgerIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+const Hamburger = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22">
     <path
       d="M3 6h18M3 12h18M3 18h18"
       stroke="currentColor"
@@ -29,9 +27,8 @@ const HamburgerIcon = () => (
     />
   </svg>
 );
-
-const ChevronLeftIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+const ChevronLeft = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22">
     <path
       d="M15 6l-6 6 6 6"
       stroke="currentColor"
@@ -45,122 +42,98 @@ const ChevronLeftIcon = () => (
 export const Sidebar: React.FC<SidebarProps> = ({
   title,
   items,
-  activeItem,
   onItemClick,
   collapsedControlled,
   onToggleCollapsed,
   expandedWidthClass = "w-64",
   collapsedWidthClass = "w-12",
 }) => {
-  const location = useLocation();
-
-  // estado local + default colapsado en mobile
-  const [collapsedLocal, setCollapsedLocal] = useState<boolean>(false);
+  const [cl, setCl] = useState(false);
   useEffect(() => {
-    const isMobile = window.matchMedia?.("(max-width: 768px)").matches;
-    setCollapsedLocal(isMobile); // mobile => colapsada por defecto
+    setCl(window.matchMedia?.("(max-width:768px)")?.matches ?? false);
   }, []);
-
-  const collapsed = collapsedControlled ?? collapsedLocal;
-
+  const collapsed = collapsedControlled ?? cl;
   const toggle = () => {
-    const next = !collapsed;
-    setCollapsedLocal(next);
-    onToggleCollapsed?.(next);
+    const n = !collapsed;
+    setCl(n);
+    onToggleCollapsed?.(n);
   };
-
-  // activo por ruta (sin marcar el ítem raíz cuando estoy en una subruta)
-  const isActive = (item: SidebarItem) => {
-    if (activeItem) return activeItem === item.id;
-    if (!item.to) return false;
-
-    const norm = (p: string) => p.replace(/\/+$/, ""); // quita barra final
-    const path = norm(location.pathname);
-    const to = norm(item.to);
-
-    const isRoot = /^\/[^/]+$/.test(to); // "/tecnico", "/adminfab", etc.
-
-    // raíz => exacto | no raíz => exacto o prefijo (para sub-rutas)
-    return isRoot ? path === to : path === to || path.startsWith(to + "/");
-  };
-
-  const widthClass = collapsed ? collapsedWidthClass : expandedWidthClass;
+  const width = collapsed ? collapsedWidthClass : expandedWidthClass;
+  const isRoot = (to?: string) =>
+    !!to && to.split("/").filter(Boolean).length === 1;
 
   return (
     <aside
-      className={`${widthClass} bg-[#5d5448] text-white min-h-screen sticky top-0 flex flex-col transition-[width] duration-300 z-40`}
+      className={`${width} bg-white text-[#5d5448] min-h-screen sticky top-0 flex flex-col transition-[width] duration-300 z-40`}
     >
-      {/* HEADER */}
       <div
         className={`flex items-center px-3 py-3 ${
           collapsed ? "justify-center" : "justify-between"
         }`}
       >
         {collapsed ? (
-          // SOLO hamburguesa cuando está colapsada
           <button
             onClick={toggle}
-            className="p-2 rounded-xl hover:bg-white/10 outline-none focus:ring-2 focus:ring-white/40"
-            aria-label="Abrir panel"
-            title="Abrir"
+            className="p-2 rounded-xl hover:bg-[#5d5448]/10 focus:ring-2 focus:ring-[#5d5448]/30"
+            aria-label="Abrir"
           >
-            <HamburgerIcon />
+            <Hamburger />
           </button>
         ) : (
-          // Expandida: "Panel" a la izquierda (más grande) y flecha a la derecha
           <>
-            <span className="font-semibold text-lg select-none truncate">
-              {title}
-            </span>
+            <span className="font-semibold text-lg truncate">{title}</span>
             <button
               onClick={toggle}
-              className="p-2 rounded-xl hover:bg-white/10 outline-none focus:ring-2 focus:ring-white/40"
-              aria-label="Cerrar panel"
-              title="Cerrar"
+              className="p-2 rounded-xl hover:bg-[#5d5448]/10 focus:ring-2 focus:ring-[#5d5448]/30"
+              aria-label="Cerrar"
             >
-              <ChevronLeftIcon />
+              <ChevronLeft />
             </button>
           </>
         )}
       </div>
 
-      {/* separador (solo expandida) */}
-      {!collapsed && <div className="h-px bg-white/10 mx-3 mb-2" />}
+      {!collapsed && <div className="h-px bg-[#5d5448]/10 mx-3 mb-2" />}
 
-      {/* NAV: oculto por completo si está colapsada */}
       {!collapsed && (
         <nav className="flex-1 space-y-2 px-2">
-          {items.map((item) => {
-            const active = isActive(item);
-            const base =
-              "flex items-center gap-3 rounded-xl px-3 py-2 cursor-pointer transition-colors";
-            const activeCls = active ? "bg-white/20" : "hover:bg-white/10";
-
-            const inner = (
-              <div
-                className={`${base} ${activeCls}`}
-                onClick={() => onItemClick?.(item.id)}
+          {items.map((it) =>
+            it.to ? (
+              <NavLink
+                key={it.id}
+                to={it.to}
+                end={isRoot(it.to)}
+                onClick={() => onItemClick?.(it.id)}
+                className={({ isActive }) =>
+                  `block rounded-xl transition-colors ${
+                    isActive ? "bg-[#5d5448]/20" : "hover:bg-[#5d5448]/10"
+                  }`
+                }
+                title={it.label}
               >
-                {/* si el ícono existe lo muestro; no hay fallback */}
-                {item.icon && <span className="shrink-0">{item.icon}</span>}
-                <span className="truncate">{item.label}</span>
-              </div>
-            );
-
-            return item.to ? (
-              <Link key={item.id} to={item.to}>
-                {inner}
-              </Link>
+                <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+                  {it.icon && <span className="shrink-0">{it.icon}</span>}
+                  <span className="truncate">{it.label}</span>
+                </div>
+              </NavLink>
             ) : (
-              <div key={item.id}>{inner}</div>
-            );
-          })}
+              <div
+                key={it.id}
+                onClick={() => onItemClick?.(it.id)}
+                className="rounded-xl hover:bg-[#5d5448]/10"
+              >
+                <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+                  {it.icon && <span className="shrink-0">{it.icon}</span>}
+                  <span className="truncate">{it.label}</span>
+                </div>
+              </div>
+            )
+          )}
         </nav>
       )}
 
-      {/* footer (opcional) solo expandida */}
       {!collapsed && (
-        <div className="px-3 py-3 text-xs text-white/70">
+        <div className="px-3 py-3 text-xs text-[#5d5448]/70">
           All-In Pharma · v1.0
         </div>
       )}
