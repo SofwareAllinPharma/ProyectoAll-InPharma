@@ -32,6 +32,12 @@ export class DepositosService {
       orderBy: { id: "asc" },
     });
   }
+  // ✅ Consultar por ID
+  async findById(id: number): Promise<Deposito | null> {
+    return prisma.deposito.findUnique({
+      where: { id },
+    });
+  }
   
  
 }

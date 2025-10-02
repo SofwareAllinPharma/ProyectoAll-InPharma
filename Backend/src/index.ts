@@ -1,10 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { prisma } from "./lib/prisma"; // prisma es la instancia única del Prisma Client, sirve para hablar con la base de datos PostgreSQL usando schema.prisma
+
 import authRoutes from "./routes/auth.routes";
 import insumosRoutes from "./routes/insumos.routes";
-import formulasRoutes from "./routes/formulas.routes";
 import depositosRoutes from "./routes/depositos.routes";
 
 const app = express();
@@ -14,32 +13,25 @@ const PORT = Number(process.env.PORT) || 4000;
 app.use(cors());
 app.use(express.json());
 
-//Healthcheck endpoint, sirve para monitorear si la API y la base de datos están funcionando correctamente
-app.get("/health", async (_req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({
-      ok: true,
-      db: "up",
-      time: new Date().toISOString(),
-    });
-  } catch (e: any) {
-    res.status(500).json({
-      ok: false,
-      db: "down",
-      error: e?.message ?? "unknown",
-    });
-  }
+// (opcional) log para ver qué ruta se está atendiendo
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
 });
 
-// Routes
-
-app.use("/insumos", insumosRoutes);
+// Rutas específicas SIEMPRE antes del root
 app.use("/auth", authRoutes);
-app.use("/formulas", formulasRoutes);
+app.use("/insumos", insumosRoutes);
 app.use("/depositos", depositosRoutes);
-app.use("/", (req, res) => {
+
+// Root “health/ok” SOLO para "/"
+app.get("/", (_req, res) => {
   res.send("API corriendo correctamente");
+});
+
+// (opcional) 404 explícito
+app.use((_req, res) => {
+  res.status(404).json({ error: "Ruta no encontrada" });
 });
 
 app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));

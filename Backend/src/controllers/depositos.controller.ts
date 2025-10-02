@@ -67,4 +67,22 @@ export class DepositosController {
       return res.status(500).json({ error: "Error al obtener depósitos." });
     }
   }
+  /**GET /depositos por id */
+  async getById(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido." });
+      }
+
+      const deposito = await depositosService.findById(id);
+      if (!deposito) {
+        return res.status(404).json({ error: "Depósito no encontrado." });
+      }
+
+      return res.json(deposito);
+    } catch (error: any) {
+      return res.status(500).json({ error: "Error al obtener depósito." });
+    }
+  }
 }
