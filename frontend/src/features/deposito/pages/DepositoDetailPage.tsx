@@ -2,53 +2,83 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
-import { mockDepositos } from '../data/mockDepositos';
 import DepositoFormModal from '../components/DepositoFormModal';
-import type { DepositoFormValues } from '../components/DepositoFormModal';    
-
+import type { DepositoFormValues } from '../components/DepositoFormModal';
+import CapacityBar from '../components/CapacityBar';
 
 export default function DepositoDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [dep, setDep] = useState<Deposito | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => {
     const load = async () => {
+      setError(null);
+      const numId = Number(id);
+      if (!id || Number.isNaN(numId)) {
+        setError('ID inválido');
+        setDep(null);
+        return;
+      }
       try {
-        const data = await DepositoService.getById(Number(id));
+        const data = await DepositoService.getById(numId);
         setDep(data);
-      } catch {
-        setDep(mockDepositos.find(d => d.id === Number(id)) || null);
+      } catch (e: any) {
+        setError(e?.message || 'No se pudo obtener el depósito.');
+        setDep(null);
       }
     };
     load();
   }, [id]);
 
-  if (!dep) return <div className="text-red-600">Depósito no encontrado.</div>;
-  const pct = Math.min(100, Math.round((dep.capacidadUsada / Math.max(1, dep.capacidadTotal)) * 100));
+  if (error) {
+    return (
+      <div className="space-y-2">
+        <p className="text-red-600">{error}</p>
+        <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">
+          ← Volver a todos los depósitos
+        </Link>
+      </div>
+    );
+  }
+
+  if (!dep) {
+    return (
+      <div className="space-y-2">
+        <p className="text-gray-700">Cargando depósito…</p>
+        <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">
+          ← Volver a todos los depósitos
+        </Link>
+      </div>
+    );
+  }
 
   const handleUpdate = async (v: DepositoFormValues) => {
     try {
-      const updated = await DepositoService.update(dep.id, v);
+      // Backend solo permite { responsable, capacidadTotal }
+      const updated = await DepositoService.update(dep.id, {
+        responsable: v.responsable,
+        capacidadTotal: Number(v.capacidadTotal),
+      });
       setDep(updated);
       setOpenForm(false);
-    } catch {
-      // fallback inmediato para mock
-      setDep({ ...dep, ...v });
+    } catch (e) {
+      alert((e as any)?.message || 'No se pudo actualizar el depósito.');
       setOpenForm(false);
     }
   };
 
-  const handleDelete = async () => {
-    const ok = window.confirm('¿Eliminar este depósito? Esta acción no se puede deshacer.');
+  const handleDeactivate = async () => {
+    const ok = window.confirm('¿Desactivar este depósito?');
     if (!ok) return;
     try {
-      await DepositoService.remove(dep.id);
-    } catch {
-      // está bien que falle en mock; continuamos navegación
+      await DepositoService.deactivate(dep.id); // baja lógica
+      navigate('/adminsis/depositos', { replace: true });
+    } catch (e) {
+      alert((e as any)?.message || 'No se pudo desactivar el depósito.');
     }
-    navigate('/adminsis/depositos', { replace: true });
   };
 
   return (
@@ -58,8 +88,8 @@ export default function DepositoDetailPage() {
           <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">
             ← Volver a todos los depósitos
           </Link>
-          <h2 className="text-2xl font-semibold text-[#3E3529]">Depósitos</h2>
-          <p className="text-sm text-gray-600">Gestión de depósitos y su inventario</p>
+          <h2 className="text-2xl font-semibold text-[#3E3529] mt-1">Depósito</h2>
+          <p className="text-sm text-gray-600">Consulta y gestión del depósito seleccionado</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -69,10 +99,10 @@ export default function DepositoDetailPage() {
             Modificar
           </button>
           <button
-            onClick={handleDelete}
+            onClick={handleDeactivate}
             className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
           >
-            Eliminar
+            Desactivar
           </button>
         </div>
       </div>
@@ -88,7 +118,7 @@ export default function DepositoDetailPage() {
             </span>
             <div>
               <h3 className="text-xl font-semibold text-[#3E3529]">{dep.nombre}</h3>
-              <p className="text-gray-600">{dep.ubicacion}</p>
+              <p className="text-gray-600">{dep.direccion}</p>
             </div>
           </div>
         </div>
@@ -96,10 +126,10 @@ export default function DepositoDetailPage() {
         <div className="grid gap-6 mt-6 md:grid-cols-3">
           <div className="rounded-md bg-gray-50 p-4">
             <p className="text-sm text-gray-500">Capacidad Total</p>
-            <div className="mt-1 text-xl font-semibold">{dep.capacidadUsada}</div>
-            <p className="text-sm text-gray-600">/ {dep.capacidadTotal} unidades</p>
-            <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-              <div className="h-2 rounded-full bg-[#9D977B]" style={{ width: `${pct}%` }} />
+            <div className="mt-1 text-xl font-semibold">{dep.capacidadTotal}</div>
+            <p className="text-sm text-gray-600">unidades</p>
+            <div className="mt-3">
+              <CapacityBar used={0} total={dep.capacidadTotal} />
             </div>
           </div>
           <div className="rounded-md bg-gray-50 p-4">

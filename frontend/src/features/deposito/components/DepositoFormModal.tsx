@@ -1,4 +1,3 @@
-// features/deposito/components/DepositoFormModal.tsx
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
@@ -6,7 +5,7 @@ import type { Deposito } from '../types/deposito.types';
 
 export type DepositoFormValues = {
   nombre: string;
-  ubicacion: string;
+  direccion: string; // reemplaza 'ubicacion'
   capacidadTotal: number;
   responsable: string;
 };
@@ -36,11 +35,11 @@ export default function DepositoFormModal({
     defaultValues: deposito
       ? {
           nombre: deposito.nombre,
-          ubicacion: deposito.ubicacion,
+          direccion: deposito.direccion,
           capacidadTotal: deposito.capacidadTotal,
-          responsable: deposito.responsable
+          responsable: deposito.responsable,
         }
-      : { nombre: '', ubicacion: '', capacidadTotal: 0, responsable: '' }
+      : { nombre: '', direccion: '', capacidadTotal: 0, responsable: '' }
   });
 
   useEffect(() => {
@@ -54,11 +53,11 @@ export default function DepositoFormModal({
       deposito
         ? {
             nombre: deposito.nombre,
-            ubicacion: deposito.ubicacion,
+            direccion: deposito.direccion,
             capacidadTotal: deposito.capacidadTotal,
-            responsable: deposito.responsable
+            responsable: deposito.responsable,
           }
-        : { nombre: '', ubicacion: '', capacidadTotal: 0, responsable: '' }
+        : { nombre: '', direccion: '', capacidadTotal: 0, responsable: '' }
     );
   }, [open, deposito, reset]);
 
@@ -88,24 +87,24 @@ export default function DepositoFormModal({
               {...register('nombre', {
                 required: onlyCreate ? 'El nombre es requerido' : false,
                 minLength: onlyCreate ? { value: 3, message: 'Mínimo 3 caracteres' } : undefined,
-                validate: nameTaken
+                validate: nameTaken,
               })}
             />
             {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
           </div>
 
-          {/* Ubicación */}
+          {/* Dirección */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
             <input
               disabled={isEdit || loading}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.ubicacion ? 'border-red-500' : 'border-gray-300'}`}
-              {...register('ubicacion', {
-                required: onlyCreate ? 'La ubicación es requerida' : false,
-                minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.direccion ? 'border-red-500' : 'border-gray-300'}`}
+              {...register('direccion', {
+                required: onlyCreate ? 'La dirección es requerida' : false,
+                minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined,
               })}
             />
-            {errors.ubicacion && <p className="text-red-500 text-xs mt-1">{errors.ubicacion.message}</p>}
+            {errors.direccion && <p className="text-red-500 text-xs mt-1">{errors.direccion.message}</p>}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -119,7 +118,7 @@ export default function DepositoFormModal({
                 {...register('capacidadTotal', {
                   required: 'Requerido',
                   valueAsNumber: true,
-                  min: { value: 1, message: 'Debe ser > 0' }
+                  min: { value: 1, message: 'Debe ser > 0' },
                 })}
               />
               {errors.capacidadTotal && <p className="text-red-500 text-xs mt-1">{errors.capacidadTotal.message}</p>}
@@ -133,7 +132,7 @@ export default function DepositoFormModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.responsable ? 'border-red-500' : 'border-gray-300'}`}
                 {...register('responsable', {
                   required: 'Requerido',
-                  minLength: { value: 3, message: 'Mínimo 3 caracteres' }
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' },
                 })}
               />
               {errors.responsable && <p className="text-red-500 text-xs mt-1">{errors.responsable.message}</p>}
@@ -153,3 +152,4 @@ export default function DepositoFormModal({
     container
   );
 }
+

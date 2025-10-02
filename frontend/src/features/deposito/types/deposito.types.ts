@@ -1,29 +1,20 @@
-export type DepositoEstado = boolean; 
-
 export interface Deposito {
-  id: number;             
+  id: number;
   nombre: string;
-  ubicacion: string;
-  capacidadTotal: number;
-  capacidadUsada: number;  
+  direccion: string;      
   responsable: string;
-  estado: DepositoEstado;   
+  capacidadTotal: number;
+  estado: boolean;
 }
 
 export interface CreateDepositoDTO {
   nombre: string;
-  ubicacion: string;
-  capacidadTotal: number;
+  direccion: string;       
   responsable: string;
+  capacidadTotal: number;  
 }
 
 export interface UpdateDepositoDTO {
-  capacidadTotal: number;
-  responsable: string;
-}
-
-export interface CanDeleteResponse {
-  canDelete: boolean;
-  reason?: 'STOCK_NOT_ZERO' | 'PENDING_MOVEMENTS' | 'UNKNOWN';
-  stockActual?: number;
+  responsable?: string;
+  capacidadTotal?: number; 
 }

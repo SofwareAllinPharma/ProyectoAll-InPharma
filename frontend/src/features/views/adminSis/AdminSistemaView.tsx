@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+// src/features/views/adminSis/AdminSistemaDashboard.tsx
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { InsumosPage } from '../../insumos';
 import { FormulasPage } from '../../formulas/pages/FormulasPage';
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
+import { useEffect, useState } from 'react';
 import DepositosPage from '../../deposito/pages/DepositosPage';
-// sidebar items ahora los maneja PostLoginLayout a través de la ruta
+import DepositoDetailPage from '../../deposito/pages/DepositoDetailPage';
 
 const ResumenComponent = () => {
   const [insumosCount, setInsumosCount] = useState(0);
@@ -17,7 +18,7 @@ const ResumenComponent = () => {
       try {
         const [insumos, formulas] = await Promise.all([
           InsumoService.getAllInsumos(),
-          FormulaService.getAllFormulas()
+          FormulaService.getAllFormulas(),
         ]);
         setInsumosCount(insumos.length);
         setFormulasCount(formulas.length);
@@ -38,7 +39,7 @@ const ResumenComponent = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Panel Administrador</h1>
         <p className="text-gray-600">Resumen general del sistema</p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card de Insumos */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
@@ -105,32 +106,19 @@ const ConfiguracionComponent = () => (
 );
 
 export default function AdminSisDashboard() {
-  const location = useLocation();
-  const [activeSection, setActiveSection] = useState('resumen');
+  return (
+    <Routes>
+      <Route index element={<ResumenComponent />} />
 
-  useEffect(() => {
-  const seg = location.pathname.replace(/^\/adminsis\/?/, '').split('/')[0];
-  setActiveSection(seg || 'resumen');
-}, [location.pathname]);
+      <Route path="insumos" element={<InsumosPage />} />
+      <Route path="formulas" element={<FormulasPage />} />
+      <Route path="usuarios" element={<UsuariosComponent />} />
+      <Route path="configuracion" element={<ConfiguracionComponent />} />
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'resumen':
-        return <ResumenComponent />;
-      case 'insumos':
-        return <InsumosPage />;
-      case 'formulas':
-        return <FormulasPage />;
-      case 'usuarios':
-        return <UsuariosComponent />;
-      case 'configuracion':
-        return <ConfiguracionComponent />;
-      case 'depositos':
-        return <DepositosPage />;
-      default:
-        return <div>Sección no encontrada</div>;
-    }
-  };
+      <Route path="depositos" element={<DepositosPage />} />
+      <Route path="depositos/:id" element={<DepositoDetailPage />} />
 
-  return <>{renderContent()}</>;
+      <Route path="*" element={<Navigate to="depositos" replace />} />
+    </Routes>
+  );
 }
