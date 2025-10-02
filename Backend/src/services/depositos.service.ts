@@ -10,7 +10,6 @@ export type CrearDepositoDTO = {
 };
 
 export class DepositosService {
-
   //Crear un nuevo depósito
   async create(data: CrearDepositoDTO): Promise<Deposito> {
     const { nombre, direccion, responsable, capacidadTotal, estado } = data;
@@ -23,21 +22,59 @@ export class DepositosService {
         capacidadTotal,
         ...(typeof estado === "boolean" ? { estado } : {}), // si no viene, DB aplica default true
       },
-    });    
+    });
   }
-  
+
   //Consultar todos los depósitos
   async findAll(): Promise<Deposito[]> {
+    // solo activos
     return prisma.deposito.findMany({
+      where: { estado: true },
       orderBy: { id: "asc" },
     });
   }
-  // ✅ Consultar por ID
+  //Consultar por ID
   async findById(id: number): Promise<Deposito | null> {
     return prisma.deposito.findUnique({
       where: { id },
     });
   }
-  
- 
+
+  // ✅ Modificar solo responsable y capacidadTotal
+  async update(
+    id: number,
+    data: { responsable?: string; capacidadTotal?: number }
+  ): Promise<Deposito> {
+    if (
+      data.capacidadTotal !== undefined &&
+      (Number.isNaN(data.capacidadTotal) || data.capacidadTotal < 0)
+    ) {
+      throw new Error("capacidadTotal debe ser un número >= 0.");
+    }
+
+    return prisma.deposito.update({
+      where: { id },
+      data: {
+        ...(data.responsable !== undefined
+          ? { responsable: data.responsable }
+          : {}),
+        ...(data.capacidadTotal !== undefined
+          ? { capacidadTotal: data.capacidadTotal }
+          : {}),
+      },
+    });
+  }
+  /**
+   * Baja lógica (desactivar) cumpliendo reglas:
+   * - Stock total del depósito = 0
+   * - Sin movimientos pendientes
+   * aún no tiene tablas de stock/movimientos,
+   * métodos del service (getStockTotalEnDeposito y tieneMovimientosPendientes
+   */
+  async deactivate(id: number): Promise<Deposito> {
+    return prisma.deposito.update({
+      where: { id },
+      data: { estado: false },
+    });
+  }
 }

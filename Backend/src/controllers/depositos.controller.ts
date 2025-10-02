@@ -85,4 +85,42 @@ export class DepositosController {
       return res.status(500).json({ error: "Error al obtener depósito." });
     }
   }
+  // PUT /depositos/:id
+   async update(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ error: "ID inválido." });
+
+      const { responsable, capacidadTotal } = req.body ?? {};
+      if (responsable === undefined && capacidadTotal === undefined) {
+        return res.status(400).json({ error: "No hay campos válidos para actualizar (solo responsable o capacidadTotal)." });
+      }
+
+      const actualizado = await depositosService.update(id, {
+        responsable: responsable ? String(responsable).trim() : undefined,
+        capacidadTotal: capacidadTotal !== undefined ? Number(capacidadTotal) : undefined,
+      });
+
+      return res.json(actualizado);
+    } catch (error: any) {
+      if (error?.code === "P2025") return res.status(404).json({ error: "Depósito no encontrado." });
+      return res.status(400).json({ error: error?.message ?? "Error al modificar depósito" });
+    }
+  }
+  // DELETE /depositos/:id  (baja lógica)
+  async deactivate(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ error: "ID inválido." });
+
+      const inactivado = await depositosService.deactivate(id);
+      return res.json({
+        message: "Depósito desactivado con éxito.",
+        deposito: inactivado,
+      });
+    } catch (error: any) {
+      if (error?.code === "P2025") return res.status(404).json({ error: "Depósito no encontrado." });
+      return res.status(400).json({ error: error?.message ?? "Error al eliminar depósito" });
+    }
+  }
 }
