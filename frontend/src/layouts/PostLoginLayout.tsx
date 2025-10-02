@@ -12,22 +12,28 @@ export default function PostLoginLoyout() {
         { id: 'resumen', label: 'Resumen', to: '/adminsis' },
         { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos' },
         { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas' },
+        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos' },
         { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios' },
         { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion' },
+
       ];
     }
     if (pathname.startsWith('/tecnico')) {
       return [
         { id: 'operaciones', label: 'Operaciones', to: '/tecnico' },
+        { id: 'depositos', label: 'Depósitos', to: '/tecnico/depositos' },
         { id: 'mantenimiento', label: 'Mantenimiento', to: '/tecnico/mantenimiento' },
         { id: 'reportes', label: 'Reportes', to: '/tecnico/reportes' },
+
       ];
     }
     if (pathname.startsWith('/adminfab')) {
       return [
         { id: 'pedidos', label: 'Pedidos', to: '/adminfab' },
+        { id: 'depositos', label: 'Depósitos', to: '/adminfab/depositos' },
         { id: 'stock', label: 'Stock', to: '/adminfab/stock' },
         { id: 'mostrador', label: 'Mostrador', to: '/adminfab/mostrador' },
+
       ];
     }
 
@@ -46,12 +52,13 @@ export default function PostLoginLoyout() {
           <Sidebar
             title="Panel"
             items={items}
-            onItemClick={() => {}}
+            onItemClick={() => { }}
           />
         )}
-
-        <main className="flex-1 mx-auto max-w-7xl px-4 py-10">
-          <Outlet />
+        <main className="flex-1 overflow-x-hidden">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 lg:py-10">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

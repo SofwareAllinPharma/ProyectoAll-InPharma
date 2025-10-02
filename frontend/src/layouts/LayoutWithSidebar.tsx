@@ -31,7 +31,6 @@ export const LayoutWithSidebar: React.FC<LayoutWithSidebarProps> = ({
       <Sidebar
         title={title}
         items={sidebarItems}
-        activeItem={activeItem}
         onItemClick={handleItemClick}
       />
       <div className="flex-1">

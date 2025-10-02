@@ -101,7 +101,7 @@ async function main() {
 
   await prisma.insumo.createMany({
     data: insumos,
-    skipDuplicates: true, // ON CONFLICT ("nombre") DO NOTHING
+    skipDuplicates: true,
   })
 
   console.log('✔ Seed ejecutado OK')

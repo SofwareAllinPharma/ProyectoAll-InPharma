@@ -38,7 +38,8 @@ export default function Navbar() {
           scrolled ? "shadow-sm" : "",
         ].join(" ")}
       >
-        <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between text-[#5d5448]">
+        {/* 👇 contenedor fluido, sin centrado fijo */}
+        <div className="h-16 flex items-center justify-between text-[#5d5448] px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <Link to="/" className="flex items-center gap-2">
             <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
             <span>All-In Pharma</span>
