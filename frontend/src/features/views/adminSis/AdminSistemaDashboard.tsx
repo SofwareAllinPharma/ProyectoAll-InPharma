@@ -4,6 +4,7 @@ import { InsumosPage } from '../../insumos';
 import { FormulasPage } from '../../formulas/pages/FormulasPage';
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
+import DepositosPage from '../../deposito/pages/DepositosPage';
 // sidebar items ahora los maneja PostLoginLayout a través de la ruta
 
 const ResumenComponent = () => {
@@ -108,15 +109,9 @@ export default function AdminSisDashboard() {
   const [activeSection, setActiveSection] = useState('resumen');
 
   useEffect(() => {
-    const path = location.pathname.replace(/^\/adminsis\/?/, '');
-    if (!path || path === '') return setActiveSection('resumen');
-    if (path.startsWith('insumos')) return setActiveSection('insumos');
-    if (path.startsWith('formulas')) return setActiveSection('formulas');
-    if (path.startsWith('usuarios')) return setActiveSection('usuarios');
-    if (path.startsWith('configuracion')) return setActiveSection('configuracion');
-  }, [location.pathname]);
-
-  // sidebar items ahora los maneja PostLoginLayout a través de la ruta
+  const seg = location.pathname.replace(/^\/adminsis\/?/, '').split('/')[0];
+  setActiveSection(seg || 'resumen');
+}, [location.pathname]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -130,14 +125,12 @@ export default function AdminSisDashboard() {
         return <UsuariosComponent />;
       case 'configuracion':
         return <ConfiguracionComponent />;
+      case 'depositos':
+        return <DepositosPage />;
       default:
         return <div>Sección no encontrada</div>;
     }
   };
 
-  return (
-    <div className="">
-      <div className="p-6">{renderContent()}</div>
-    </div>
-  );
+  return <>{renderContent()}</>;
 }
