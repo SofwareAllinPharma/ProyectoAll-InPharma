@@ -106,7 +106,7 @@ export async function forgotPassword(req: Request, res: Response) {
 
     // Guardar hash (no el token en claro) y vencimiento en 15 min.
     const tokenHash = await bcrypt.hash(token, 8);
-    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    const expires = new Date(Date.now() + 120 * 60 * 1000);
 
     // Si no tenés la tabla, podés guardar en Redis o en columnas del usuario.
     await prisma.passwordReset.upsert({
