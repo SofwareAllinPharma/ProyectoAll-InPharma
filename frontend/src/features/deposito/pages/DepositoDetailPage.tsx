@@ -4,6 +4,8 @@ import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
 import DepositoFormModal from '../components/DepositoFormModal';
 import type { DepositoFormValues } from '../components/DepositoFormModal';
+
+import DepositIcon from '../components/depositIcon';
 import CapacityBar from '../components/CapacityBar';
 
 export default function DepositoDetailPage() {
@@ -111,10 +113,7 @@ export default function DepositoDetailPage() {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F3EFE6]">
-              <svg className="h-6 w-6 text-[#7C6A55]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeWidth={1.8} d="M3 10.5L12 6l9 4.5v6L12 21l-9-4.5v-6Z" />
-                <path strokeWidth={1.8} d="M12 6v6l9-4.5M12 12L3 7.5" />
-              </svg>
+              <DepositIcon className="h-6 w-6 text-[#7C6A55]" />
             </span>
             <div>
               <h3 className="text-xl font-semibold text-[#3E3529]">{dep.nombre}</h3>
