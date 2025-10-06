@@ -67,7 +67,7 @@ export default function DepositoFormModal({
   const nameTaken = (v: string) =>
     onlyCreate &&
     existingNames.some(n => n.trim().toLowerCase() === v.trim().toLowerCase())
-      ? 'Ese nombre ya existe'
+      ? 'Ya existe un deposito con ese nombre'
       : true;
 
   return createPortal(

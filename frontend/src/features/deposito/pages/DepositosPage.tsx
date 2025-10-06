@@ -86,11 +86,12 @@ return (
 			/>
 		)}
 
-		<DepositoFormModal
-			open={openCreate}
-			onCancel={() => setOpenCreate(false)}
-			onSave={handleCreate}
-		/>
+			<DepositoFormModal
+				open={openCreate}
+				onCancel={() => setOpenCreate(false)}
+				onSave={handleCreate}
+				existingNames={items.map(i => i.nombre)}
+			/>
 	</div>
 );
 }
