@@ -4,6 +4,7 @@ export interface Deposito {
   direccion: string;      
   responsable: string;
   capacidadTotal: number;
+  capacidadUsada: number;
   estado: boolean;
 }
 

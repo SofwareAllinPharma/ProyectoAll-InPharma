@@ -17,7 +17,7 @@ export default function DepositCard({
     navigate(`/adminsis/depositos/${d.id}`);
   };
 
-  const used = 0;
+  const used = d.capacidadUsada;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
@@ -52,9 +52,9 @@ export default function DepositCard({
           used={used}
           total={d.capacidadTotal}
           showHeader={false}
-          height={10}                         
+          height={10}
           trackClassName="bg-gray-200"
-          barClassName="bg-[#9D977B]"        
+          barClassName="bg-[#9D977B]"
         />
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Responsable:</span>
