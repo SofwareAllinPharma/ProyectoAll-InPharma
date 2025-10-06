@@ -4,7 +4,8 @@ import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
 import DepositoFormModal from '../components/DepositoFormModal';
 import type { DepositoFormValues } from '../components/DepositoFormModal';
-
+import DepositHeader from '../components/DepositHeader';
+import DepositoActionModal from '../components/DepositoActionModal';
 import DepositIcon from '../components/depositIcon';
 import CapacityBar from '../components/CapacityBar';
 
@@ -14,6 +15,8 @@ export default function DepositoDetailPage() {
   const [dep, setDep] = useState<Deposito | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
+  const [openActions, setOpenActions] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -65,6 +68,8 @@ export default function DepositoDetailPage() {
         capacidadTotal: Number(v.capacidadTotal),
       });
       setDep(updated);
+      setSuccessMsg('El depósito fue modificado con éxito');
+      setTimeout(() => setSuccessMsg(null), 6000);
       setOpenForm(false);
     } catch (e) {
       alert((e as any)?.message || 'No se pudo actualizar el depósito.');
@@ -73,8 +78,7 @@ export default function DepositoDetailPage() {
   };
 
   const handleDeactivate = async () => {
-    const ok = window.confirm('¿Desactivar este depósito?');
-    if (!ok) return;
+    // Modal de confirmación ya está en el modal de acciones
     try {
       await DepositoService.deactivate(dep.id); // baja lógica
       navigate('/adminsis/depositos', { replace: true });
@@ -85,29 +89,19 @@ export default function DepositoDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">
-            ← Volver a todos los depósitos
-          </Link>
-          <h2 className="text-2xl font-semibold text-[#3E3529] mt-1">Depósito</h2>
-          <p className="text-sm text-gray-600">Consulta y gestión del depósito seleccionado</p>
+      <DepositHeader
+        title="Depósito"
+        subtitle="Consulta y gestión del depósito seleccionado"
+        hideCreateButton
+        backLink="/adminsis/depositos"
+        backText="← Volver a todos los depósitos"
+      />
+
+      {successMsg && (
+        <div className="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded transition-opacity duration-500">
+          {successMsg}
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setOpenForm(true)}
-            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-          >
-            Modificar
-          </button>
-          <button
-            onClick={handleDeactivate}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-          >
-            Desactivar
-          </button>
-        </div>
-      </div>
+      )}
 
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
         <div className="flex items-start justify-between">
@@ -120,6 +114,15 @@ export default function DepositoDetailPage() {
               <p className="text-gray-600">{dep.direccion}</p>
             </div>
           </div>
+          <button
+            onClick={() => setOpenActions(true)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+            title="Ver opciones"
+          >
+            <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+            </svg>
+          </button>
         </div>
 
         <div className="grid gap-6 mt-6 md:grid-cols-3">
@@ -137,6 +140,14 @@ export default function DepositoDetailPage() {
           </div>
         </div>
       </div>
+
+      <DepositoActionModal
+        open={openActions}
+        deposito={dep}
+        onEdit={() => { setOpenActions(false); setOpenForm(true); }}
+        onDeactivate={() => { setOpenActions(false); handleDeactivate(); }}
+        onCancel={() => setOpenActions(false)}
+      />
 
       <DepositoFormModal
         open={openForm}

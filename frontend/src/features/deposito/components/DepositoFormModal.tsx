@@ -83,7 +83,7 @@ export default function DepositoFormModal({
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
             <input
               disabled={isEdit || loading}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.nombre ? 'border-red-500' : 'border-gray-300'} ${isEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
               {...register('nombre', {
                 required: onlyCreate ? 'El nombre es requerido' : false,
                 minLength: onlyCreate ? { value: 3, message: 'Mínimo 3 caracteres' } : undefined,
@@ -98,7 +98,7 @@ export default function DepositoFormModal({
             <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
             <input
               disabled={isEdit || loading}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.direccion ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.direccion ? 'border-red-500' : 'border-gray-300'} ${isEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
               {...register('direccion', {
                 required: onlyCreate ? 'La dirección es requerida' : false,
                 minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined,
