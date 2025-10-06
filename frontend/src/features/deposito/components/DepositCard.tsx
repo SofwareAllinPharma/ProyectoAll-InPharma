@@ -9,6 +9,7 @@ export default function DepositCard({
 }: {
   d: Deposito;
   onOpenDetail?: (id: number) => void;
+  onDelete?: (deposito: Deposito) => void;
 }) {
   const navigate = useNavigate();
 
@@ -32,12 +33,14 @@ export default function DepositCard({
           </div>
         </div>
 
-        <button
-          onClick={goDetail}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          Ver
-        </button>
+        <div>
+          <button
+            onClick={goDetail}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Ver
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">

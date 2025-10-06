@@ -6,6 +6,7 @@ import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
 import DepositoFormModal from '../components/DepositoFormModal';
 import type { DepositoFormValues } from '../components/DepositoFormModal';
+import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
 
 
 
@@ -16,26 +17,29 @@ export default function DepositosPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [openCreate, setOpenCreate] = useState(false);
 	const [successMsg, setSuccessMsg] = useState<string | null>(null);
+	const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+	const [deleteTarget, setDeleteTarget] = useState<Deposito | null>(null);
 
 
 const load = async () => {
-setLoading(true);
-setError(null);
-try {
-const data = await DepositoService.getAll();
-setItems(data);
-} catch (e: any) {
-setError(e?.message || 'Error al obtener depósitos');
-setItems([]);
-} finally {
-setLoading(false);
-}
+	setLoading(true);
+	setError(null);
+	try {
+		const data = await DepositoService.getAll();
+		setItems(data.filter(d => d.estado !== false));
+	} catch (e: any) {
+		setError(e?.message || 'Error al obtener depósitos');
+		setItems([]);
+	} finally {
+		setLoading(false);
+	}
 };
 
 
 useEffect(() => {
 void load();
 }, []);
+
 
 
 
@@ -57,6 +61,19 @@ const handleCreate = async (values: DepositoFormValues) => {
 	}
 };
 
+const handleDelete = async (deposito: Deposito) => {
+	try {
+		await DepositoService.deactivate(deposito.id);
+		setItems(prev => prev.filter(item => item.id !== deposito.id));
+		setDeleteSuccessMsg('El depósito fue eliminado correctamente');
+		setTimeout(() => setDeleteSuccessMsg(null), 6000);
+	} catch (e: any) {
+		setError(e?.message || 'Error al eliminar depósito');
+	} finally {
+		setDeleteTarget(null);
+	}
+};
+
 
 return (
 	<div className="space-y-6">
@@ -71,6 +88,11 @@ return (
 				{successMsg}
 			</div>
 		)}
+		{deleteSuccessMsg && (
+			<div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded transition-opacity duration-500">
+				{deleteSuccessMsg}
+			</div>
+		)}
 
 		{loading ? (
 			<div className="flex items-center gap-2 text-gray-500">
@@ -83,15 +105,27 @@ return (
 			<DepositGrid
 				items={items}
 				onOpenDetail={(id) => navigate(`/adminsis/depositos/${id}`)}
+				onDelete={(deposito) => setDeleteTarget(deposito)}
 			/>
 		)}
 
-			<DepositoFormModal
-				open={openCreate}
-				onCancel={() => setOpenCreate(false)}
-				onSave={handleCreate}
-				existingNames={items.map(i => i.nombre)}
-			/>
+		<DepositoFormModal
+			open={openCreate}
+			onCancel={() => setOpenCreate(false)}
+			onSave={handleCreate}
+			existingNames={items.map(i => i.nombre)}
+		/>
+
+		<DeleteConfirmModal
+			open={!!deleteTarget}
+			name={deleteTarget?.nombre || ''}
+			title="Eliminar depósito"
+			message="¿Estás seguro que deseas eliminar este depósito? Esta acción no se puede deshacer."
+			confirmLabel="Eliminar"
+			cancelLabel="Cancelar"
+			onCancel={() => setDeleteTarget(null)}
+			onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+		/>
 	</div>
 );
 }
