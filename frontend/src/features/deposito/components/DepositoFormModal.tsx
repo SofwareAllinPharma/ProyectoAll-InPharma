@@ -18,10 +18,11 @@ type Props = {
   loading?: boolean;
   /** opcional: lista para validar unicidad del nombre al crear */
   existingNames?: string[];
+  capacidadUsadaActual?: number; // para validación en edición
 };
 
 export default function DepositoFormModal({
-  open, deposito, onSave, onCancel, loading = false, existingNames = []
+  open, deposito, onSave, onCancel, loading = false, existingNames = [], capacidadUsadaActual
 }: Props) {
   const [container] = useState(() => document.createElement('div'));
   const isEdit = !!deposito;
@@ -119,6 +120,12 @@ export default function DepositoFormModal({
                   required: 'Requerido',
                   valueAsNumber: true,
                   min: { value: 1, message: 'Debe ser > 0' },
+                  validate: isEdit && typeof capacidadUsadaActual === 'number'
+                    ? (value) =>
+                        value >= capacidadUsadaActual
+                          ? true
+                          : `Debe ser mayor o igual a la capacidad usada actual (${capacidadUsadaActual})`
+                    : undefined,
                 })}
               />
               {errors.capacidadTotal && <p className="text-red-500 text-xs mt-1">{errors.capacidadTotal.message}</p>}

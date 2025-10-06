@@ -125,18 +125,23 @@ export default function DepositoDetailPage() {
           </button>
         </div>
 
-        <div className="grid gap-6 mt-6 md:grid-cols-3">
-          <div className="rounded-md bg-gray-50 p-4">
-            <p className="text-sm text-gray-500">Capacidad Total</p>
-            <div className="mt-1 text-xl font-semibold">{dep.capacidadTotal}</div>
-            <p className="text-sm text-gray-600">unidades</p>
-            <div className="mt-3">
-              <CapacityBar used={0} total={dep.capacidadTotal} />
+        <div className="grid gap-6 mt-6 md:grid-cols-2">
+          {/* Capacidad Total */}
+          <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">
+            <p className="text-sm text-gray-500 mb-1">Capacidad Total</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-[#3E3529]">{dep.capacidadUsada ?? 0}</span>
+              <span className="text-lg text-gray-700 font-normal">/ {dep.capacidadTotal}</span>
+              <span className="text-sm text-gray-500 ml-1">unidades</span>
+            </div>
+            <div className="mt-2">
+              <CapacityBar used={dep.capacidadUsada ?? 0} total={dep.capacidadTotal} showHeader={false} height={8} />
             </div>
           </div>
-          <div className="rounded-md bg-gray-50 p-4">
-            <p className="text-sm text-gray-500">Responsable</p>
-            <div className="mt-1 text-xl font-semibold">{dep.responsable}</div>
+          {/* Responsable */}
+          <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">
+            <p className="text-sm text-gray-500 mb-1">Responsable</p>
+            <div className="text-xl font-semibold text-[#3E3529]">{dep.responsable}</div>
           </div>
         </div>
       </div>
@@ -154,6 +159,7 @@ export default function DepositoDetailPage() {
         deposito={dep}
         onCancel={() => setOpenForm(false)}
         onSave={handleUpdate}
+        capacidadUsadaActual={dep.capacidadUsada ?? 0}
       />
     </div>
   );
