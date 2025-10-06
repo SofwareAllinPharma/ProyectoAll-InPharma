@@ -114,6 +114,7 @@ model Formula {
   updatedAt      DateTime         @updatedAt
   formulaInsumos FormulaInsumo[]
   @@map("FORMULA")
+  Producto Producto[]
 }
 
 model FormulaInsumo {
@@ -124,4 +125,15 @@ model FormulaInsumo {
   formula        Formula  @relation(fields: [idFormula], references: [id])
   insumo         Insumo   @relation(fields: [idInsumo], references: [id])
   @@map("FORMULAINSUMO")
+}
+
+model Producto {
+  idProducto           Int      @id @default(autoincrement())
+  idFormula            Int
+  nombreComercial      String   @unique
+  pesoNeto             Float
+  cantPorcionesAportadas Int
+  estaActivo           Boolean  @default(true)
+  formula              Formula  @relation(fields: [idFormula], references: [id])
+  @@map("PRODUCTOS")
 }
