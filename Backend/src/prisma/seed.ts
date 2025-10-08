@@ -140,6 +140,131 @@ async function main() {
 
   console.log("Seed de DEPOSITOS ejecutado OK");
 
+  // 6) Fórmulas + Productos + Inventario (umbrales)
+
+// ——— insumos que vamos a usar en las fórmulas
+const insumosNecesarios = [
+  'Concentrado de Suero de Queso',
+  'Cacao Amargo Fenix 54',
+  'Sucralosa',
+  'Colageno Hidrolizado (mathpro)',
+  'Saborizante Frutilla',
+  'Xilitol',
+];
+
+// mapa nombre -> idInsumo
+const insumosDB = await prisma.insumo.findMany({
+  where: { nombre: { in: insumosNecesarios } },
+});
+const insumoId: Record<string, number> = Object.fromEntries(
+  insumosDB.map(i => [i.nombre, i.id])
+);
+
+// (sanity check simple)
+for (const n of insumosNecesarios) {
+  if (!insumoId[n]) throw new Error(`Falta insumo en DB para la fórmula: ${n}`);
+}
+
+// ——— Fórmula 1: “Prote A”
+const formulaA = await prisma.formula.upsert({
+  where: { nombre: 'Prote A' },
+  update: {},
+  create: {
+    nombre: 'Prote A',
+    porcion: 30,
+    kcalorias: 120,
+    kjuls: 502,
+    grasaTotal: 2,
+    grasaTrans: 0,
+    grasaSaturada: 0.5,
+    proteinas: 20,
+    carbohidratos: 3,
+    sodio: 0.12,
+    fibra: 1,
+    otros: 0,
+    esProtegida: false,
+    formulaInsumos: {
+      create: [
+        { idInsumo: insumoId['Concentrado de Suero de Queso'], cantidadInsumo: 25 },
+        { idInsumo: insumoId['Cacao Amargo Fenix 54'],        cantidadInsumo: 3  },
+        { idInsumo: insumoId['Sucralosa'],                    cantidadInsumo: 2  },
+      ],
+    },
+  },
+});
+
+// ——— Fórmula 2: “Colágeno Plus”
+const formulaB = await prisma.formula.upsert({
+  where: { nombre: 'Colágeno Plus' },
+  update: {},
+  create: {
+    nombre: 'Colágeno Plus',
+    porcion: 10,
+    kcalorias: 40,
+    kjuls: 167,
+    grasaTotal: 0,
+    grasaTrans: 0,
+    grasaSaturada: 0,
+    proteinas: 9,
+    carbohidratos: 1,
+    sodio: 0.02,
+    fibra: 0,
+    otros: 0,
+    esProtegida: false,
+    formulaInsumos: {
+      create: [
+        { idInsumo: insumoId['Colageno Hidrolizado (mathpro)'], cantidadInsumo: 9  },
+        { idInsumo: insumoId['Saborizante Frutilla'],           cantidadInsumo: 0.8 },
+        { idInsumo: insumoId['Xilitol'],                         cantidadInsumo: 0.2 },
+      ],
+    },
+  },
+});
+
+// ——— Productos comerciales
+const prodA = await prisma.producto.upsert({
+  where: { nombreComercial: 'Prote A 900g' },
+  update: {},
+  create: {
+    idFormula: formulaA.id,
+    nombreComercial: 'Prote A 900g',
+    pesoNeto: 0.9,
+    cantPorcionesAportadas: 30,
+  },
+});
+
+const prodB = await prisma.producto.upsert({
+  where: { nombreComercial: 'Colágeno Plus 300g' },
+  update: {},
+  create: {
+    idFormula: formulaB.id,
+    nombreComercial: 'Colágeno Plus 300g',
+    pesoNeto: 0.3,
+    cantPorcionesAportadas: 30,
+  },
+});
+
+// ——— Inventario inicial con umbrales (por depósito x producto)
+const deps = await prisma.deposito.findMany({
+  where: { nombre: { in: ['Depósito Central', 'Depósito Secundario'] } },
+});
+const depId = Object.fromEntries(deps.map(d => [d.nombre, d.id]));
+
+await prisma.inventario.createMany({
+  data: [
+    // Depósito Central
+    { idDeposito: depId['Depósito Central'],  idProducto: prodA.idProducto, cantidadProducto: 0, umbralMin: 10, umbralMax: 200 },
+    { idDeposito: depId['Depósito Central'],  idProducto: prodB.idProducto, cantidadProducto: 0, umbralMin:  8, umbralMax: 150 },
+    // Depósito Secundario
+    { idDeposito: depId['Depósito Secundario'], idProducto: prodA.idProducto, cantidadProducto: 0, umbralMin: 5, umbralMax: 100 },
+    { idDeposito: depId['Depósito Secundario'], idProducto: prodB.idProducto, cantidadProducto: 0, umbralMin: 4, umbralMax:  80 },
+  ],
+  skipDuplicates: true,
+});
+
+console.log('Seed de FORMULAS, PRODUCTOS e INVENTARIO (umbrales) ejecutado OK');
+
+
 }
 
 main()

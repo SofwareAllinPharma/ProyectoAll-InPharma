@@ -139,6 +139,9 @@ model Deposito {
   capacidadUsada Int     @default(0)
   estado         Boolean @default(true)
 
+
+  inventario     Inventario[]
+
   @@map("DEPOSITOS")
 }
 
@@ -151,5 +154,28 @@ model Producto {
   estaActivo           Boolean  @default(true)
   formula              Formula  @relation(fields: [idFormula], references: [id])
 
+  
+  inventario     Inventario[]
+
   @@map("PRODUCTOS")
+}
+
+model Inventario {
+  
+  idDeposito Int
+  idProducto Int
+
+  
+  deposito  Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  producto  Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
+
+  
+  cantidadProducto Int   @default(0)   
+  umbralMin        Int   @default(0)   
+  umbralMax        Int?                
+
+  @@id([idDeposito, idProducto])       
+  @@index([idDeposito])
+  @@index([idProducto])
+  @@map("INVENTARIO")
 }
