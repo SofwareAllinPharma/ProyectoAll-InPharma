@@ -2,28 +2,34 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { InsumosPage } from '../../insumos';
 import { FormulasPage } from '../../formulas/pages/FormulasPage';
+import { ProductosPage } from '../../productos/pages/ProductosPage';
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
+import { ProductoService } from '../../productos/services/producto.service';
 // sidebar items ahora los maneja PostLoginLayout a través de la ruta
 
 const ResumenComponent = () => {
   const [insumosCount, setInsumosCount] = useState(0);
   const [formulasCount, setFormulasCount] = useState(0);
+  const [productosCount, setProductosCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [insumos, formulas] = await Promise.all([
+        const [insumos, formulas, productos] = await Promise.all([
           InsumoService.getAllInsumos(),
-          FormulaService.getAllFormulas()
+          FormulaService.getAllFormulas(),
+          ProductoService.getAllProductos({ search: '', buscarPor: 'producto', estado: 'activo' })
         ]);
         setInsumosCount(insumos.length);
         setFormulasCount(formulas.length);
+        setProductosCount(productos.length);
       } catch (error) {
         console.error('Error:', error);
         setInsumosCount(0);
         setFormulasCount(0);
+        setProductosCount(0);
       } finally {
         setLoading(false);
       }
@@ -38,7 +44,7 @@ const ResumenComponent = () => {
         <p className="text-gray-600">Resumen general del sistema</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card de Insumos */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between">
@@ -84,6 +90,54 @@ const ResumenComponent = () => {
             <p className="text-sm text-gray-600">Fórmulas nutricionales desarrolladas</p>
           </div>
         </div>
+
+        {/* Card de Productos */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Total de Productos</h3>
+              <div className="flex items-baseline space-x-2">
+                <span className="text-4xl font-bold text-purple-600">
+                  {loading ? '...' : productosCount}
+                </span>
+                <span className="text-sm text-gray-500">activos</span>
+              </div>
+            </div>
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-600">Productos comerciales elaborados</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas adicionales */}
+      <div className="bg-gradient-to-r from-blue-50 via-green-50 to-purple-50 rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Estadísticas del Sistema</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? '...' : Math.round((formulasCount / Math.max(insumosCount, 1)) * 100)}%
+            </div>
+            <div className="text-sm text-gray-600">Ratio Fórmulas/Insumos</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? '...' : Math.round((productosCount / Math.max(formulasCount, 1)) * 100)}%
+            </div>
+            <div className="text-sm text-gray-600">Ratio Productos/Fórmulas</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {loading ? '...' : insumosCount + formulasCount + productosCount}
+            </div>
+            <div className="text-sm text-gray-600">Total de Elementos</div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -112,6 +166,7 @@ export default function AdminSisDashboard() {
     if (!path || path === '') return setActiveSection('resumen');
     if (path.startsWith('insumos')) return setActiveSection('insumos');
     if (path.startsWith('formulas')) return setActiveSection('formulas');
+    if (path.startsWith('productos')) return setActiveSection('productos');
     if (path.startsWith('usuarios')) return setActiveSection('usuarios');
     if (path.startsWith('configuracion')) return setActiveSection('configuracion');
   }, [location.pathname]);
@@ -126,6 +181,8 @@ export default function AdminSisDashboard() {
         return <InsumosPage />;
       case 'formulas':
         return <FormulasPage />;
+      case 'productos':
+        return <ProductosPage />;
       case 'usuarios':
         return <UsuariosComponent />;
       case 'configuracion':

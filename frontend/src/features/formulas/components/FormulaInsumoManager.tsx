@@ -73,7 +73,7 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900 font-merriweather">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">
           Insumos de la Fórmula
         </h3>
         <button

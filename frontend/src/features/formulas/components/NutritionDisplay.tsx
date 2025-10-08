@@ -17,6 +17,7 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcionMinima }) 
     { label: 'Grasas Trans', value: nutrition.grasaTransPorPorcion, unit: 'g' },
     { label: 'Fibra', value: nutrition.fibraPorPorcion, unit: 'g' },
     { label: 'Sodio', value: nutrition.sodioPorPorcion, unit: 'mg' },
+    { label: 'Otros', value: nutrition.otrosPorPorcion, unit: 'g' },
   ];
 
   return (
@@ -25,7 +26,7 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcionMinima }) 
         Información Nutricional por Porción ({porcionMinima}g)
       </h3>
       <div className="bg-gray-50 rounded-lg p-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {nutritionItems.map(item => (
             <div key={item.label} className="flex justify-between">
               <span className="font-medium text-gray-700 font-merriweather">{item.label}:</span>

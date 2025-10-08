@@ -18,6 +18,7 @@ export const calculateNutrition = (
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
+    otrosPorPorcion: 0,
   };
 
   // Calcular peso total de la fórmula
@@ -48,6 +49,7 @@ export const calculateNutrition = (
     totals.fibraPorPorcion += insumo.fibra_100g * proporcion;
     // El sodio ya viene en miligramos desde la BD, no necesita conversión
     totals.sodioPorPorcion += insumo.sodio_100g * proporcion;
+    totals.otrosPorPorcion += insumo.otro_100g * proporcion;
   });
 
   // Ajustar valores para la porción mínima especificada

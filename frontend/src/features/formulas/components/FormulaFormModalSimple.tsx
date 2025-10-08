@@ -38,9 +38,22 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
+    otrosPorPorcion: 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Calcular porción mínima automáticamente como suma de cantidades de insumos
+  useEffect(() => {
+    const totalPorcion = formulaInsumos.reduce((total, formulaInsumo) => {
+      return total + formulaInsumo.cantidadInsumo;
+    }, 0);
+    
+    setFormData(prev => ({
+      ...prev,
+      porcionMinima: totalPorcion > 0 ? totalPorcion : 100
+    }));
+  }, [formulaInsumos]);
 
   // Calcular valores nutricionales cuando cambien los insumos o porción
   useEffect(() => {
@@ -58,6 +71,7 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
         grasaTransPorPorcion: 0,
         fibraPorPorcion: 0,
         sodioPorPorcion: 0,
+        otrosPorPorcion: 0,
       });
     }
   }, [formulaInsumos, formData.porcionMinima]);
@@ -71,7 +85,7 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
     if (formula) {
       setFormData({
         nombre: formula.nombre, // Usar el nombre que viene de la fórmula (ya procesado en el padre)
-        porcionMinima: formula.porcionMinima,
+        porcionMinima: formula.porcionMinima ?? 100,
         esProtegida: isCopyMode ? false : formula.esProtegida,
       });
       setFormulaInsumos(formula.insumos || []);
@@ -91,10 +105,6 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
 
     if (!formData.nombre.trim()) {
       newErrors.nombre = 'El nombre es obligatorio';
-    }
-
-    if (formData.porcionMinima <= 0) {
-      newErrors.porcionMinima = 'La porción mínima debe ser mayor a 0';
     }
 
     const insumoErrors = validateFormulaInsumos(formulaInsumos);
@@ -176,26 +186,6 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
                 )}
               </div>
 
-              {/* Porción Mínima */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Porción Mínima (g)
-                </label>
-                <input
-                  type="number"
-                  value={formData.porcionMinima}
-                  onChange={(e) => setFormData(prev => ({ ...prev, porcionMinima: parseFloat(e.target.value) || 0 }))}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${
-                    errors.porcionMinima ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  min="0"
-                  step="0.1"
-                />
-                {errors.porcionMinima && (
-                  <p className="mt-1 text-sm text-red-600">{errors.porcionMinima}</p>
-                )}
-              </div>
-
               {/* Protegida */}
               <div>
                 <label className="flex items-center space-x-2">
@@ -225,16 +215,25 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
                     <span className="font-medium">Proteínas:</span> {nutritionValues.proteinasPorPorcion.toFixed(1)}g
                   </div>
                   <div>
-                    <span className="font-medium">Grasas Tot.:</span> {nutritionValues.grasaTotalPorPorcion.toFixed(1)}g
+                    <span className="font-medium">Grasas Totales:</span> {nutritionValues.grasaTotalPorPorcion.toFixed(1)}g
+                  </div>
+                  <div>
+                    <span className="font-medium">Grasas Saturadas:</span> {nutritionValues.grasaSaturadaPorPorcion.toFixed(1)}g
+                  </div>
+                  <div>
+                    <span className="font-medium">Grasas Trans:</span> {nutritionValues.grasaTransPorPorcion.toFixed(1)}g
                   </div>
                   <div>
                     <span className="font-medium">Carbohidratos:</span> {nutritionValues.carbohidratosPorPorcion.toFixed(1)}g
                   </div>
                   <div>
-                    <span className="font-medium">Sodio:</span> {(nutritionValues.sodioPorPorcion * 1000).toFixed(1)}mg
+                    <span className="font-medium">Fibra:</span> {nutritionValues.fibraPorPorcion.toFixed(1)}g
                   </div>
                   <div>
-                    <span className="font-medium">Fibra:</span> {nutritionValues.fibraPorPorcion.toFixed(1)}g
+                    <span className="font-medium">Sodio:</span> {nutritionValues.sodioPorPorcion.toFixed(1)}mg
+                  </div>
+                  <div>
+                    <span className="font-medium">Otros:</span> {nutritionValues.otrosPorPorcion.toFixed(1)}g
                   </div>
                 </div>
               </div>
