@@ -13,6 +13,7 @@ export default function PostLoginLoyout() {
         { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos' },
         { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas' },
         { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos' },
+        { id: 'productos', label: 'Productos', to: '/adminsis/productos' },
         { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios' },
         { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion' },
 

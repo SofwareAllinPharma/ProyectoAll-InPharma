@@ -5,6 +5,8 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes";
 import insumosRoutes from "./routes/insumos.routes";
 import depositosRoutes from "./routes/depositos.routes";
+import formulasRoutes from "./routes/formulas.routes";
+import productosRoutes from "./routes/productos.routes";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -23,6 +25,8 @@ app.use((req, _res, next) => {
 app.use("/auth", authRoutes);
 app.use("/insumos", insumosRoutes);
 app.use("/depositos", depositosRoutes);
+app.use("/formulas", formulasRoutes);
+app.use("/productos", productosRoutes);
 
 // Root “health/ok” SOLO para "/"
 app.get("/", (_req, res) => {

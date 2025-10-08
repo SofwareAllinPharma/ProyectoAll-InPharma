@@ -116,6 +116,7 @@ model Formula {
   formulaInsumos FormulaInsumo[]
 
   @@map("FORMULA")
+  Producto Producto[]
 }
 
 model FormulaInsumo {
@@ -139,4 +140,16 @@ model Deposito {
   estado         Boolean @default(true)
 
   @@map("DEPOSITOS")
+}
+
+model Producto {
+  idProducto           Int      @id @default(autoincrement())
+  idFormula            Int
+  nombreComercial      String   @unique
+  pesoNeto             Float
+  cantPorcionesAportadas Int
+  estaActivo           Boolean  @default(true)
+  formula              Formula  @relation(fields: [idFormula], references: [id])
+
+  @@map("PRODUCTOS")
 }
