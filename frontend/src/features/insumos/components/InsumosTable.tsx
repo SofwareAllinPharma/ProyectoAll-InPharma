@@ -47,31 +47,18 @@ export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: 
     <div className="overflow-hidden rounded-lg border border-gray-200">
       <div className="overflow-x-auto">
         <table className="w-full table-fixed">
-          <colgroup>
-            <col style={{ width: '30%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '6%' }} />
-          </colgroup>
           <thead className="bg-[#5d5448] text-white rounded-t-lg">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-normal w-[20%]">Nombre</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[14%]">Calorías</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[14%]">Grasas Tot.</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[14%]">Grasas Trans</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[14%]">Grasas Sat.</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[14%]">Proteínas</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[18%]">Carbohidratos</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[13%]">Sodio</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[11%]">Fibra</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[11%]">Otros</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-normal w-[25%]">Nombre</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Calorías</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Tot.</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Trans</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Sat.</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Proteínas</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[16%]">Carbohidratos</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[11%]">Sodio</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[10%]">Fibra</th>
+              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[10%]">Otros</th>
               <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[13%]">Acciones</th>
             </tr>
           </thead>
@@ -89,7 +76,7 @@ export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: 
                   key={insumo.id}
                   className={`transition-colors duration-200 hover:bg-[#f5f1e8] hover:shadow-sm ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                 >
-                  <td className="px-4 py-3 text-sm text-gray-900 font-medium whitespace-normal break-words w-[20%]">{insumo.nombre}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900 font-medium whitespace-normal break-words">{insumo.nombre}</td>
                   <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.cal_100g)}</td>
                   <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasTotales_100g)}g</td>
                   <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasTrans_100g)}g</td>
@@ -100,7 +87,7 @@ export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: 
                   <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.fibra_100g)}g</td>
                   <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.otro_100g)}g</td>
 
-                  <td className="px-4 py-3 text-center w-[9%]">
+                  <td className="px-4 py-3 text-center">
                     <ActionMenu
                       items={[
                         { key: 'edit', label: 'Editar', icon: (
