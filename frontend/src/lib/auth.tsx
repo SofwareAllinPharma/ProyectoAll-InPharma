@@ -37,14 +37,23 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  // Si hay token en localStorage, inicializamos loading en true para evitar
+  // que RequireAuth redirija antes de que fetchMe termine en un refresh.
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('accessToken'));
 
   useEffect(() => {
     // intentar recuperar usuario al iniciar si hay token
     if (localStorage.getItem('accessToken')) {
-      fetchMe().catch(() => {
-        localStorage.removeItem('accessToken');
-        setUser(null);
+      fetchMe().catch((err) => {
+        // Si el token es inválido o expiró, backend típicamente devuelve 401
+        const status = (err as any)?.response?.status;
+        if (status === 401) {
+          localStorage.removeItem('accessToken');
+          setUser(null);
+        } else {
+          // No forzamos logout automático por otros errores de red
+          console.error('fetchMe failed (non-401):', err);
+        }
       });
     }
     
