@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import NavbarPostLogin from '../components/Navbar';
-import { Sidebar } from '../components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import type { SidebarItem } from '../components/Sidebar';
 import {
   FaThLarge,
