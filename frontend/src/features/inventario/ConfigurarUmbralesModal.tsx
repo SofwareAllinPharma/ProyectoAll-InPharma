@@ -1,19 +1,18 @@
-
-
 import React, { useEffect, useState } from 'react';
-import { ProductoService } from '../../features/productos/services/producto.service';
-import type { Producto } from '../../features/productos/types/producto.types';
+import { InventarioService } from './services/inventario.service';
+import type { InventarioProducto } from './services/inventario.service';
 
 interface ConfigurarUmbralesModalProps {
   open: boolean;
   depositName: string;
   depositoId: number;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 
-const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open, depositName, onClose }) => {
-  const [products, setProducts] = useState<Producto[]>([]);
+const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open, depositName, depositoId, onClose, onSuccess }) => {
+  const [inventario, setInventario] = useState<InventarioProducto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,24 +20,60 @@ const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open,
     if (open) {
       setLoading(true);
       setError(null);
-      ProductoService.getAllProductos()
+      InventarioService.getInventarioByDeposito(depositoId)
         .then((data) => {
-          setProducts(data);
+          setInventario(data);
           setLoading(false);
         })
         .catch((err) => {
-          setError(err.message || 'Error al cargar productos');
+          setError(err.message || 'Error al cargar inventario');
           setLoading(false);
         });
     } else {
-      setProducts([]);
+      setInventario([]);
     }
-  }, [open]);
+  }, [open, depositoId]);
+
+  const [umbralMin, setUmbralMin] = useState<Record<number, number | ''>>({});
+
+  useEffect(() => {
+    if (open && inventario.length > 0) {
+      const initial: Record<number, number | ''> = {};
+      inventario.forEach(p => {
+        initial[p.idProducto] = p.umbralMin ?? '';
+      });
+      setUmbralMin(initial);
+    }
+  }, [open, inventario]);
+
+  const handleUmbralChange = (idProducto: number, value: string) => {
+    const num = value === '' ? '' : Math.max(0, Number(value));
+    setUmbralMin(prev => ({ ...prev, [idProducto]: num }));
+  };
+
+  const handleSave = async () => {
+    const items = Object.entries(umbralMin)
+      .filter(([_, val]) => val !== '' && !isNaN(Number(val)))
+      .map(([id, val]) => ({ idProducto: Number(id), umbralMin: Number(val) }));
+    if (!items.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await InventarioService.bulkUpdateUmbrales(depositoId, items);
+      setLoading(false);
+      if (typeof onSuccess === 'function') {
+        onSuccess();
+      }
+      onClose();
+    } catch (e: any) {
+      setError(e.message || 'Error al guardar umbrales');
+      setLoading(false);
+    }
+  };
 
   return open ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div className="bg-white w-full max-w-4xl rounded-lg shadow-xl overflow-hidden">
-        {/* Header */}
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-medium text-[#3E3529]">
             Configurar Umbrales – {depositName}
@@ -48,84 +83,89 @@ const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open,
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-6">
           <p className="text-gray-600 mb-4">
             Configura el <span className="font-semibold">umbral mínimo</span> para cada producto en este depósito.<br />
             El sistema alertará cuando el stock esté por debajo del umbral configurado.
           </p>
 
-          <div className="overflow-x-auto max-h-96 overflow-y-auto rounded-md border">
-            <table className="min-w-full">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Producto
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Stock actual
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Umbral mínimo
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              handleSave();
+            }}
+          >
+            <div className="overflow-x-auto max-h-96 overflow-y-auto rounded-md border">
+              <table className="min-w-full">
+                <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <td colSpan={3} className="text-center py-8 text-gray-400">Cargando productos...</td>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Producto
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Stock Actual
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Umbral mínimo
+                    </th>
                   </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={3} className="text-center py-8 text-red-400">{error}</td>
-                  </tr>
-                ) : products.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="text-center py-8 text-gray-400">No hay productos registrados.</td>
-                  </tr>
-                ) : (
-                  products.map((p) => (
-                    <tr key={p.idProducto} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-[#3E3529]">{p.nombreComercial}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">-</td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          disabled
-                          className="w-28 px-2 py-1 border rounded-md text-sm border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
-                          placeholder="-"
-                        />
-                      </td>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={3} className="text-center py-8 text-gray-400">Cargando productos...</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan={3} className="text-center py-8 text-red-400">{error}</td>
+                    </tr>
+                  ) : inventario.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="text-center py-8 text-gray-400">No hay productos registrados.</td>
+                    </tr>
+                  ) : (
+                    inventario.map((p) => (
+                      <tr key={p.idProducto} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <span className="font-medium text-[#3E3529]">{p.nombreComercial}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm">{p.stockActual === null || p.stockActual === undefined ? '-' : p.stockActual}</td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={umbralMin[p.idProducto] ?? ''}
+                            onChange={e => handleUmbralChange(p.idProducto, e.target.value)}
+                            className="w-28 px-2 py-1 border rounded-md text-sm border-gray-300 focus:ring-[#5d5448] focus:border-[#5d5448]"
+                            placeholder="-"
+                            disabled={loading}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Footer */}
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="px-6 py-2 rounded-lg bg-[#5d5448] text-white opacity-50 cursor-not-allowed"
-              disabled
-            >
-              Guardar todos
-            </button>
-          </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 disabled:opacity-50"
+                disabled={loading}
+              >
+                Guardar umbrales
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import DepositoActionModal from '../components/DepositoActionModal';
 import DepositIcon from '../components/depositIcon';
 import CapacityBar from '../components/CapacityBar';
 
+
 export default function DepositoDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -152,6 +153,11 @@ export default function DepositoDetailPage() {
         onEdit={() => { setOpenActions(false); setOpenForm(true); }}
         onDeactivate={() => { setOpenActions(false); handleDeactivate(); }}
         onCancel={() => setOpenActions(false)}
+        onUmbralesSuccess={() => {
+          setOpenActions(false);
+          setSuccessMsg('Los umbrales mínimos fueron guardados con éxito');
+          setTimeout(() => setSuccessMsg(null), 6000);
+        }}
       />
 
       <DepositoFormModal

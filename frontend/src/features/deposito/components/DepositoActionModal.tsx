@@ -11,6 +11,7 @@ interface DepositoActionModalProps {
   onEdit: (deposito: Deposito) => void;
   onDeactivate: (deposito: Deposito) => void;
   onCancel: () => void;
+  onUmbralesSuccess?: () => void;
 }
 
 export default function DepositoActionModal({
@@ -19,6 +20,7 @@ export default function DepositoActionModal({
   onEdit,
   onDeactivate,
   onCancel,
+  onUmbralesSuccess,
 }: DepositoActionModalProps) {
   const [showUmbrales, setShowUmbrales] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -31,7 +33,6 @@ export default function DepositoActionModal({
       try {
         document.body.removeChild(container);
       } catch {
-        // Elemento ya eliminado
       }
     };
   }, [container]);
@@ -78,6 +79,10 @@ export default function DepositoActionModal({
         depositName={deposito.nombre}
         depositoId={deposito.id}
         onClose={() => setShowUmbrales(false)}
+        onSuccess={() => {
+          setShowUmbrales(false);
+          if (typeof onUmbralesSuccess === 'function') onUmbralesSuccess();
+        }}
       />
     );
   }

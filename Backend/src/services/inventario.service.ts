@@ -49,13 +49,31 @@ export const InventarioService = {
     };
   },
 
-  /** Para llenar el modal: inventario del depósito (incluye nombre del producto). */
+  /** Para llenar el modal: mostrar todos los productos, aunque no tengan inventario en el depósito. */
   async listByDeposito(idDeposito: number) {
-    return prisma.inventario.findMany({
-      where: { idDeposito },
-      include: { producto: { select: { idProducto: true, nombreComercial: true } } },
-      orderBy: [{ producto: { nombreComercial: 'asc' } }],
+    // Traer todos los productos activos
+    const productos = await prisma.producto.findMany({
+      where: { estaActivo: true },
+      select: { idProducto: true, nombreComercial: true },
+      orderBy: { nombreComercial: 'asc' },
     });
+
+    // Traer inventario existente para el depósito
+    const inventario = await prisma.inventario.findMany({
+      where: { idDeposito },
+      select: { idProducto: true, cantidadProducto: true, umbralMin: true },
+    });
+    const inventarioMap = Object.fromEntries(
+      inventario.map(i => [i.idProducto, i])
+    );
+
+    // Unir productos con inventario (si existe)
+    return productos.map(p => ({
+      idProducto: p.idProducto,
+      nombreComercial: p.nombreComercial,
+      stockActual: inventarioMap[p.idProducto]?.cantidadProducto ?? null,
+      umbralMin: inventarioMap[p.idProducto]?.umbralMin ?? null,
+    }));
   },
 
   /** Bulk “Guardar todos”: upsert de varios umbrales del mismo depósito. */
