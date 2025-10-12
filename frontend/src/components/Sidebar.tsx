@@ -64,6 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   // lock body scroll when sidebar is an overlay on small screens
   useLockBodyScroll(overlay);
 
+  // compute an inline width to avoid cases where computed CSS width becomes 0
+  // (some environments / devtools can show 0px despite Tailwind classes). We
+  // keep the tailwind classes for styling but enforce a numeric width here.
+  const inlineWidth = collapsed ? '3rem' : '16rem';
+
   return (
     <>
       {overlay && (
@@ -80,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         className={`${width} bg-white text-[#5d5448] ${
           overlay ? "fixed z-50 left-0 top-16" : "sticky top-16"
         } h-[calc(100vh-4rem)] flex flex-col overflow-hidden transition-[width] duration-300`}
-        style={overlay ? { boxShadow: "0 6px 18px rgba(0,0,0,0.12)" } : undefined}
+        style={overlay ? { boxShadow: "0 6px 18px rgba(0,0,0,0.12)", width: inlineWidth, minWidth: inlineWidth } : { width: inlineWidth, minWidth: inlineWidth }}
       >
         <SidebarHeader title={title} collapsed={collapsed} onToggle={toggle} />
 

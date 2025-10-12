@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import NavbarPostLogin from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import type { SidebarItem } from '../components/Sidebar';
@@ -15,6 +16,7 @@ import {
 
 export default function PostLoginLoyout() {
   const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean | undefined>(undefined);
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
     if (pathname.startsWith('/adminsis')) {
@@ -53,17 +55,33 @@ export default function PostLoginLoyout() {
   };
 
   const items = getItemsForPath(location.pathname);
+  const pathname = location.pathname;
+  const isDashboard = pathname.startsWith('/adminsis') || pathname.startsWith('/adminfab') || pathname.startsWith('/tecnico');
+
+  // Ensure sidebar uses its internal default when entering a dashboard
+  // so it expands on desktop by default (avoids carrying over previous toggle).
+  useEffect(() => {
+    if (isDashboard) setSidebarCollapsed(undefined);
+  }, [isDashboard]);
+
+  // DEBUG: show state to help diagnose missing sidebar
+  // Remove when issue is fixed
+  // eslint-disable-next-line no-console
+  console.log('[PostLoginLayout] pathname=', location.pathname, 'isDashboard=', isDashboard, 'items=', items.length, 'sidebarCollapsed=', sidebarCollapsed);
 
   return (
     <div className="min-h-screen bg-[#f5f1e8] text-[#5d5448]">
-      <NavbarPostLogin />
+  {/* show navbar menu only on non-dashboard pages and hide it on /perfiles */}
+  <NavbarPostLogin {...(!isDashboard && !pathname.startsWith('/perfiles') ? { onMenuToggle: () => setSidebarCollapsed((s) => (s === undefined ? false : !s)) } : {})} />
 
       <div className="flex">
-        {items.length > 0 && (
+        {isDashboard && (
           <Sidebar
             title="Panel"
             items={items}
             onItemClick={() => {}}
+            collapsedControlled={sidebarCollapsed}
+            onToggleCollapsed={(next) => setSidebarCollapsed(next)}
           />
         )}
 

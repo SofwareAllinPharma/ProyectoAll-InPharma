@@ -59,9 +59,10 @@ export default function NavbarButtons({ variant, onLogoutClick }: { variant: "la
     }
 
         return (
-            <div className="flex items-center gap-6">
-                <GhostButton to="/perfiles">Perfiles</GhostButton>
-                <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
-            </div>
-        );
+                <div className="flex items-center gap-6">
+                                    {/* mobile menu shown in Navbar */}
+                    <GhostButton to="/perfiles">Perfiles</GhostButton>
+                    <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
+                </div>
+            );
 }
