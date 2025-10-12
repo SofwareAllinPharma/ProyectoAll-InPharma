@@ -7,18 +7,9 @@ function parseId(n: any, name: string) {
   return v;
 }
 
-// GET /inventario/:idDeposito    
+ 
 export const InventarioController = {  
-  async listByDeposito(req: Request, res: Response) {
-    try {
-      const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
-      const rows = await InventarioService.listByDeposito(idDeposito);
-      return res.json(rows);
-    } catch (e: any) {
-      return res.status(e.status ?? 500).json({ message: e.message ?? 'Error interno' });
-    }
-  },
-
+  
   // PUT /inventario/:idDeposito/umbrales  (bulk: { items: [{idProducto, umbralMin}, ...] })
   async bulkUpsertUmbralMin(req: Request, res: Response) {
     try {
@@ -30,6 +21,36 @@ export const InventarioController = {
       return res.json(updated);
     } catch (e: any) {
       return res.status(400).json({ message: e.message ?? 'Datos inválidos' });
+    }
+  },
+
+  // GET /inventario/:idDeposito?q=&estado=&sort=&order=&page=&pageSize=
+  async listByDeposito(req: Request, res: Response) {
+    try {
+      const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
+      const { q, estado, sort, order, page, pageSize } = req.query as any;
+      const data = await InventarioService.listByDeposito(idDeposito, {
+        q,
+        estado,
+        sort,
+        order,
+        page: page ? Number(page) : undefined,
+        pageSize: pageSize ? Number(pageSize) : undefined,
+      });
+      res.json(data);
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message ?? 'Error interno' });
+    }
+  },
+
+  // GET /inventario/:idDeposito/resumen-estados
+  async resumenEstados(req: Request, res: Response) {
+    try {
+      const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
+      const data = await InventarioService.resumenEstados(idDeposito);
+      res.json(data);
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message ?? 'Error interno' });
     }
   },
 };
