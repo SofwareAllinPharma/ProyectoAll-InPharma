@@ -62,7 +62,7 @@ export default function ActionMenu({ items, ariaLabel = 'Acciones' }: { items: A
               <button
                 key={it.key ?? `${i}`}
                 onClick={() => { setOpen(false); it.onClick(); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-800 hover:text-gray-900 flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:text-gray-900 flex items-center gap-2 transition-colors"
               >
                 {it.icon}
                 <span>{it.label}</span>

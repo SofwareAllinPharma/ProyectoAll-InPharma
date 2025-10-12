@@ -24,6 +24,7 @@ export default function InsumosPage() {
       loading={loading}
       error={error}
       onDismissError={dismissError}
+      noContainer={true}
       searchNode={(
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} placeholder="Buscar por nombre del insumo..." />

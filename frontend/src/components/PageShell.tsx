@@ -12,6 +12,8 @@ type PageShellProps = {
   helpTip?: React.ReactNode;
   children?: React.ReactNode;
   modals?: React.ReactNode;
+  noContainer?: boolean;
+  containerClassName?: string;
 };
 
 export default function PageShell({
@@ -26,7 +28,11 @@ export default function PageShell({
   helpTip,
   children,
   modals,
+  noContainer = false,
+  containerClassName,
 }: PageShellProps) {
+  const containerClasses = containerClassName ?? 'bg-white rounded-lg shadow-sm border border-gray-200 p-4';
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -69,8 +75,8 @@ export default function PageShell({
 
       {searchNode}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        {loading ? (
+      {noContainer ? (
+        loading ? (
           <div className="flex items-center justify-center p-12">
             <div className="flex items-center gap-3">
               <svg className="animate-spin h-5 w-5 text-[#5d5448]" fill="none" viewBox="0 0 24 24">
@@ -82,8 +88,24 @@ export default function PageShell({
           </div>
         ) : (
           children
-        )}
-      </div>
+        )
+      ) : (
+        <div className={containerClasses}>
+          {loading ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="flex items-center gap-3">
+                <svg className="animate-spin h-5 w-5 text-[#5d5448]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-gray-600">Cargando...</span>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </div>
+      )}
 
       {helpTip}
 
