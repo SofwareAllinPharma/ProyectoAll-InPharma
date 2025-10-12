@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/auth";
 
 export interface SidebarItem {
   id: string;
@@ -15,6 +16,7 @@ interface SidebarProps {
   onToggleCollapsed?: (next: boolean) => void;
   expandedWidthClass?: string;
   collapsedWidthClass?: string;
+  footer?: React.ReactNode;
 }
 
 const Hamburger = () => (
@@ -48,9 +50,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   expandedWidthClass = "w-64",
   collapsedWidthClass = "w-12",
 }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [cl, setCl] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    setCl(window.matchMedia?.("(max-width:768px)")?.matches ?? false);
+    const mq = window.matchMedia?.("(max-width:768px)");
+    const setVals = () => {
+      setCl(mq?.matches ?? false);
+      setIsMobile(mq?.matches ?? false);
+    };
+    setVals();
+    mq?.addEventListener?.('change', setVals);
+    window.addEventListener('resize', setVals);
+    return () => {
+      mq?.removeEventListener?.('change', setVals);
+      window.removeEventListener('resize', setVals);
+    };
   }, []);
   const collapsed = collapsedControlled ?? cl;
   const toggle = () => {
@@ -59,13 +75,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onToggleCollapsed?.(n);
   };
   const width = collapsed ? collapsedWidthClass : expandedWidthClass;
+  const overlay = isMobile && !collapsed;
   const isRoot = (to?: string) =>
     !!to && to.split("/").filter(Boolean).length === 1;
 
+  // bloquear scroll del body cuando el sidebar se muestra como overlay en mobile
+  useEffect(() => {
+    if (overlay) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev || '';
+      };
+    }
+    return;
+  }, [overlay]);
+
+  // si overlay=true (mobile desplegado) renderizamos backdrop y aside fixed encima
   return (
-    <aside
-      className={`${width} bg-white text-[#5d5448] min-h-screen sticky top-0 flex flex-col transition-[width] duration-300 z-40`}
-    >
+    <>
+      {overlay && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => {
+            // cerrar al click en backdrop
+            setCl(true);
+            onToggleCollapsed?.(true);
+          }}
+        />
+      )}
+
+      <aside
+        className={`${width} bg-white text-[#5d5448] ${overlay ? 'fixed z-50 left-0 top-16' : 'sticky top-16'} h-[calc(100vh-4rem)] flex flex-col overflow-hidden transition-[width] duration-300`}
+        style={overlay ? { boxShadow: '0 6px 18px rgba(0,0,0,0.12)' } : undefined}
+      >
       <div
         className={`flex items-center px-3 py-3 ${
           collapsed ? "justify-center" : "justify-between"
@@ -96,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {!collapsed && <div className="h-px bg-[#5d5448]/10 mx-3 mb-2" />}
 
       {!collapsed && (
-        <nav className="flex-1 space-y-2 px-2">
+        <nav className="flex-1 space-y-2 px-2 overflow-auto">
           {items.map((it) =>
             it.to ? (
               <NavLink
@@ -132,11 +175,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       )}
 
-      {!collapsed && (
-        <div className="px-3 py-3 text-xs text-[#5d5448]/70">
-          All-In Pharma · v1.0
-        </div>
-      )}
+      {/* Footer: se coloca al final con mt-auto para que quede siempre visible */}
+      <div className="px-3 py-3 text-xs text-[#5d5448]/70">
+        {!collapsed ? (
+          <div className="mt-auto">
+            {/* Botón Cerrar Sesión más grande, estilo igual a items */}
+            <button
+              onClick={async () => {
+                await logout();
+                navigate('/auth/login');
+              }}
+              className="w-full block rounded-xl transition-colors hover:bg-[#5d5448]/10 text-red-600"
+              title="Cerrar Sesión"
+            >
+              <div className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium">
+                <svg viewBox="0 0 24 24" width="20" height="20" className="shrink-0 text-red-600">
+                  <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  <path d="M13 5H6a2 2 0 00-2 2v10a2 2 0 002 2h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+                <span className="truncate">Cerrar Sesión</span>
+              </div>
+            </button>
+
+            {/* Versión abajo */}
+            <div className="mt-3 text-sm text-[#5d5448]/70">All-In Pharma · v1.0</div>
+          </div>
+        ) : (
+          // En modo colapsado no mostramos botón de logout en el footer
+          <></>
+        )}
+      </div>
     </aside>
+    </>
   );
 };

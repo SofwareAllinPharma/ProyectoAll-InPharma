@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Sidebar } from '../components/Sidebar';
 import type { SidebarItem } from '../components/Sidebar';
 
@@ -6,23 +6,19 @@ interface LayoutWithSidebarProps {
   title: string;
   sidebarItems: SidebarItem[];
   children: React.ReactNode;
-  defaultActiveItem?: string;
   onSidebarItemChange?: (itemId: string) => void;
+  footer?: React.ReactNode;
 }
 
 export const LayoutWithSidebar: React.FC<LayoutWithSidebarProps> = ({
   title,
   sidebarItems,
   children,
-  defaultActiveItem,
   onSidebarItemChange,
+  footer,
 }) => {
-  const [activeItem, setActiveItem] = useState<string>(
-    defaultActiveItem || sidebarItems[0]?.id || ''
-  );
-
+  // No guardamos localmente el item activo aquí — el Sidebar usa NavLink
   const handleItemClick = (itemId: string) => {
-    setActiveItem(itemId);
     onSidebarItemChange?.(itemId);
   };
 
@@ -31,8 +27,8 @@ export const LayoutWithSidebar: React.FC<LayoutWithSidebarProps> = ({
       <Sidebar
         title={title}
         items={sidebarItems}
-        activeItem={activeItem}
         onItemClick={handleItemClick}
+        footer={footer}
       />
       <div className="flex-1">
         <div className="p-6">{children}</div>
