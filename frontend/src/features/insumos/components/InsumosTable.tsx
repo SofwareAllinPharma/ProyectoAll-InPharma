@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Insumo } from '../types/insumo.types';
+import ActionMenu from '../../../components/ui/ActionMenu';
 
 interface InsumosTableProps {
   insumos: Insumo[];
-  onInsumoDoubleClick: (insumo: Insumo) => void;
+  onEdit: (insumo: Insumo) => void;
+  onDelete: (insumo: Insumo) => void;
   searchTerm: string;
 }
 
-export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm }: InsumosTableProps) {
+export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: InsumosTableProps) {
   const [filteredInsumos, setFilteredInsumos] = useState<Insumo[]>([]);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -20,6 +24,21 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
       setFilteredInsumos(filtered);
     }
   }, [insumos, searchTerm]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!menuRef.current) return;
+      const target = e.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setOpenMenuId(null);
+      }
+    };
+    if (openMenuId !== null) {
+      window.addEventListener('mousedown', onDocClick);
+      return () => window.removeEventListener('mousedown', onDocClick);
+    }
+  }, [openMenuId]);
 
   const formatNumber = (value: number): string => {
     return value % 1 === 0 ? value.toString() : value.toFixed(2);
@@ -44,6 +63,7 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredInsumos.length === 0 ? (
               <tr>
@@ -55,11 +75,7 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
               filteredInsumos.map((insumo, index) => (
                 <tr
                   key={insumo.id}
-                  className={`
-                    transition-colors duration-200
-                    hover:bg-[#f5f1e8] hover:shadow-sm
-                    ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                  `}
+                  className={`transition-colors duration-200 hover:bg-[#f5f1e8] hover:shadow-sm ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                 >
                   <td className="px-4 py-3 text-sm text-gray-900 font-medium">{insumo.nombre}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.cal_100g)}</td>
@@ -71,16 +87,18 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.sodio_100g * 1000)}mg</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.fibra_100g)}g</td>
                   <td className="px-4 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.otro_100g)}g</td>
+
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => onInsumoDoubleClick(insumo)}
-                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      title="Ver opciones"
-                    >
-                      <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
+                    <ActionMenu
+                      items={[
+                        { key: 'edit', label: 'Editar', icon: (
+                          <svg className="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        ), onClick: () => onEdit(insumo) },
+                        { key: 'delete', label: 'Eliminar', icon: (
+                          <svg className="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        ), onClick: () => onDelete(insumo) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))
@@ -88,7 +106,7 @@ export default function InsumosTable({ insumos, onInsumoDoubleClick, searchTerm 
           </tbody>
         </table>
       </div>
-      
+
       {filteredInsumos.length > 0 && (
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <p className="text-sm text-gray-600">
