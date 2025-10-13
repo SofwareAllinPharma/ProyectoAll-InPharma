@@ -1,272 +1,157 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FormulasTable } from '../components/FormulasTable';
+import React, { useState, useEffect } from 'react';
+import PageShell from '../../../components/PageShell';
 import SearchBar from '../components/SearchBar';
+import { FormulasTable } from '../components/FormulasTable';
 import { FormulaFormModal } from '../components/form/FormulaFormModal';
 import { ProtectedFormulaModal } from '../components/ProtectedFormulaModal';
 import { DeleteConfirmModal } from '../components/form/DeleteConfirmModal';
 import TipBox from '../../../components/ui/TipBox';
-import PageShell from '../../../components/PageShell';
+import { useToast } from '../../../components/ui';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
-import { useToast } from '../../../components/ui';
 
-const getErrorMessage = (e: unknown) =>
-  e instanceof Error ? e.message : typeof e === 'string' ? e : 'Ocurrió un error inesperado';
-
-const PageContent: React.FC = () => {
+const FormulasPage: React.FC = () => {
   const { show, toasts, hide } = useToast() as any;
   const [formulas, setFormulas] = useState<Formula[]>([]);
-  const [filteredFormulas, setFilteredFormulas] = useState<Formula[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const formulasRef = React.useRef<Formula[]>([]);
+  const [filtered, setFiltered] = useState<Formula[]>([]);
   const [loading, setLoading] = useState(false);
+  const instanceIdRef = React.useRef<string>(Math.random().toString(36).slice(2, 8));
 
-  // Modales
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [protectedModalOpen, setProtectedModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [protectedOpen, setProtectedOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selected, setSelected] = useState<Formula | null>(null);
+  const [isCopy, setIsCopy] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
-  const [selectedFormula, setSelectedFormula] = useState<Formula | null>(null);
-  const [isFormLoading, setIsFormLoading] = useState(false);
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [isCopyMode, setIsCopyMode] = useState(false);
-
-  // notifications handled via useToast()
-
-  const loadFormulas = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await FormulaService.getAllFormulas();
-      console.log('[FormulasPage] loadFormulas fetched', data.length);
-      setFormulas(data);
-      setFilteredFormulas(data);
-    } catch (error: unknown) {
-      console.error('Error loading formulas:', error);
-      show({ message: getErrorMessage(error), type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    void (async () => {
+      setLoading(true);
+      try {
+        const data = await FormulaService.getAllFormulas();
+        // DEBUG
+  // eslint-disable-next-line no-console
+        console.log('[FormulasPage:%s] fetched formulas count', instanceIdRef.current, Array.isArray(data) ? data.length : 'not-array');
+  setFormulas(data);
+  formulasRef.current = data;
+  setFiltered(data);
+      } catch {
+        show({ message: 'Error cargando fórmulas', type: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  useEffect(() => {
-    void loadFormulas();
-  }, [loadFormulas]);
-
-  const handleSearch = (q: string) => {
-    console.log('[FormulasPage] search', q);
-    setSearchQuery(q);
+  const handleSearch = (q = '') => {
     const term = q.trim().toLowerCase();
-    if (!term) return setFilteredFormulas(formulas);
-    setFilteredFormulas(formulas.filter((f) => f.nombre.toLowerCase().includes(term)));
+    // eslint-disable-next-line no-console
+    console.log('[FormulasPage:%s] handleSearch called with:', instanceIdRef.current, JSON.stringify(term));
+    const source = formulasRef.current || formulas;
+    setFiltered(!term ? source : source.filter(f => f.nombre.toLowerCase().includes(term)));
   };
 
-  // ensure filtered list resets to formulas when formulas load and there's no active search
-  useEffect(() => {
-    if (!searchQuery) setFilteredFormulas(formulas);
-  }, [formulas, searchQuery]);
+  // DEBUG: log whenever filtered changes (keep outside JSX to avoid returning void)
+  React.useEffect(() => {
+  // eslint-disable-next-line no-console
+  console.log('[FormulasPage] filtered length', Array.isArray(filtered) ? filtered.length : 'not-array');
+  }, [filtered]);
 
-  // Fallback: if formulas are present but filteredFormulas is unexpectedly empty, sync them (race guard)
-  useEffect(() => {
-    if (!searchQuery && formulas.length > 0 && filteredFormulas.length === 0) {
-      console.warn('[FormulasPage] fallback sync filteredFormulas from formulas');
-      setFilteredFormulas(formulas);
-    }
-  }, [formulas, filteredFormulas, searchQuery]);
-
-  const handleEditFormula = (f: Formula) => {
-    setSelectedFormula(f);
-    setIsCopyMode(false);
-    // If formula is protected, show the protected modal first
-    if (f.esProtegida) {
-      setProtectedModalOpen(true);
-    } else {
-      setFormModalOpen(true);
-    }
+  const openEdit = (f: Formula) => {
+    setSelected(f);
+    setIsCopy(false);
+    f.esProtegida ? setProtectedOpen(true) : setFormOpen(true);
   };
+  const openDelete = (f: Formula) => { setSelected(f); setDeleteOpen(true); };
 
-  const handleDeleteFormula = (f: Formula) => {
-    setSelectedFormula(f);
-    setDeleteModalOpen(true);
-  };
-
-  // Action modal removed: the table's ActionMenu calls onEdit/onDelete directly
-
-  const handleCreateCopy = (f?: Formula) => {
-    console.log('[FormulasPage] handleCreateCopy base:', f ?? selectedFormula);
-    // If a formula is passed, use it; otherwise keep the currently selected formula
-    const base = f ?? selectedFormula;
-    if (!base) return;
-
-    // count existing copies with the base name
-    const baseName = base.nombre;
-    // const regex = new RegExp('^' + baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 'Copia(_| )?(?:|\\d+)$', 'i');
-    let maxIndex = 0;
-    for (const existing of formulas) {
-      if (existing.nombre.startsWith(baseName) && existing.nombre.includes('Copia')) {
-        // try to extract trailing number
-        const parts = existing.nombre.replace(baseName, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).filter(Boolean);
-        const n = parts.length ? parseInt(parts[parts.length - 1], 10) : NaN;
-        if (!Number.isNaN(n) && n > maxIndex) maxIndex = n;
-        else if (Number.isNaN(n)) maxIndex = Math.max(maxIndex, 1);
+  const createCopy = (base?: Formula) => {
+    const b = base ?? selected;
+    if (!b) return;
+    const nameBase = b.nombre;
+    let max = 0;
+    for (const e of formulas)
+      if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) {
+        const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10);
+        if (!isNaN(n) && n > max) max = n;
       }
-    }
-    const next = maxIndex + 1;
-    const copyName = `${baseName}Copia_${next}`;
-
-    setSelectedFormula({ ...base, nombre: copyName });
-    console.log('[FormulasPage] creating copy name:', copyName);
-    setIsCopyMode(true);
-    setProtectedModalOpen(false);
-    setFormModalOpen(true);
+    const copyName = `${nameBase}Copia_${max + 1}`;
+    setSelected({ ...b, nombre: copyName } as Formula);
+    setIsCopy(true);
+    setProtectedOpen(false);
+    setFormOpen(true);
   };
 
-  const handleFormSubmit = async (formulaData: CreateFormulaRequest) => {
-    console.log('[FormulasPage] submit payload:', formulaData, 'isCopyMode', isCopyMode, 'selectedFormula', selectedFormula);
-    setIsFormLoading(true);
+  const onSubmit = async (payload: CreateFormulaRequest) => {
+    setFormLoading(true);
     try {
-      if (isCopyMode) {
-        // creating a copy: ensure we don't send an id and always create a new formula
-        const payload = { ...(formulaData as any) };
-        delete payload.id;
-        await FormulaService.createFormula(payload);
+      if (isCopy) {
+        const p = { ...(payload as any) };
+        delete (p as any).id;
+        await FormulaService.createFormula(p);
         show({ message: 'Copia de fórmula creada correctamente', type: 'success' });
-      } else if (selectedFormula && selectedFormula.id) {
-        await FormulaService.updateFormula(selectedFormula.id, { ...formulaData, id: selectedFormula.id });
+      } else if (selected?.id) {
+        await FormulaService.updateFormula(selected.id, { ...payload, id: selected.id });
         show({ message: 'Fórmula actualizada correctamente', type: 'success' });
       } else {
-        await FormulaService.createFormula(formulaData);
+        await FormulaService.createFormula(payload);
         show({ message: 'Fórmula creada correctamente', type: 'success' });
       }
-
-      setFormModalOpen(false);
-      setSelectedFormula(null);
-      setIsCopyMode(false);
-      await loadFormulas();
-    } catch (error: unknown) {
-      console.error('Error saving formula:', error);
-      show({ message: getErrorMessage(error), type: 'error' });
+      setFormOpen(false); setSelected(null); setIsCopy(false);
+      const data = await FormulaService.getAllFormulas();
+  setFormulas(data); formulasRef.current = data; setFiltered(data);
+    } catch (e) {
+      show({ message: 'Error guardando fórmula', type: 'error' });
     } finally {
-      setIsFormLoading(false);
+      setFormLoading(false);
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!selectedFormula) return;
-    setIsDeleteLoading(true);
+  const onDelete = async () => {
+    if (!selected) return;
+    setFormLoading(true);
     try {
-      await FormulaService.deleteFormula(selectedFormula.id);
+      await FormulaService.deleteFormula(selected.id);
       show({ message: 'Fórmula eliminada correctamente', type: 'success' });
-      setDeleteModalOpen(false);
-      setSelectedFormula(null);
-      await loadFormulas();
-    } catch (error: unknown) {
-      console.error('Error deleting formula:', error);
-      show({ message: getErrorMessage(error) || 'Error al eliminar la fórmula', type: 'error' });
+      setDeleteOpen(false);
+      setSelected(null);
+      const data = await FormulaService.getAllFormulas();
+      setFormulas(data);
+      formulasRef.current = data;
+      setFiltered(data);
+    } catch {
+      show({ message: 'Error eliminando fórmula', type: 'error' });
     } finally {
-      setIsDeleteLoading(false);
+      setFormLoading(false);
     }
   };
 
-  const closeAllModals = async () => {
-    setFormModalOpen(false);
-    setProtectedModalOpen(false);
-    setDeleteModalOpen(false);
-    setSelectedFormula(null);
-    setIsCopyMode(false);
-    await loadFormulas();
+  const closeAll = async () => {
+    setFormOpen(false);
+    setProtectedOpen(false);
+    setDeleteOpen(false);
+    setSelected(null);
+    setIsCopy(false);
+    const data = await FormulaService.getAllFormulas();
+    setFormulas(data);
+    formulasRef.current = data;
+    setFiltered(data);
   };
 
   return (
-    <PageShell
-      title="Fórmulas"
-      subtitle="Gestiona las fórmulas nutricionales de la fábrica"
-      onCreate={() => {
-        setSelectedFormula(null);
-        setIsCopyMode(false);
-        setFormModalOpen(true);
-      }}
-      createLabel="Agregar Fórmula"
-      loading={loading}
-  noContainer={true}
-      searchNode={(
-        <>
-          {/* Toasts area: render toasts above the search bar */}
-          {toasts && toasts.length > 0 && (
-            <div className="mb-4">
-              {toasts.map((t: any) => (
-                <div key={t.id} className="mb-3">
-                  {/* Reuse Toast component by rendering via provider -- but we don't import Toast here to avoid duplication */}
-                  <div className="max-w-full">
-                    <div className="p-0">
-                      {/* Recreate the same markup used by Toast to ensure consistent look */}
-                      <div className={`w-full rounded-md ${t.type !== 'custom' ? (t.type === 'success' ? 'bg-green-50' : t.type === 'error' ? 'bg-red-50' : t.type === 'info' ? 'bg-blue-50' : 'bg-yellow-50') : ''} border border-green-200`}>
-                        <div className="p-4 flex items-start gap-3">
-                          <div className="flex-1 text-green-800">{t.message}</div>
-                          <div>
-                            <button onClick={() => hide(t.id)} className="text-gray-400 hover:text-gray-600">×</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mb-6">
-            <SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." />
-          </div>
-        </>
-      )}
-      helpTip={(
-        <TipBox>
-          <><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</>
-        </TipBox>
-      )}
-      modals={(
-        <>
-          <FormulaFormModal
-            isOpen={formModalOpen}
-            onClose={closeAllModals}
-            onSubmit={handleFormSubmit}
-            formula={selectedFormula}
-            isLoading={isFormLoading}
-            isCopyMode={isCopyMode}
-          />
-
-
-
-          <ProtectedFormulaModal
-            isOpen={protectedModalOpen}
-            onClose={closeAllModals}
-            onCreateCopy={handleCreateCopy}
-            formula={selectedFormula}
-          />
-
-          <DeleteConfirmModal
-            isOpen={deleteModalOpen}
-            onClose={closeAllModals}
-            onConfirm={handleDeleteConfirm}
-            formula={selectedFormula}
-            isLoading={isDeleteLoading}
-          />
-        </>
-      )}
-    >
-      {/* Content */}
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" />
-        </div>
-      ) : (
-        <FormulasTable formulas={filteredFormulas} onEdit={handleEditFormula} onDelete={handleDeleteFormula} />
-      )}
-
-      {/* helpTip is provided via PageShell props; do not render a duplicate TipBox here */}
+    <PageShell title="Fórmulas" subtitle="Gestiona las fórmulas nutricionales de la fábrica" onCreate={() => { setSelected(null); setIsCopy(false); setFormOpen(true); }} createLabel="Agregar Fórmula" loading={loading} noContainer searchNode={(
+      <>
+  {/* debug badge removed */}
+        {toasts && toasts.length > 0 && (
+          <div className="mb-4">{toasts.map((t: any) => <div key={t.id} className="mb-3"><div className={`w-full rounded-md ${t.type==='success'?'bg-green-50':'bg-blue-50'} border border-green-200`}><div className="p-4 flex items-start gap-3"><div className="flex-1 text-green-800">{t.message}</div><div><button onClick={() => hide(t.id)} className="text-gray-400">×</button></div></div></div></div>)}</div>
+        )}
+        <div className="mb-6"><SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." /></div>
+      </>
+    )} helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} modals={(<><FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} /><ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} /><DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} /></>)}>
+      {loading ? <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" /></div> : <FormulasTable formulas={filtered} onEdit={openEdit} onDelete={openDelete} />}
     </PageShell>
   );
 };
 
-export default function FormulasPage() {
-  return <PageContent />;
-}
+export default FormulasPage;
+

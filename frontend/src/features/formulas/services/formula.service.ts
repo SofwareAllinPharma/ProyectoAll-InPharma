@@ -238,6 +238,11 @@ export class FormulaService {
     });
     const data = await jsonOrThrow(res);
 
+  // DEBUG: mostrar la respuesta cruda para verificar por qué la UI no muestra filas inicialmente
+  // Puedes eliminar estos logs una vez que confirmemos el comportamiento
+  // eslint-disable-next-line no-console
+  console.log('[FormulaService] getAllFormulas response:', data);
+
     if (isApiFormulaArray(data)) return data.map(fromApi);
     if (isApiListEnvelope(data)) return data.formulas.map(fromApi);
     return [];
