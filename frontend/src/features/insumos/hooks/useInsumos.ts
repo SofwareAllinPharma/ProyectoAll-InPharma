@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useToast } from '../../../components/ui';
 import type { Insumo, CreateInsumoDto } from '../types/insumo.types';
 import { InsumoService } from '../services/insumo.service';
 
 export function useInsumos() {
+  const { show } = useToast();
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,9 @@ export function useInsumos() {
       setFormLoading(true);
       if (selectedInsumo) await InsumoService.updateInsumo(selectedInsumo.id, insumoData);
       else await InsumoService.createInsumo(insumoData);
+      // show success toast
+      if (selectedInsumo) show({ message: 'Insumo actualizado correctamente', type: 'success' });
+      else show({ message: 'Insumo creado correctamente', type: 'success' });
       setFormModalOpen(false); setSelectedInsumo(null); await loadInsumos();
     } catch (err) {
       setError(`Error al ${selectedInsumo ? 'actualizar' : 'crear'} el insumo. Por favor, intente nuevamente.`);
@@ -50,6 +55,7 @@ export function useInsumos() {
     try {
       setFormLoading(true);
       await InsumoService.deleteInsumo(insumo.id);
+      show({ message: 'Insumo eliminado correctamente', type: 'success' });
       setDeleteModalOpen(false); setSelectedInsumo(null); await loadInsumos();
     } catch (err) {
       setError('Error al eliminar el insumo. Por favor, intente nuevamente.');

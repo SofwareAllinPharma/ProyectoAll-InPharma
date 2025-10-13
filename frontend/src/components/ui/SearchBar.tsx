@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -21,7 +21,12 @@ export default function SearchBar({
     setLocal(searchTerm);
   }, [searchTerm]);
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
     if (debounceMs > 0) {
       const id = setTimeout(() => onSearch(local), debounceMs);
       return () => clearTimeout(id);

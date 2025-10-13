@@ -29,8 +29,9 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormu
   useEffect(() => {
     if (!isOpen) return;
     if (formula) {
+      const suggestedName = isCopyMode && formula.nombre && !formula.nombre.includes('Copia') ? `${formula.nombre} - Copia1` : formula.nombre;
       setFormData({
-        nombre: isCopyMode ? `${formula.nombre} - Copia1` : formula.nombre,
+        nombre: suggestedName,
         porcionMinima: formula.porcionMinima,
         esProtegida: isCopyMode ? false : formula.esProtegida,
       });

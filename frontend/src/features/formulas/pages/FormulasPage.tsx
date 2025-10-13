@@ -8,13 +8,16 @@ import TipBox from '../../../components/ui/TipBox';
 import PageShell from '../../../components/PageShell';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
+import { useToast } from '../../../components/ui';
 
 const getErrorMessage = (e: unknown) =>
   e instanceof Error ? e.message : typeof e === 'string' ? e : 'Ocurrió un error inesperado';
 
-export const FormulasPage: React.FC = () => {
+const PageContent: React.FC = () => {
+  const { show, toasts, hide } = useToast() as any;
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const [filteredFormulas, setFilteredFormulas] = useState<Formula[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Modales
@@ -27,24 +30,18 @@ export const FormulasPage: React.FC = () => {
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isCopyMode, setIsCopyMode] = useState(false);
 
-  const [notification, setNotification] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
-
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-  };
+  // notifications handled via useToast()
 
   const loadFormulas = useCallback(async () => {
     setLoading(true);
     try {
       const data = await FormulaService.getAllFormulas();
+      console.log('[FormulasPage] loadFormulas fetched', data.length);
       setFormulas(data);
       setFilteredFormulas(data);
     } catch (error: unknown) {
       console.error('Error loading formulas:', error);
-      showNotification('error', getErrorMessage(error));
+      show({ message: getErrorMessage(error), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -55,15 +52,35 @@ export const FormulasPage: React.FC = () => {
   }, [loadFormulas]);
 
   const handleSearch = (q: string) => {
+    console.log('[FormulasPage] search', q);
+    setSearchQuery(q);
     const term = q.trim().toLowerCase();
     if (!term) return setFilteredFormulas(formulas);
     setFilteredFormulas(formulas.filter((f) => f.nombre.toLowerCase().includes(term)));
   };
 
+  // ensure filtered list resets to formulas when formulas load and there's no active search
+  useEffect(() => {
+    if (!searchQuery) setFilteredFormulas(formulas);
+  }, [formulas, searchQuery]);
+
+  // Fallback: if formulas are present but filteredFormulas is unexpectedly empty, sync them (race guard)
+  useEffect(() => {
+    if (!searchQuery && formulas.length > 0 && filteredFormulas.length === 0) {
+      console.warn('[FormulasPage] fallback sync filteredFormulas from formulas');
+      setFilteredFormulas(formulas);
+    }
+  }, [formulas, filteredFormulas, searchQuery]);
+
   const handleEditFormula = (f: Formula) => {
     setSelectedFormula(f);
     setIsCopyMode(false);
-    setFormModalOpen(true);
+    // If formula is protected, show the protected modal first
+    if (f.esProtegida) {
+      setProtectedModalOpen(true);
+    } else {
+      setFormModalOpen(true);
+    }
   };
 
   const handleDeleteFormula = (f: Formula) => {
@@ -74,22 +91,50 @@ export const FormulasPage: React.FC = () => {
   // Action modal removed: the table's ActionMenu calls onEdit/onDelete directly
 
   const handleCreateCopy = (f?: Formula) => {
-    setSelectedFormula(f ?? null);
+    console.log('[FormulasPage] handleCreateCopy base:', f ?? selectedFormula);
+    // If a formula is passed, use it; otherwise keep the currently selected formula
+    const base = f ?? selectedFormula;
+    if (!base) return;
+
+    // count existing copies with the base name
+    const baseName = base.nombre;
+    // const regex = new RegExp('^' + baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 'Copia(_| )?(?:|\\d+)$', 'i');
+    let maxIndex = 0;
+    for (const existing of formulas) {
+      if (existing.nombre.startsWith(baseName) && existing.nombre.includes('Copia')) {
+        // try to extract trailing number
+        const parts = existing.nombre.replace(baseName, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).filter(Boolean);
+        const n = parts.length ? parseInt(parts[parts.length - 1], 10) : NaN;
+        if (!Number.isNaN(n) && n > maxIndex) maxIndex = n;
+        else if (Number.isNaN(n)) maxIndex = Math.max(maxIndex, 1);
+      }
+    }
+    const next = maxIndex + 1;
+    const copyName = `${baseName}Copia_${next}`;
+
+    setSelectedFormula({ ...base, nombre: copyName });
+    console.log('[FormulasPage] creating copy name:', copyName);
     setIsCopyMode(true);
     setProtectedModalOpen(false);
     setFormModalOpen(true);
   };
 
   const handleFormSubmit = async (formulaData: CreateFormulaRequest) => {
+    console.log('[FormulasPage] submit payload:', formulaData, 'isCopyMode', isCopyMode, 'selectedFormula', selectedFormula);
     setIsFormLoading(true);
     try {
-      if (selectedFormula && selectedFormula.id) {
+      if (isCopyMode) {
+        // creating a copy: ensure we don't send an id and always create a new formula
+        const payload = { ...(formulaData as any) };
+        delete payload.id;
+        await FormulaService.createFormula(payload);
+        show({ message: 'Copia de fórmula creada correctamente', type: 'success' });
+      } else if (selectedFormula && selectedFormula.id) {
         await FormulaService.updateFormula(selectedFormula.id, { ...formulaData, id: selectedFormula.id });
-        showNotification('success', 'Fórmula actualizada correctamente');
+        show({ message: 'Fórmula actualizada correctamente', type: 'success' });
       } else {
         await FormulaService.createFormula(formulaData);
-        const message = isCopyMode ? 'Copia de fórmula creada correctamente' : 'Fórmula creada correctamente';
-        showNotification('success', message);
+        show({ message: 'Fórmula creada correctamente', type: 'success' });
       }
 
       setFormModalOpen(false);
@@ -98,7 +143,7 @@ export const FormulasPage: React.FC = () => {
       await loadFormulas();
     } catch (error: unknown) {
       console.error('Error saving formula:', error);
-      showNotification('error', getErrorMessage(error));
+      show({ message: getErrorMessage(error), type: 'error' });
     } finally {
       setIsFormLoading(false);
     }
@@ -109,13 +154,13 @@ export const FormulasPage: React.FC = () => {
     setIsDeleteLoading(true);
     try {
       await FormulaService.deleteFormula(selectedFormula.id);
-      showNotification('success', 'Fórmula eliminada correctamente');
+      show({ message: 'Fórmula eliminada correctamente', type: 'success' });
       setDeleteModalOpen(false);
       setSelectedFormula(null);
       await loadFormulas();
     } catch (error: unknown) {
       console.error('Error deleting formula:', error);
-      showNotification('error', getErrorMessage(error) || 'Error al eliminar la fórmula');
+      show({ message: getErrorMessage(error) || 'Error al eliminar la fórmula', type: 'error' });
     } finally {
       setIsDeleteLoading(false);
     }
@@ -144,53 +189,27 @@ export const FormulasPage: React.FC = () => {
   noContainer={true}
       searchNode={(
         <>
-          {/* Notification */}
-          {notification && (
-            <div
-              className={`mb-4 p-4 rounded-md ${
-                notification.type === 'success'
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}
-            >
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  {notification.type === 'success' ? (
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
+          {/* Toasts area: render toasts above the search bar */}
+          {toasts && toasts.length > 0 && (
+            <div className="mb-4">
+              {toasts.map((t: any) => (
+                <div key={t.id} className="mb-3">
+                  {/* Reuse Toast component by rendering via provider -- but we don't import Toast here to avoid duplication */}
+                  <div className="max-w-full">
+                    <div className="p-0">
+                      {/* Recreate the same markup used by Toast to ensure consistent look */}
+                      <div className={`w-full rounded-md ${t.type !== 'custom' ? (t.type === 'success' ? 'bg-green-50' : t.type === 'error' ? 'bg-red-50' : t.type === 'info' ? 'bg-blue-50' : 'bg-yellow-50') : ''} border border-green-200`}>
+                        <div className="p-4 flex items-start gap-3">
+                          <div className="flex-1 text-green-800">{t.message}</div>
+                          <div>
+                            <button onClick={() => hide(t.id)} className="text-gray-400 hover:text-gray-600">×</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-roboto">{notification.message}</p>
-                </div>
-                <div className="ml-auto pl-3">
-                  <button
-                    onClick={() => setNotification(null)}
-                    className="inline-flex text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           )}
 
@@ -247,3 +266,7 @@ export const FormulasPage: React.FC = () => {
     </PageShell>
   );
 };
+
+export default function FormulasPage() {
+  return <PageContent />;
+}

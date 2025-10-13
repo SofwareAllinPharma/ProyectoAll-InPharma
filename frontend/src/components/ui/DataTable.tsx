@@ -54,7 +54,7 @@ export default function DataTable<T>({ columns, data, rowKey, expandable, onRowC
                       onClick={() => onRowClick ? onRowClick(row) : undefined}
                     > 
                       {columns.map(col => (
-                        <td key={col.key} className={`px-3 py-3 text-sm text-gray-700 ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''} ${col.className || ''}`}> 
+                        <td key={col.key} className={`px-3 py-3 text-sm text-gray-700 whitespace-normal break-words ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''} ${col.className || ''}`}> 
                           {col.render ? col.render(row) : (row as any)[col.key]}
                         </td>
                       ))}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { InsumosPage } from '../../insumos';
-import { FormulasPage } from '../../formulas/pages/FormulasPage';
+import FormulasPage from '../../formulas/pages/FormulasPage';
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
 // sidebar items ahora los maneja PostLoginLayout a través de la ruta
