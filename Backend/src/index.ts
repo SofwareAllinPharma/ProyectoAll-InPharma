@@ -8,6 +8,7 @@ import depositosRoutes from "./routes/depositos.routes";
 import formulasRoutes from "./routes/formulas.routes";
 import productosRoutes from "./routes/productos.routes";
 import inventarioRoutes from './routes/inventario.routes';
+import inventarioGlobalRoutes from './routes/inventarioGlobal.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -29,6 +30,7 @@ app.use("/depositos", depositosRoutes);
 app.use("/formulas", formulasRoutes);
 app.use("/productos", productosRoutes);
 app.use('/inventario', inventarioRoutes);
+app.use('/inventario-global', inventarioGlobalRoutes);
 
 // Root “health/ok” SOLO para "/"
 app.get("/", (_req, res) => {
