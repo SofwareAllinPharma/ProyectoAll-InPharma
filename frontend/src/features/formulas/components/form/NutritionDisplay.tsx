@@ -1,5 +1,5 @@
 import React from 'react';
-import type { NutritionCalculation } from '../types/formula.types';
+import type { NutritionCalculation } from '../../types/formula.types';
 
 interface Props {
   nutrition: NutritionCalculation;

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ConfirmLogoutModal from "./nav/ConfirmLogoutModal";
 import NavbarButtons from "./nav/NavbarButtons";
 
-export default function Navbar() {
+export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -33,16 +33,23 @@ export default function Navbar() {
       <nav
         className={[
           "sticky top-0 z-[9999]",
-          "bg-white/80 backdrop-blur",
+          "bg-white/60 backdrop-blur-md",
           "border-b border-[#5d5448]/20",
           scrolled ? "shadow-sm" : "",
         ].join(" ")}
       >
         <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between text-[#5d5448]">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
-            <span>All-In Pharma</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            {onMenuToggle && (
+              <button onClick={onMenuToggle} className="md:hidden p-2 mr-2 rounded-lg border border-transparent text-[#5d5448] bg-white hover:bg-[#5d5448]/10">
+                ☰
+              </button>
+            )}
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
+              <span>All-In Pharma</span>
+            </Link>
+          </div>
 
           <NavbarButtons
             variant={variant}
