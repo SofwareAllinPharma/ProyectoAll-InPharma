@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import ActionMenu from '../../../components/ui/ActionMenu';
 import type { Formula } from '../types/formula.types';
 
 interface FormulasTableProps {
   formulas?: Formula[];                       // ← la vuelvo opcional
-  onFormulaAction: (formula: Formula) => void;
+  onEdit: (formula: Formula) => void;
+  onDelete: (formula: Formula) => void;
 }
 
 const formatNumber = (value?: number): string => {
@@ -17,29 +19,10 @@ const formatNumber = (value?: number): string => {
 
 export const FormulasTable: React.FC<FormulasTableProps> = ({
   formulas = [],                                 // ← default para evitar undefined
-  onFormulaAction,
+  onEdit,
+  onDelete,
 }) => {
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const toggleDropdown = (formulaId: number) => {
-    setOpenDropdown(openDropdown === formulaId ? null : formulaId);
-  };
-
-  const handleAction = (formula: Formula) => {
-    setOpenDropdown(null);
-    onFormulaAction(formula);
-  };
+  // ActionMenu manages its own open state; no local dropdown needed
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
@@ -100,29 +83,16 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm relative">
-                  <button
-                    onClick={() => toggleDropdown(formula.id)}
-                    className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
-                    title="Ver opciones"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                  </button>
-
-                  {openDropdown === formula.id && (
-                    <div
-                      className="absolute right-0 top-8 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200"
-                      ref={dropdownRef}
-                    >
-                      <button
-                        onClick={() => handleAction(formula)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-md last:rounded-b-md"
-                      >
-                        Editar/Eliminar
-                      </button>
-                    </div>
-                  )}
+                  <ActionMenu
+                    items={[
+                      { key: 'edit', label: 'Editar', icon: (
+                          <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        ), onClick: () => onEdit(formula) },
+                      { key: 'delete', label: 'Eliminar', icon: (
+                          <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        ), onClick: () => onDelete(formula) },
+                    ]}
+                  />
                 </td>
               </tr>
             ))

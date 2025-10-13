@@ -1,5 +1,5 @@
 export * from './components/FormulasTable';
-export * from './components/SearchBar';
+export { default as SearchBar } from './components/SearchBar';
 export * from './components/FormulaFormModal';
 export * from './components/FormulaActionModal';
 export * from './components/ProtectedFormulaModal';

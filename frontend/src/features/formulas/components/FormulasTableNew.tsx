@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import ActionMenu from '../../../components/ui/ActionMenu';
 import type { Formula } from '../types/formula.types';
 
 interface FormulasTableProps {
   formulas?: Formula[];                       
-  onFormulaAction: (formula: Formula) => void;
+  onEdit: (formula: Formula) => void;
+  onDelete: (formula: Formula) => void;
 }
 
 const formatNumber = (value?: number): string => {
@@ -17,7 +19,8 @@ const formatNumber = (value?: number): string => {
 
 export const FormulasTable: React.FC<FormulasTableProps> = ({
   formulas = [],                                 
-  onFormulaAction,
+  onEdit,
+  onDelete,
 }) => {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
@@ -31,9 +34,7 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
     setExpandedRows(newExpanded);
   };
 
-  const handleAction = (formula: Formula) => {
-    onFormulaAction(formula);
-  };
+  // legacy onFormulaAction prop retained for compatibility but not used here
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
@@ -121,15 +122,16 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleAction(formula)}
-                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      title="Ver opciones"
-                    >
-                      <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
+                    <ActionMenu
+                      items={[
+                        { key: 'edit', label: 'Editar', icon: (
+                            <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          ), onClick: () => onEdit(formula) },
+                        { key: 'delete', label: 'Eliminar', icon: (
+                            <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          ), onClick: () => onDelete(formula) },
+                      ]}
+                    />
                   </td>
                 </tr>
                 

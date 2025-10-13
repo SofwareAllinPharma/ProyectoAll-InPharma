@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Insumo } from '../../insumos/types/insumo.types';
 import type { FormulaInsumo } from '../types/formula.types';
 import { InsumoService } from '../../insumos/services/insumo.service';
+import SearchSelect from '../../../components/ui/SearchSelect';
 
 interface FormulaInsumoManagerProps {
   formulaInsumos: FormulaInsumo[];
@@ -97,20 +98,15 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
           {formulaInsumos.map((formulaInsumo, index) => (
             <div key={index} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
               <div className="flex-1">
-                <select
-                  value={formulaInsumo.idInsumo || ''}
-                  onChange={(e) => updateInsumo(index, 'idInsumo', parseInt(e.target.value) || 0)}
+                <SearchSelect<Insumo>
+                  items={availableInsumos}
+                  value={formulaInsumo.insumo ?? null}
+                  getKey={(i) => i.id}
+                  getLabel={(i) => i.nombre}
+                  onSelect={(selected) => updateInsumo(index, 'idInsumo', selected.id)}
+                  placeholder="Seleccionar insumo"
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none 
-                           focus:ring-2 focus:ring-[#7c6a55] disabled:bg-gray-100 font-roboto text-sm"
-                >
-                  <option value="">Seleccionar insumo</option>
-                  {availableInsumos.map((insumo) => (
-                    <option key={insumo.id} value={insumo.id}>
-                      {insumo.nombre}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               
               <div className="w-32">

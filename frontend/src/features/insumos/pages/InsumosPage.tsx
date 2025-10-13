@@ -6,6 +6,7 @@ import SearchBar from '../components/SearchBar';
 import InsumoFormModal from '../components/InsumoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import PageShell from '../../../components/PageShell';
+import TipBox from '../../../components/ui/TipBox';
 
 export default function InsumosPage() {
   const {
@@ -26,13 +27,13 @@ export default function InsumosPage() {
       onDismissError={dismissError}
       noContainer={true}
       searchNode={(
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} placeholder="Buscar por nombre del insumo..." />
-        </div>
+        <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} placeholder="Buscar por nombre del insumo..." />
       )}
       helpTip={(
-        <div className="text-center text-sm text-gray-500">
-          <p>💡 <strong>Tip:</strong> Usa el botón de tres puntos en cada fila para ver las opciones de editar o eliminar</p>
+        <div className="-mt-4">
+          <TipBox mt="mt-4">
+            <><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para ver las opciones de editar o eliminar</>
+          </TipBox>
         </div>
       )}
       modals={(

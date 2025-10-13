@@ -21,8 +21,6 @@ interface SidebarProps {
   footer?: React.ReactNode;
 }
 
-// header icons moved to SidebarHeader
-
 const Sidebar: React.FC<SidebarProps> = ({
   title,
   items,
@@ -32,7 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   expandedWidthClass = "w-64",
   collapsedWidthClass = "w-12",
 }) => {
-  // logout/navigation are handled by SidebarFooter
   const [cl, setCl] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -61,12 +58,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const overlay = isMobile && !collapsed;
   const isRoot = (to?: string) => !!to && to.split("/").filter(Boolean).length === 1;
 
-  // lock body scroll when sidebar is an overlay on small screens
   useLockBodyScroll(overlay);
 
-  // compute an inline width to avoid cases where computed CSS width becomes 0
-  // (some environments / devtools can show 0px despite Tailwind classes). We
-  // keep the tailwind classes for styling but enforce a numeric width here.
   const inlineWidth = collapsed ? '3rem' : '16rem';
 
   return (

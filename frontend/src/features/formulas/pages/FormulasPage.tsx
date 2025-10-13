@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormulasTable } from '../components/FormulasTableNew';
-import { SearchBar } from '../components/SearchBar';
+import SearchBar from '../components/SearchBar';
 import { FormulaFormModalSimple } from '../components/FormulaFormModalSimple';
 import { FormulaActionModal } from '../components/FormulaActionModal';
 import { ProtectedFormulaModal } from '../components/ProtectedFormulaModal';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import TipBox from '../../../components/ui/TipBox';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
 
@@ -77,9 +78,32 @@ export const FormulasPage: React.FC = () => {
     [formulas]
   );
 
-  const handleFormulaAction = (formula: Formula) => {
+  // legacy action handler removed in favor of explicit onEdit/onDelete
+
+  const handleEditFormula = async (formula: Formula) => {
+    if (!formula) return;
+    try {
+      // Obtener la fórmula completa con sus insumos antes de abrir el modal de edición
+      const formulaCompleta = await FormulaService.getFormulaById(formula.id);
+      setSelectedFormula(formulaCompleta);
+
+      const status = await FormulaService.checkFormulaProtection(formula.id);
+      if (!status.canEdit || formulaCompleta.esProtegida) {
+        setProtectedModalOpen(true);
+        return;
+      }
+      setIsCopyMode(false);
+      setFormModalOpen(true);
+    } catch (error: unknown) {
+      console.error('Error checking formula protection:', error);
+      showNotification('error', getErrorMessage(error) || 'Error al verificar el estado de la fórmula');
+    }
+  };
+
+  const handleDeleteFormula = (formula: Formula) => {
+    if (!formula) return;
     setSelectedFormula(formula);
-    setActionModalOpen(true);
+    setDeleteModalOpen(true);
   };
 
   const handleActionModalEdit = async () => {
@@ -335,28 +359,13 @@ export const FormulasPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" />
         </div>
       ) : (
-        <FormulasTable formulas={filteredFormulas} onFormulaAction={handleFormulaAction} />
+        <FormulasTable formulas={filteredFormulas} onEdit={handleEditFormula} onDelete={handleDeleteFormula} />
       )}
 
       {/* Help */}
-      <div className="mt-6 p-4 bg-[#f3efe6] rounded-lg border-l-4 border-[#7c6a55]">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-[#7c6a55]" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-[#3e3529] font-roboto">
-              <strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar
-            </p>
-          </div>
-        </div>
-      </div>
+      <TipBox>
+        <><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</>
+      </TipBox>
 
       {/* Modals */}
       <FormulaFormModalSimple

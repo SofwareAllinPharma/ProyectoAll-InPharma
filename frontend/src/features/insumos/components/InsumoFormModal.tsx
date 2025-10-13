@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Insumo, CreateInsumoDto } from '../types/insumo.types';
 import InsumoFormFields from './InsumoFormFields';
-import Modal from '../../../components/ui/Modal';
-import ModalHeader from '../../../components/ui/ModalHeader';
-import ModalFooter from '../../../components/ui/ModalFooter';
+import FormModal from '../../../components/ui/FormModal';
 
 interface InsumoFormModalProps {
   open: boolean;
@@ -14,7 +12,6 @@ interface InsumoFormModalProps {
 }
 
 export default function InsumoFormModal({ open, insumo, onSave, onCancel, loading = false }: InsumoFormModalProps) {
-  const [container] = useState(() => document.createElement('div'));
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<CreateInsumoDto>({
     nombre: '',
@@ -29,15 +26,6 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
     otro_100g: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    document.body.appendChild(container);
-    return () => {
-      try {
-        document.body.removeChild(container);
-      } catch {}
-    };
-  }, [container]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,21 +85,13 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
 
   if (!open) return null;
   const isEditing = !!insumo;
+  const formId = 'insumo-form';
 
   return (
-    <Modal open={open} onClose={onCancel} containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-      <ModalHeader>
-        <h2 className="text-xl font-semibold">{isEditing ? 'Editar Insumo' : 'Agregar Nuevo Insumo'}</h2>
-      </ModalHeader>
-
-      <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+    <FormModal open={open} onClose={onCancel} title={isEditing ? 'Editar Insumo' : 'Agregar Nuevo Insumo'} formId={formId} loading={loading} containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <form id={formId} onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
         <InsumoFormFields formData={formData} onChange={handleInputChange} errors={errors} loading={loading} nameRef={nameRef} />
       </form>
-
-      <ModalFooter className="flex justify-end gap-3">
-        <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" disabled={loading}>Cancelar</button>
-        <button type="button" onClick={handleSubmit as any} className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90" disabled={loading}>{loading ? 'Guardando...' : (isEditing ? 'Actualizar Insumo' : 'Crear Insumo')}</button>
-      </ModalFooter>
-    </Modal>
+    </FormModal>
   );
 }
