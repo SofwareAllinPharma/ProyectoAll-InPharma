@@ -19,20 +19,6 @@ export const InventarioController = {
     }
   },
 
-  // PUT /inventario/:idDeposito/:idProducto/umbral-min  (editar uno)
-  async upsertUmbralMin(req: Request, res: Response) {
-    try {
-      const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
-      const idProducto = parseId(req.params.idProducto, 'idProducto');
-      const umbralMin = Number(req.body.umbralMin);
-
-      const result = await InventarioService.upsertUmbralMin({ idDeposito, idProducto, umbralMin });
-      return res.json(result);
-    } catch (e: any) {
-      return res.status(400).json({ message: e.message ?? 'Datos inválidos' });
-    }
-  },
-
   // PUT /inventario/:idDeposito/umbrales  (bulk: { items: [{idProducto, umbralMin}, ...] })
   async bulkUpsertUmbralMin(req: Request, res: Response) {
     try {

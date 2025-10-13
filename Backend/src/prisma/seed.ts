@@ -253,11 +253,11 @@ const depId = Object.fromEntries(deps.map(d => [d.nombre, d.id]));
 await prisma.inventario.createMany({
   data: [
     // Depósito Central
-    { idDeposito: depId['Depósito Central'],  idProducto: prodA.idProducto, cantidadProducto: 0, umbralMin: 10, umbralMax: 0 },
-    { idDeposito: depId['Depósito Central'],  idProducto: prodB.idProducto, cantidadProducto: 0, umbralMin:  8, umbralMax: 0 },
+    { idDeposito: depId['Depósito Central'],  idProducto: prodA.idProducto, cantidadProducto: 15, umbralMin: 10, umbralMax: 0 },
+    { idDeposito: depId['Depósito Central'],  idProducto: prodB.idProducto, cantidadProducto: 3, umbralMin:  8, umbralMax: 0 },
     // Depósito Secundario
-    { idDeposito: depId['Depósito Secundario'], idProducto: prodA.idProducto, cantidadProducto: 0, umbralMin: 5, umbralMax: 0 },
-    { idDeposito: depId['Depósito Secundario'], idProducto: prodB.idProducto, cantidadProducto: 0, umbralMin: 4, umbralMax:  0 },
+    { idDeposito: depId['Depósito Secundario'], idProducto: prodA.idProducto, cantidadProducto: 2, umbralMin: 5, umbralMax: 0 },
+    { idDeposito: depId['Depósito Secundario'], idProducto: prodB.idProducto, cantidadProducto: 10, umbralMin: 4, umbralMax:  0 },
   ],
   skipDuplicates: true,
 });

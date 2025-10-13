@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { InventarioService, type InventarioProducto } from '../../inventario/services/inventario.service';
+import InventarioTable from '../../inventario/InventarioTable';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
@@ -18,6 +20,17 @@ export default function DepositoDetailPage() {
   const [openForm, setOpenForm] = useState(false);
   const [openActions, setOpenActions] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [inventario, setInventario] = useState<InventarioProducto[]>([]);
+  const [loadingInventario, setLoadingInventario] = useState(false);
+
+  useEffect(() => {
+    if (!dep?.id) return;
+    setLoadingInventario(true);
+    InventarioService.getInventarioByDeposito(dep.id)
+      .then((data) => setInventario(data))
+      .catch(() => setInventario([]))
+      .finally(() => setLoadingInventario(false));
+  }, [dep?.id]);
 
   useEffect(() => {
     const load = async () => {
@@ -167,6 +180,17 @@ export default function DepositoDetailPage() {
         onSave={handleUpdate}
         capacidadUsadaActual={dep.capacidadUsada ?? 0}
       />
+
+      {/* Tabla de inventario del depósito */}
+      <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
+        <h4 className="text-lg font-semibold text-[#3E3529] mb-4">Inventario de productos</h4>
+        <InventarioTable
+          data={inventario}
+          loading={loadingInventario}
+          onMovimientoStock={() => {}}
+          onCrearPedido={() => {}}
+        />
+      </div>
     </div>
   );
 }

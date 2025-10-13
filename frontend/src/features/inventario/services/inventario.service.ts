@@ -3,8 +3,10 @@ import axios from 'axios';
 export interface InventarioProducto {
   idProducto: number;
   nombreComercial: string;
-  stockActual: number;
+  cantidadProducto: number | null;
   umbralMin: number | null;
+  estado: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT';
+  updatedAt: string | null;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -19,7 +21,25 @@ export class InventarioService {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
-      return response.data;
+      // Mapear los datos para calcular estado y asegurar consistencia de tipos
+      return (response.data as any[]).map((item) => {
+        const cantidad = item.cantidadProducto === undefined ? null : item.cantidadProducto;
+        const umbral = item.umbralMin === undefined ? null : item.umbralMin;
+        let estado: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT' = 'DEFAULT';
+        if (typeof umbral === 'number') {
+          if (typeof cantidad === 'number' && cantidad < umbral) estado = 'CRITICO';
+          else if (typeof cantidad === 'number' && cantidad <= umbral + 5) estado = 'BAJO';
+          else if (typeof cantidad === 'number') estado = 'NORMAL';
+        }
+        return {
+          idProducto: item.idProducto,
+          nombreComercial: item.nombreComercial,
+          cantidadProducto: cantidad,
+          umbralMin: umbral,
+          estado,
+          updatedAt: item.updatedAt ?? null,
+        };
+      });
     } catch (error) {
       console.error('Error en getInventarioByDeposito:', error);
       throw error;

@@ -129,7 +129,7 @@ const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open,
                         <td className="px-4 py-3">
                           <span className="font-medium text-[#3E3529]">{p.nombreComercial}</span>
                         </td>
-                        <td className="px-4 py-3 text-sm">{p.stockActual === null || p.stockActual === undefined ? '-' : p.stockActual}</td>
+                        <td className="px-4 py-3 text-sm">{p.cantidadProducto === null || p.cantidadProducto === undefined ? '-' : p.cantidadProducto}</td>
                         <td className="px-4 py-3">
                           <input
                             type="number"
