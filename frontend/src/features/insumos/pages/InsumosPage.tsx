@@ -3,8 +3,8 @@ import { } from 'react';
 import { useInsumos } from '../hooks/useInsumos';
 import InsumosTable from '../components/InsumosTable';
 import SearchBar from '../components/SearchBar';
-import InsumoFormModal from '../components/InsumoFormModal';
-import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import InsumoFormModal from '../components/form/InsumoFormModal';
+import DeleteConfirmModal from '../components/form/DeleteConfirmModal';
 import PageShell from '../../../components/PageShell';
 import TipBox from '../../../components/ui/TipBox';
 

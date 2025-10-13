@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Insumo, CreateInsumoDto } from '../types/insumo.types';
+import type { Insumo, CreateInsumoDto } from '../../types/insumo.types';
 import InsumoFormFields from './InsumoFormFields';
-import FormModal from '../../../components/ui/FormModal';
+import FormModal from '../../../../components/ui/FormModal';
 
 interface InsumoFormModalProps {
   open: boolean;

@@ -1,4 +1,4 @@
-import type { CreateInsumoDto } from '../types/insumo.types';
+import type { CreateInsumoDto } from '../../types/insumo.types';
 import type { RefObject } from 'react';
 
 export default function InsumoFormFields({

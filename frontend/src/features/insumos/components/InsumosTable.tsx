@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { Insumo } from '../types/insumo.types';
 import ActionMenu from '../../../components/ui/ActionMenu';
+import DataTable from '../../../components/ui/DataTable';
+import type { Column } from '../../../components/ui/DataTable';
 
 interface InsumosTableProps {
   insumos: Insumo[];
@@ -11,109 +13,35 @@ interface InsumosTableProps {
 
 export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: InsumosTableProps) {
   const [filteredInsumos, setFilteredInsumos] = useState<Insumo[]>([]);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredInsumos(insumos);
-    } else {
-      const filtered = insumos.filter(insumo =>
-        insumo.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredInsumos(filtered);
-    }
+    if (searchTerm.trim() === '') setFilteredInsumos(insumos);
+    else setFilteredInsumos(insumos.filter(i => i.nombre.toLowerCase().includes(searchTerm.toLowerCase())));
   }, [insumos, searchTerm]);
 
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!menuRef.current) return;
-      const target = e.target as Node;
-      if (menuRef.current && !menuRef.current.contains(target)) {
-        setOpenMenuId(null);
-      }
-    };
-    if (openMenuId !== null) {
-      window.addEventListener('mousedown', onDocClick);
-      return () => window.removeEventListener('mousedown', onDocClick);
-    }
-  }, [openMenuId]);
+  const fmt = (v: number) => (v % 1 === 0 ? String(v) : v.toFixed(2));
 
-  const formatNumber = (value: number): string => {
-    return value % 1 === 0 ? value.toString() : value.toFixed(2);
-  };
+  const columns: Column<Insumo>[] = [
+    { key: 'nombre', title: 'Nombre', width: '25%', render: r => <div className="text-sm font-medium whitespace-normal">{r.nombre}</div> },
+    { key: 'cal', title: 'Calorías', align: 'center', width: '8%', render: r => fmt(r.cal_100g) },
+    { key: 'grasasTot', title: 'Grasas Tot.', align: 'center', width: '8%', render: r => `${fmt(r.grasasTotales_100g)}g` },
+    { key: 'grasasTrans', title: 'Grasas Trans', align: 'center', width: '8%', render: r => `${fmt(r.grasasTrans_100g)}g` },
+    { key: 'grasasSat', title: 'Grasas Sat.', align: 'center', width: '8%', render: r => `${fmt(r.grasasSaturadas_100g)}g` },
+    { key: 'proteinas', title: 'Proteínas', align: 'center', width: '8%', render: r => `${fmt(r.proteinas_100g)}g` },
+    { key: 'carbo', title: 'Carbohidratos', align: 'center', width: '12%', render: r => `${fmt(r.carbohidratos_100g)}g` },
+    { key: 'sodio', title: 'Sodio', align: 'center', width: '8%', render: r => `${fmt(r.sodio_100g * 1000)}mg` },
+    { key: 'fibra', title: 'Fibra', align: 'center', width: '8%', render: r => `${fmt(r.fibra_100g)}g` },
+    { key: 'otro', title: 'Otros', align: 'center', width: '8%', render: r => `${fmt(r.otro_100g)}g` },
+    { key: 'acciones', title: 'Acciones', align: 'center', width: '10%', render: r => (
+        <ActionMenu items={[{ key: 'edit', label: 'Editar', onClick: () => onEdit(r) }, { key: 'delete', label: 'Eliminar', onClick: () => onDelete(r) }]} />
+    )}
+  ];
+
+  const footer = filteredInsumos.length > 0 ? (
+    <p className="text-sm text-gray-600">Mostrando {filteredInsumos.length} de {insumos.length} insumo{insumos.length !== 1 ? 's' : ''}{searchTerm && ` (filtrado por "${searchTerm}")`}</p>
+  ) : undefined;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200">
-      <div className="overflow-x-auto">
-        <table className="w-full table-fixed">
-          <thead className="bg-[#5d5448] text-white rounded-t-lg">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-normal w-[25%]">Nombre</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Calorías</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Tot.</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Trans</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Grasas Sat.</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[12%]">Proteínas</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[16%]">Carbohidratos</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[11%]">Sodio</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[10%]">Fibra</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[10%]">Otros</th>
-              <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-[13%]">Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredInsumos.length === 0 ? (
-              <tr>
-                <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
-                  {searchTerm ? 'No se encontraron insumos con ese criterio de búsqueda' : 'No hay insumos disponibles'}
-                </td>
-              </tr>
-            ) : (
-              filteredInsumos.map((insumo, index) => (
-                <tr
-                  key={insumo.id}
-                  className={`transition-colors duration-200 hover:bg-[#f5f1e8] hover:shadow-sm ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                >
-                  <td className="px-4 py-3 text-sm text-gray-900 font-medium whitespace-normal break-words">{insumo.nombre}</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.cal_100g)}</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasTotales_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasTrans_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.grasasSaturadas_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.proteinas_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.carbohidratos_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.sodio_100g * 1000)}mg</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.fibra_100g)}g</td>
-                  <td className="px-3 py-3 text-sm text-gray-600 text-center">{formatNumber(insumo.otro_100g)}g</td>
-
-                  <td className="px-4 py-3 text-center">
-                    <ActionMenu
-                      items={[
-                        { key: 'edit', label: 'Editar', icon: (
-                          <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        ), onClick: () => onEdit(insumo) },
-                        { key: 'delete', label: 'Eliminar', icon: (
-                          <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        ), onClick: () => onDelete(insumo) },
-                      ]}
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {filteredInsumos.length > 0 && (
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 rounded-b-lg">
-          <p className="text-sm text-gray-600">
-            Mostrando {filteredInsumos.length} de {insumos.length} insumo{insumos.length !== 1 ? 's' : ''}
-            {searchTerm && ` (filtrado por "${searchTerm}")`}
-          </p>
-        </div>
-      )}
-    </div>
+    <DataTable columns={columns} data={filteredInsumos} rowKey={r => r.id} expandable={undefined} footer={footer} />
   );
 }

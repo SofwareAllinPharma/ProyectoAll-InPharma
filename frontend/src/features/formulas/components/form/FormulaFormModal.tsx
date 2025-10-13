@@ -1,8 +1,8 @@
 import React from 'react';
-import type { Formula, CreateFormulaRequest } from '../types/formula.types';
-import { useFormulaForm } from '../hooks/useFormulaForm';
-import FormModal from '../../../components/ui/FormModal';
-import { FormulaInsumoManager } from './FormulaInsumoManager';
+import type { Formula, CreateFormulaRequest } from '../../types/formula.types';
+import { useFormulaForm } from '../../hooks/useFormulaForm';
+import FormModal from '../../../../components/ui/FormModal';
+import { FormulaInsumoManager } from './insumos/FormulaInsumoManager';
 
 interface FormulaFormModalProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ interface FormulaFormModalProps {
   isCopyMode?: boolean;
 }
 
-export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({ isOpen, onClose, onSubmit, formula, isLoading = false, isCopyMode = false }) => {
+export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onClose, onSubmit, formula, isLoading = false, isCopyMode = false }) => {
   const formId = 'formula-form';
   const { formData, formulaInsumos, nutritionValues, errors, isSubmitting, handleInputChange, handleInsumosChange, handleSubmit } = useFormulaForm({ formula: formula ?? null, isOpen, isCopyMode });
 

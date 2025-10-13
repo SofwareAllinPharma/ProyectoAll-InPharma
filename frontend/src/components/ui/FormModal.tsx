@@ -11,7 +11,7 @@ export default function FormModal({
   loading = false,
   footer,
   children,
-  containerClass = 'bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[95vh] overflow-y-auto border border-gray-200',
+  containerClass = 'bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[95vh] overflow-hidden',
   formId,
 }: {
   open: boolean;
@@ -31,23 +31,23 @@ export default function FormModal({
 
   return (
     <Modal open={open} onClose={onClose} containerClass={containerClass}>
-      <div className="flex flex-col h-full p-6">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-          {description}
+      <div className="flex flex-col h-full">
+        <div className="bg-[#5d5448] text-white rounded-t-xl px-6 py-4">
+          <h2 className="text-2xl font-bold">{title}</h2>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div className="p-6 flex-1 overflow-auto">
+          {description}
           {children}
         </div>
 
-        <div className="mt-auto">
+  <div className="px-6 py-4 bg-white rounded-b-xl">
           {footer ? (
             footer
           ) : (
             <div className="flex justify-end gap-3">
-              <button ref={cancelRef} onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" disabled={loading}>{cancelLabel}</button>
-              <button form={formId} type="submit" className="px-4 py-2 rounded-lg bg-[#7c6a55] text-white hover:bg-[#6b5847] flex items-center gap-2 disabled:opacity-50" disabled={loading}>
+              <button ref={cancelRef} onClick={onClose} className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" disabled={loading}>{cancelLabel}</button>
+              <button form={formId} type="submit" className="px-6 py-3 rounded-lg bg-[#5d5448] text-white hover:bg-[#50453d] flex items-center gap-2 disabled:opacity-50" disabled={loading}>
                 {loading && <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle></svg>}
                 {submitLabel}
               </button>

@@ -1,6 +1,5 @@
-import React from 'react';
-import type { FormulaInsumo, NutritionCalculation } from '../types/formula.types';
-import { FormulaInsumoManager } from './FormulaInsumoManager';
+import type { FormulaInsumo, NutritionCalculation } from '../../types/formula.types';
+import { FormulaInsumoManager } from './insumos/FormulaInsumoManager';
 import { NutritionDisplay } from './NutritionDisplay';
 
 export default function FormulaFormFields({
