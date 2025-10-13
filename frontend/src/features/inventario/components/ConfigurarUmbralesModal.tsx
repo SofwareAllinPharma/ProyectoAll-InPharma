@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { InventarioService } from './services/inventario.service';
-import type { InventarioProducto } from './services/inventario.service';
+import React, { useEffect, useMemo, useState } from 'react';
+import { InventarioService } from '../services/inventario.service';
+import type { InventarioProducto } from '../services/inventario.service';
 
 interface ConfigurarUmbralesModalProps {
   open: boolean;
@@ -15,12 +15,21 @@ const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open,
   const [inventario, setInventario] = useState<InventarioProducto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inventarioOrdenado = useMemo(
+    () =>
+      [...inventario].sort((a, b) => {
+        const aSin = a.umbralMin == null ? 0 : 1;
+        const bSin = b.umbralMin == null ? 0 : 1;
+        return aSin - bSin || a.nombreComercial.localeCompare(b.nombreComercial);
+      }),
+    [inventario]
+  );
 
   useEffect(() => {
     if (open) {
       setLoading(true);
       setError(null);
-      InventarioService.getInventarioByDeposito(depositoId)
+      InventarioService.getProductosConUmbral(depositoId)
         .then((data) => {
           setInventario(data);
           setLoading(false);
@@ -124,7 +133,7 @@ const ConfigurarUmbralesModal: React.FC<ConfigurarUmbralesModalProps> = ({ open,
                       <td colSpan={3} className="text-center py-8 text-gray-400">No hay productos registrados.</td>
                     </tr>
                   ) : (
-                    inventario.map((p) => (
+                      inventarioOrdenado.map((p) => (
                       <tr key={p.idProducto} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <span className="font-medium text-[#3E3529]">{p.nombreComercial}</span>

@@ -24,19 +24,23 @@ export const InventarioController = {
     }
   },
 
-  // GET /inventario/:idDeposito?q=&estado=&sort=&order=&page=&pageSize=
-  async listByDeposito(req: Request, res: Response) {
+
+  // GET /inventario/:idDeposito
+  async listInventarioByDeposito(req: Request, res: Response) {
     try {
       const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
-      const { q, estado, sort, order, page, pageSize } = req.query as any;
-      const data = await InventarioService.listByDeposito(idDeposito, {
-        q,
-        estado,
-        sort,
-        order,
-        page: page ? Number(page) : undefined,
-        pageSize: pageSize ? Number(pageSize) : undefined,
-      });
+      const data = await InventarioService.listInventarioByDeposito(idDeposito);
+      res.json(data);
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message ?? 'Error interno' });
+    }
+  },
+
+  // GET /inventario/:idDeposito/umbrales-config
+  async listProductosConUmbral(req: Request, res: Response) {
+    try {
+      const idDeposito = parseId(req.params.idDeposito, 'idDeposito');
+      const data = await InventarioService.listProductosConUmbral(idDeposito);
       res.json(data);
     } catch (e: any) {
       res.status(e.status ?? 500).json({ message: e.message ?? 'Error interno' });

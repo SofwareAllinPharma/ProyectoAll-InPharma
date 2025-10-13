@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Deposito } from '../types/deposito.types';
 import DeleteConfirmModal from './DeleteConfirmModal';
-import ConfigurarUmbralesModal from '../../inventario/ConfigurarUmbralesModal';
+import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
 
 
 interface DepositoActionModalProps {

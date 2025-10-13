@@ -4,25 +4,17 @@ import React, { useEffect, useMemo, useState } from "react";
 type Align = "left" | "center" | "right";
 
 export type Column<T> = {
-  /** ID único de la columna */
   id: string;
-  /** Encabezado visible */
   header: React.ReactNode;
-  /** Cómo obtener el valor base para ordenar/buscar (opcional si usas render) */
   accessor?: (row: T) => React.ReactNode | string | number | Date | null | undefined;
-  /** Render de celda (si no se provee, usa accessor tal cual) */
   cell?: (row: T) => React.ReactNode;
-  /** Columna ordenable */
   sortable?: boolean;
-  /** Alineación de contenido */
   align?: Align;
-  /** Clases extra de celda */
   className?: string;
-  /** Ancho sugerido (Tailwind, ej: 'w-32', 'min-w-[240px]') */
   widthClass?: string;
 };
 
-export type SortState<T> = {
+export type SortState = {
   columnId: string;
   direction: "asc" | "desc";
 } | null;
@@ -30,27 +22,16 @@ export type SortState<T> = {
 export type DataTableProps<T> = {
   data: T[];
   columns: Column<T>[];
-  /** Texto de búsqueda global (opcional) */
   searchTerm?: string;
-  /** Filtro global custom que decide si una fila matchea (opcional) */
   globalFilter?: (row: T, searchTerm: string) => boolean;
-  /** Orden inicial (opcional) */
-  initialSort?: SortState<T>;
-  /** Tamaño de página inicial */
+  initialSort?: SortState;
   initialPageSize?: number;
-  /** Opciones de tamaño de página */
   pageSizeOptions?: number[];
-  /** Indicador de carga */
   loading?: boolean;
-  /** Mensaje o nodo para estado vacío */
   emptyState?: React.ReactNode;
-  /** Callback click fila */
   onRowClick?: (row: T) => void;
-  /** Callback doble click fila */
   onRowDoubleClick?: (row: T) => void;
-  /** Render opcional de acciones por fila (última columna visual) */
   renderRowActions?: (row: T) => React.ReactNode;
-  /** Clase extra para la tabla contenedora */
   className?: string;
 };
 
@@ -58,7 +39,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function DataTable<T>({
+export default function DataTable<T extends object>({
   data,
   columns,
   searchTerm = "",
@@ -73,16 +54,14 @@ export default function DataTable<T>({
   renderRowActions,
   className,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<SortState<T>>(initialSort);
+  const [sort, setSort] = useState<SortState>(initialSort);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
 
-  // Filtrado global (si hay searchTerm)
   const filtered = useMemo(() => {
     if (!searchTerm.trim()) return data;
     if (globalFilter) return data.filter((r) => globalFilter(r, searchTerm));
 
-    // Filtro por defecto: chequea strings de accessor/cell visibles
     const st = searchTerm.toLowerCase();
     return data.filter((row) =>
       columns.some((col) => {
@@ -103,7 +82,6 @@ export default function DataTable<T>({
     );
   }, [data, columns, searchTerm, globalFilter]);
 
-  // Ordenamiento
   const sorted = useMemo(() => {
     if (!sort) return filtered;
     const col = columns.find((c) => c.id === sort.columnId);
@@ -146,7 +124,7 @@ export default function DataTable<T>({
     setSort((prev) => {
       if (!prev || prev.columnId !== col.id) return { columnId: col.id, direction: "asc" };
       if (prev.direction === "asc") return { columnId: col.id, direction: "desc" };
-      return null; // tercera pulsación: sin orden
+      return null; 
     });
   };
 
@@ -221,7 +199,6 @@ export default function DataTable<T>({
                       : col.accessor
                       ? col.accessor(row)
                       : null;
-                    // Si el valor es Date, mostrar como string legible
                     if (content instanceof Date) {
                       content = content.toLocaleString();
                     }
@@ -252,7 +229,6 @@ export default function DataTable<T>({
         </table>
       </div>
 
-      {/* Footer de paginación */}
       <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center gap-3 sm:justify-between">
         <div className="text-sm text-gray-600">
           {total > 0 ? (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { InventarioService, type InventarioProducto } from '../../inventario/services/inventario.service';
-import InventarioTable from '../../inventario/InventarioTable';
+import InventarioTable from '../../inventario/components/InventarioTable';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import type { Deposito } from '../types/deposito.types';
 import { DepositoService } from '../services/deposito.service';
@@ -10,7 +10,16 @@ import DepositHeader from '../components/DepositHeader';
 import DepositoActionModal from '../components/DepositoActionModal';
 import DepositIcon from '../components/depositIcon';
 import CapacityBar from '../components/CapacityBar';
+import ResumenCard from '../../../components/inventarioCard';
+import { FaBox, FaCheckCircle, FaExclamationTriangle, FaTimesCircle } from 'react-icons/fa';
 
+type ResumenEstados = {
+  total: number;
+  normal: number;
+  bajo: number;
+  critico: number;
+  default?: number;
+};
 
 export default function DepositoDetailPage() {
   const { id } = useParams();
@@ -20,9 +29,16 @@ export default function DepositoDetailPage() {
   const [openForm, setOpenForm] = useState(false);
   const [openActions, setOpenActions] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
   const [inventario, setInventario] = useState<InventarioProducto[]>([]);
   const [loadingInventario, setLoadingInventario] = useState(false);
 
+  const [resumen, setResumen] = useState<ResumenEstados>({
+    total: 0, normal: 0, bajo: 0, critico: 0,
+  });
+  const [loadingResumen, setLoadingResumen] = useState(false);
+
+  // Traer inventario para la tabla
   useEffect(() => {
     if (!dep?.id) return;
     setLoadingInventario(true);
@@ -32,6 +48,17 @@ export default function DepositoDetailPage() {
       .finally(() => setLoadingInventario(false));
   }, [dep?.id]);
 
+  // Traer resumen de estados (para las cards)
+  useEffect(() => {
+    if (!dep?.id) return;
+    setLoadingResumen(true);
+    InventarioService.getResumenEstados(dep.id)
+      .then((data) => setResumen(data))
+      .catch(() => setResumen({ total: 0, normal: 0, bajo: 0, critico: 0 }))
+      .finally(() => setLoadingResumen(false));
+  }, [dep?.id]);
+
+  // Traer datos del depósito
   useEffect(() => {
     const load = async () => {
       setError(null);
@@ -92,7 +119,6 @@ export default function DepositoDetailPage() {
   };
 
   const handleDeactivate = async () => {
-    // Modal de confirmación ya está en el modal de acciones
     try {
       await DepositoService.deactivate(dep.id); // baja lógica
       navigate('/adminsis/depositos', { replace: true });
@@ -101,6 +127,7 @@ export default function DepositoDetailPage() {
     }
   };
 
+  const totalProductos = resumen.total;
   return (
     <div className="space-y-4">
       <DepositHeader
@@ -140,7 +167,6 @@ export default function DepositoDetailPage() {
         </div>
 
         <div className="grid gap-6 mt-6 md:grid-cols-2">
-          {/* Capacidad Total */}
           <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">
             <p className="text-sm text-gray-500 mb-1">Capacidad Total</p>
             <div className="flex items-baseline gap-1">
@@ -152,12 +178,42 @@ export default function DepositoDetailPage() {
               <CapacityBar used={dep.capacidadUsada ?? 0} total={dep.capacidadTotal} showHeader={false} height={8} />
             </div>
           </div>
-          {/* Responsable */}
           <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">
             <p className="text-sm text-gray-500 mb-1">Responsable</p>
             <div className="text-xl font-semibold text-[#3E3529]">{dep.responsable}</div>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <ResumenCard
+          title="Total Productos"
+          value={loadingResumen ? '—' : totalProductos}
+          icon={<FaBox className="text-[#9D977B]" size={18} />}
+          borderColor="#9D977B"
+          bgIcon="#F5F3EB"
+        />
+        <ResumenCard
+          title="Stock Normal"
+          value={loadingResumen ? '—' : resumen.normal}
+          icon={<FaCheckCircle className="text-green-600" size={18} />}
+          borderColor="#22c55e"
+          bgIcon="#DCFCE7"
+        />
+        <ResumenCard
+          title="Stock Bajo"
+          value={loadingResumen ? '—' : resumen.bajo}
+          icon={<FaExclamationTriangle className="text-yellow-500" size={18} />}
+          borderColor="#eab308"
+          bgIcon="#FEF9C3"
+        />
+        <ResumenCard
+          title="Stock Crítico"
+          value={loadingResumen ? '—' : resumen.critico}
+          icon={<FaTimesCircle className="text-red-500" size={18} />}
+          borderColor="#ef4444"
+          bgIcon="#FEE2E2"
+        />
       </div>
 
       <DepositoActionModal
@@ -170,6 +226,17 @@ export default function DepositoDetailPage() {
           setOpenActions(false);
           setSuccessMsg('Los umbrales mínimos fueron guardados con éxito');
           setTimeout(() => setSuccessMsg(null), 6000);
+          // Refrescar cards y tabla después de guardar umbrales
+          if (dep?.id) {
+            setLoadingInventario(true);
+            InventarioService.getInventarioByDeposito(dep.id)
+              .then((data) => setInventario(data))
+              .finally(() => setLoadingInventario(false));
+            setLoadingResumen(true);
+            InventarioService.getResumenEstados(dep.id)
+              .then((data) => setResumen(data))
+              .finally(() => setLoadingResumen(false));
+          }
         }}
       />
 
@@ -187,8 +254,8 @@ export default function DepositoDetailPage() {
         <InventarioTable
           data={inventario}
           loading={loadingInventario}
-          onMovimientoStock={() => {}}
-          onCrearPedido={() => {}}
+          onMovimientoStock={() => { }}
+          onCrearPedido={() => { }}
         />
       </div>
     </div>

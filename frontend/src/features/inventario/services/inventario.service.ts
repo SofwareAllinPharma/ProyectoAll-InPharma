@@ -46,6 +46,37 @@ export class InventarioService {
     }
   }
 
+  static async getProductosConUmbral(idDeposito: number): Promise<InventarioProducto[]> {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/inventario/${idDeposito}/umbrales-config`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+
+      return (response.data as any[]).map((item) => {
+        const cantidad = item.cantidadProducto ?? null;
+        const umbral = item.umbralMin ?? null;
+
+        const estadoFE = String(item.estado ?? 'default').toUpperCase() as InventarioProducto['estado'];
+
+        return {
+          idProducto: item.idProducto,
+          nombreComercial: item.nombreComercial,
+          cantidadProducto: cantidad,
+          umbralMin: umbral,
+          estado: estadoFE,
+          updatedAt: null,
+        };
+      });
+    } catch (error) {
+      console.error('Error en getProductosConUmbral:', error);
+      throw error;
+    }
+  }
+
   static async updateUmbralMin(idDeposito: number, idProducto: number, umbralMin: number): Promise<any> {
     try {
       const token = localStorage.getItem('token');
@@ -84,5 +115,24 @@ export class InventarioService {
       console.error('Error en bulkUpdateUmbrales:', error);
       throw error;
     }
+  }
+  static async getResumenEstados(idDeposito: number): Promise<{
+    total: number; normal: number; bajo: number; critico: number; default: number;
+  }> {
+    const token = localStorage.getItem('token');
+    const resp = await axios.get(`${API_BASE_URL}/inventario/${idDeposito}/resumen-estados`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    const d = resp.data || {};
+    return {
+      total: Number(d.total ?? 0),
+      normal: Number(d.normal ?? 0),
+      bajo: Number(d.bajo ?? 0),
+      critico: Number(d.critico ?? 0),
+      default: Number(d.default ?? 0),
+    };
   }
 }

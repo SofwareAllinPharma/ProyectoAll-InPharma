@@ -3,45 +3,68 @@ import { calcularEstado, EstadoStock } from './inventario.estado';
 const prisma = new PrismaClient();
 
 export const InventarioService = {
-  /** Listado del depósito con estado + soporte de filtros básicos */
-  async listByDeposito(
-    idDeposito: number,
-    opts?: { q?: string; estado?: EstadoStock; sort?: 'producto'|'cantidad'|'actualizacion'; order?: 'asc'|'desc'; page?: number; pageSize?: number }
-  ) {
-    const { q, estado, sort = 'producto', order = 'asc', page = 1, pageSize = 20 } = opts || {};
 
-    // Traigo inventario + producto; (más adelante se podrá LEFT JOIN movimientos para 'ultimaActualizacion')
-    const rows = await prisma.inventario.findMany({
-      where: {
-        idDeposito,
-        ...(q ? { producto: { nombreComercial: { contains: q, mode: 'insensitive' } } } : {}),
-      },
-      include: { producto: { select: { idProducto: true, nombreComercial: true } } },
-      orderBy:
-        sort === 'cantidad' ? { cantidadProducto: order }
-        : sort === 'actualizacion' ? { /* placeholder */ idProducto: order } // se reemplazará por lastMovementAt
-        : { producto: { nombreComercial: order } },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+  /** Para configuración de umbrales: todos los productos activos, con o sin stock */
+  async listProductosConUmbral(idDeposito: number) {
+    // Traer todos los productos activos
+    const productos = await prisma.producto.findMany({
+      where: { estaActivo: true },
+      select: { idProducto: true, nombreComercial: true },
+      orderBy: { nombreComercial: 'asc' },
     });
-
-    const withEstado = rows.map(r => {
-      const estado = calcularEstado(r.cantidadProducto, r.umbralMin ?? null);
+    // Traer inventario existente para el depósito
+    const inventario = await prisma.inventario.findMany({
+      where: { idDeposito },
+      select: { idProducto: true, cantidadProducto: true, umbralMin: true },
+    });
+    const inventarioMap = Object.fromEntries(
+      inventario.map(i => [i.idProducto, i])
+    );
+    // Unir productos con inventario (si existe)
+    return productos.map(p => {
+      const inv = inventarioMap[p.idProducto];
+      const cantidadProducto = inv ? inv.cantidadProducto : null;
+      const umbralMin = inv ? inv.umbralMin : null;
+      const estado = calcularEstado(cantidadProducto ?? 0, umbralMin);
       return {
-        ...r,
+        idProducto: p.idProducto,
+        nombreComercial: p.nombreComercial,
+        cantidadProducto,
+        umbralMin,
         estado,
-        ultimaActualizacion: null as Date | null, // TODO: poblar cuando esté Movimientos
       };
     });
-
-    // Filtro por estado si vino en query
-    return estado ? withEstado.filter(r => r.estado === estado) : withEstado;
+  },
+  /** Para la tabla de inventario: solo productos con stock en el depósito (independiente de umbral) */
+  async listInventarioByDeposito(idDeposito: number) {
+    // Traer inventario con cantidad > 0 y producto activo
+    const inventario = await prisma.inventario.findMany({
+      where: {
+        idDeposito,
+        cantidadProducto: { gt: 0 },
+        producto: { estaActivo: true },
+      },
+      include: { producto: { select: { idProducto: true, nombreComercial: true } } },
+      orderBy: { producto: { nombreComercial: 'asc' } },
+    });
+    return inventario.map(r => ({
+      idProducto: r.idProducto,
+      nombreComercial: r.producto?.nombreComercial ?? '',
+      cantidadProducto: r.cantidadProducto,
+      umbralMin: r.umbralMin,
+      estado: calcularEstado(r.cantidadProducto, r.umbralMin),
+      updatedAt: (r as any).updatedAt ?? null,
+    }));
   },
 
   /** Resumen (totales por estado) para las cards/filtros del depósito */
   async resumenEstados(idDeposito: number) {
     const rows = await prisma.inventario.findMany({
-      where: { idDeposito },
+      where: {
+        idDeposito,
+        cantidadProducto: { gt: 0 },
+        producto: { estaActivo: true },
+      },
       select: { cantidadProducto: true, umbralMin: true },
     });
 
@@ -49,7 +72,14 @@ export const InventarioService = {
     for (const r of rows) {
       counters[calcularEstado(r.cantidadProducto, r.umbralMin ?? null)]++;
     }
-    return counters;
+
+    return {
+      total: rows.length,
+      normal: counters.normal,
+      bajo: counters.bajo,
+      critico: counters.critico,
+      default: counters.default,
+    };
   },
 
   /** Bulk “Guardar todos” (queda igual a tu última versión) */
@@ -68,7 +98,7 @@ export const InventarioService = {
     const productosIds = items.map(i => i.idProducto);
     const existentes = new Set(
       (await prisma.producto.findMany({ where: { idProducto: { in: productosIds } }, select: { idProducto: true } }))
-      .map(p => p.idProducto)
+        .map(p => p.idProducto)
     );
     const faltantes = productosIds.filter(id => !existentes.has(id));
     if (faltantes.length) throw new Error(`Productos inexistentes: ${faltantes.join(', ')}`);
