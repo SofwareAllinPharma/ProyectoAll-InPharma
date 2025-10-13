@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PageShell from '../../../components/PageShell';
 import SearchBar from '../components/SearchBar';
 import { FormulasTable } from '../components/FormulasTable';
@@ -13,10 +13,9 @@ import type { Formula, CreateFormulaRequest } from '../types/formula.types';
 const FormulasPage: React.FC = () => {
   const { show, toasts, hide } = useToast() as any;
   const [formulas, setFormulas] = useState<Formula[]>([]);
-  const formulasRef = React.useRef<Formula[]>([]);
+  const formulasRef = useRef<Formula[]>([]);
   const [filtered, setFiltered] = useState<Formula[]>([]);
   const [loading, setLoading] = useState(false);
-  const instanceIdRef = React.useRef<string>(Math.random().toString(36).slice(2, 8));
 
   const [formOpen, setFormOpen] = useState(false);
   const [protectedOpen, setProtectedOpen] = useState(false);
@@ -25,38 +24,13 @@ const FormulasPage: React.FC = () => {
   const [isCopy, setIsCopy] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      try {
-        const data = await FormulaService.getAllFormulas();
-        // DEBUG
-  // eslint-disable-next-line no-console
-        console.log('[FormulasPage:%s] fetched formulas count', instanceIdRef.current, Array.isArray(data) ? data.length : 'not-array');
-  setFormulas(data);
-  formulasRef.current = data;
-  setFiltered(data);
-      } catch {
-        show({ message: 'Error cargando fórmulas', type: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const syncFormulas = (data: Formula[]) => { setFormulas(data); formulasRef.current = data; setFiltered(data); };
+  const reloadFormulas = async () => { const data = await FormulaService.getAllFormulas(); syncFormulas(data); };
+  useEffect(() => { (async () => { setLoading(true); try { await reloadFormulas(); } catch { show({ message: 'Error cargando fórmulas', type: 'error' }); } finally { setLoading(false); } })(); }, []);
 
-  const handleSearch = (q = '') => {
-    const term = q.trim().toLowerCase();
-    // eslint-disable-next-line no-console
-    console.log('[FormulasPage:%s] handleSearch called with:', instanceIdRef.current, JSON.stringify(term));
-    const source = formulasRef.current || formulas;
-    setFiltered(!term ? source : source.filter(f => f.nombre.toLowerCase().includes(term)));
-  };
+  const handleSearch = (q = '') => { const term = q.trim().toLowerCase(); const source = formulasRef.current || formulas; setFiltered(!term ? source : source.filter(f => f.nombre.toLowerCase().includes(term))); };
 
-  // DEBUG: log whenever filtered changes (keep outside JSX to avoid returning void)
-  React.useEffect(() => {
-  // eslint-disable-next-line no-console
-  console.log('[FormulasPage] filtered length', Array.isArray(filtered) ? filtered.length : 'not-array');
-  }, [filtered]);
+  useEffect(() => {}, [filtered]);
 
   const openEdit = (f: Formula) => {
     setSelected(f);
@@ -65,22 +39,7 @@ const FormulasPage: React.FC = () => {
   };
   const openDelete = (f: Formula) => { setSelected(f); setDeleteOpen(true); };
 
-  const createCopy = (base?: Formula) => {
-    const b = base ?? selected;
-    if (!b) return;
-    const nameBase = b.nombre;
-    let max = 0;
-    for (const e of formulas)
-      if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) {
-        const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10);
-        if (!isNaN(n) && n > max) max = n;
-      }
-    const copyName = `${nameBase}Copia_${max + 1}`;
-    setSelected({ ...b, nombre: copyName } as Formula);
-    setIsCopy(true);
-    setProtectedOpen(false);
-    setFormOpen(true);
-  };
+  const createCopy = (base?: Formula) => { const b = base ?? selected; if (!b) return; const nameBase = b.nombre; let max = 0; for (const e of formulas) if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) { const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10); if (!isNaN(n) && n > max) max = n; } setSelected({ ...b, nombre: `${nameBase}Copia_${max + 1}` } as Formula); setIsCopy(true); setProtectedOpen(false); setFormOpen(true); };
 
   const onSubmit = async (payload: CreateFormulaRequest) => {
     setFormLoading(true);
@@ -97,9 +56,7 @@ const FormulasPage: React.FC = () => {
         await FormulaService.createFormula(payload);
         show({ message: 'Fórmula creada correctamente', type: 'success' });
       }
-      setFormOpen(false); setSelected(null); setIsCopy(false);
-      const data = await FormulaService.getAllFormulas();
-  setFormulas(data); formulasRef.current = data; setFiltered(data);
+    setFormOpen(false); setSelected(null); setIsCopy(false); await reloadFormulas();
     } catch (e) {
       show({ message: 'Error guardando fórmula', type: 'error' });
     } finally {
@@ -115,10 +72,7 @@ const FormulasPage: React.FC = () => {
       show({ message: 'Fórmula eliminada correctamente', type: 'success' });
       setDeleteOpen(false);
       setSelected(null);
-      const data = await FormulaService.getAllFormulas();
-      setFormulas(data);
-      formulasRef.current = data;
-      setFiltered(data);
+  await reloadFormulas();
     } catch {
       show({ message: 'Error eliminando fórmula', type: 'error' });
     } finally {
@@ -132,16 +86,12 @@ const FormulasPage: React.FC = () => {
     setDeleteOpen(false);
     setSelected(null);
     setIsCopy(false);
-    const data = await FormulaService.getAllFormulas();
-    setFormulas(data);
-    formulasRef.current = data;
-    setFiltered(data);
+  await reloadFormulas();
   };
 
   return (
     <PageShell title="Fórmulas" subtitle="Gestiona las fórmulas nutricionales de la fábrica" onCreate={() => { setSelected(null); setIsCopy(false); setFormOpen(true); }} createLabel="Agregar Fórmula" loading={loading} noContainer searchNode={(
       <>
-  {/* debug badge removed */}
         {toasts && toasts.length > 0 && (
           <div className="mb-4">{toasts.map((t: any) => <div key={t.id} className="mb-3"><div className={`w-full rounded-md ${t.type==='success'?'bg-green-50':'bg-blue-50'} border border-green-200`}><div className="p-4 flex items-start gap-3"><div className="flex-1 text-green-800">{t.message}</div><div><button onClick={() => hide(t.id)} className="text-gray-400">×</button></div></div></div></div>)}</div>
         )}

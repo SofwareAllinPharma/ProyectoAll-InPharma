@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import type { Formula } from '../../types/formula.types';
-import ConfirmDialog from '../../../../components/ui/ConfirmDialog';
+import ConfirmDialog from '../../../../components/ui/modales/ConfirmDialog';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;

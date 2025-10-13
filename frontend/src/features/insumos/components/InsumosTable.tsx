@@ -37,11 +37,7 @@ export default function InsumosTable({ insumos, onEdit, onDelete, searchTerm }: 
     )}
   ];
 
-  const footer = filteredInsumos.length > 0 ? (
-    <p className="text-sm text-gray-600">Mostrando {filteredInsumos.length} de {insumos.length} insumo{insumos.length !== 1 ? 's' : ''}{searchTerm && ` (filtrado por "${searchTerm}")`}</p>
-  ) : undefined;
-
   return (
-    <DataTable columns={columns} data={filteredInsumos} rowKey={r => r.id} expandable={undefined} footer={footer} />
+    <DataTable columns={columns} data={filteredInsumos} rowKey={r => r.id} expandable={undefined} pagination defaultPageSize={10} pageSizeOptions={[5,10,20]} />
   );
 }

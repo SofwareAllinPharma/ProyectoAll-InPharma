@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import NavItem from "./ui/NavItem";
-import SidebarFooter from "./ui/SidebarFooter";
-import SidebarHeader from "./ui/SidebarHeader";
+import NavItem from "./ui/sidebar/NavItem";
+import SidebarFooter from "./ui/sidebar/SidebarFooter";
+import SidebarHeader from "./ui/sidebar/SidebarHeader";
 import { useLockBodyScroll } from "../hooks/useLockBodyScroll";
 
 export interface SidebarItem {

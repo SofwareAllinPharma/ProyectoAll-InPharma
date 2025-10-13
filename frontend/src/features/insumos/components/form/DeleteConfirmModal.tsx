@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import ConfirmDialog from '../../../../components/ui/ConfirmDialog';
+import ConfirmDialog from '../../../../components/ui/modales/ConfirmDialog';
 import type { Insumo } from '../../types/insumo.types';
 
 export default function DeleteConfirmModal({ open, insumo, onConfirm, onCancel, loading = false }: {

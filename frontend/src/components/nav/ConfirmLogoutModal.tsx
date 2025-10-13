@@ -1,4 +1,4 @@
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../ui/modales/ConfirmModal";
 
 export default function ConfirmLogoutModal({
   open,

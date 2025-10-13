@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Formula, CreateFormulaRequest } from '../../types/formula.types';
 import { useFormulaForm } from '../../hooks/useFormulaForm';
-import FormModal from '../../../../components/ui/FormModal';
+import FormModal from '../../../../components/ui/modales/FormModal';
 import { FormulaInsumoManager } from './insumos/FormulaInsumoManager';
 
 interface FormulaFormModalProps {

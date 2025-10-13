@@ -1,6 +1,3 @@
-// frontend/src/types/formula.types.ts
-
-// Importar tipos de insumos
 import type { Insumo } from '../../insumos/types/insumo.types';
 
 export interface FormulaInsumo {
@@ -30,7 +27,6 @@ export interface Formula {
   insumos?: FormulaInsumo[];
 }
 
-// 👇 Tipo reutilizable para requests de insumos
 export interface FormulaInsumoRequest {
   idInsumo: number;
   cantidadInsumo: number;
@@ -38,9 +34,9 @@ export interface FormulaInsumoRequest {
 
 export interface CreateFormulaRequest {
   nombre: string;
-  porcionMinima?: number; // opcional, backend la recalcula
+  porcionMinima?: number;
   esProtegida: boolean;
-  insumos: FormulaInsumoRequest[]; // requerido según Solución A
+  insumos: FormulaInsumoRequest[];
 }
 
 export interface UpdateFormulaRequest extends CreateFormulaRequest {

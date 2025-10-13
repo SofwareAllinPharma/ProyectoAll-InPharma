@@ -56,6 +56,9 @@ export const FormulasTable: React.FC<Props> = ({ formulas = [], onEdit, onDelete
       data={rowsWithExp as Formula[]}
       rowKey={f => f.id}
       expandable={() => null}
+      pagination
+      defaultPageSize={10}
+      pageSizeOptions={[5,10,20]}
       onRowClick={(f) => toggleRow((f as Formula).id)}
       emptyState={(
         <div className="flex flex-col items-center gap-3">

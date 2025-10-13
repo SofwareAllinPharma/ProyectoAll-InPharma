@@ -33,7 +33,7 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
       <nav
         className={[
           "sticky top-0 z-[9999]",
-          "bg-white/80 backdrop-blur",
+          "bg-white/60 backdrop-blur-md",
           "border-b border-[#5d5448]/20",
           scrolled ? "shadow-sm" : "",
         ].join(" ")}

@@ -1,5 +1,5 @@
 import React from 'react';
-import Modal from '../../../components/ui/Modal';
+import Modal from '../../../components/ui/modales/Modal';
 import type { Formula } from '../types/formula.types';
 
 export const ProtectedFormulaModal: React.FC<{ isOpen: boolean; onClose: () => void; onCreateCopy: (f: Formula) => void; formula: Formula | null }> = ({ isOpen, onClose, onCreateCopy, formula }) => {
