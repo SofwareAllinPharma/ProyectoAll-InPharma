@@ -4,12 +4,14 @@ import type { Producto, ProductoModalAction } from '../types/producto.types';
 interface Props {
   productos: Producto[];
   onProductoAction: (action: ProductoModalAction) => void;
+  onShowNutrition?: (producto: Producto) => void;
   isLoading?: boolean;
 }
 
 export const ProductosTable: React.FC<Props> = ({
   productos,
   onProductoAction,
+  onShowNutrition,
   isLoading = false,
 }) => {
   const formatNumber = (value: number): string => {
@@ -59,25 +61,25 @@ export const ProductosTable: React.FC<Props> = ({
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Producto
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Fórmula
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Peso Neto
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Porciones
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Peso por Porción
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -85,17 +87,16 @@ export const ProductosTable: React.FC<Props> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {productos.map((producto) => (
               <tr key={producto.idProducto} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {producto.nombreComercial}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      ID: {producto.idProducto}
-                    </div>
-                  </div>
+                <td className="px-6 py-4 text-center">
+                  <button
+                    onClick={() => onShowNutrition?.(producto)}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                    title="Ver información nutricional"
+                  >
+                    {producto.nombreComercial}
+                  </button>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-center">
                   <div className="text-sm text-gray-900">
                     {producto.formula?.nombre || 'Fórmula no encontrada'}
                   </div>
@@ -105,16 +106,16 @@ export const ProductosTable: React.FC<Props> = ({
                     </span>
                   )}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-6 py-4 text-sm text-gray-700 text-center">
                   {formatNumber(producto.pesoNeto)}g
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-6 py-4 text-sm text-gray-700 text-center">
                   {formatPorciones(producto)}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-6 py-4 text-sm text-gray-700 text-center">
                   {producto.formula ? `${formatNumber(producto.formula.porcion || producto.formula.porcionMinima || 0)}g` : 'N/A'}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-center">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     producto.estaActivo
                       ? 'bg-green-100 text-green-800'
@@ -123,8 +124,8 @@ export const ProductosTable: React.FC<Props> = ({
                     {producto.estaActivo ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="relative">
+                <td className="px-6 py-4 text-center">
+                  <div className="relative flex justify-center">
                     <button
                       onClick={() => onProductoAction({ type: 'view', producto })}
                       className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"

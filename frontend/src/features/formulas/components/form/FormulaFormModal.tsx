@@ -52,11 +52,15 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onCl
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">Información Nutricional por Porción</h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div><span className="font-medium">Kcalorías:</span> {nutritionValues.kcaloriasPorPorcion.toFixed(1)}</div>
-                  <div><span className="font-medium">Proteínas:</span> {nutritionValues.proteinasPorPorcion.toFixed(1)}g</div>
-                  <div><span className="font-medium">Grasas Tot.:</span> {nutritionValues.grasaTotalPorPorcion.toFixed(1)}g</div>
-                  <div><span className="font-medium">Carbohidratos:</span> {nutritionValues.carbohidratosPorPorcion.toFixed(1)}g</div>
-                  <div><span className="font-medium">Sodio:</span> {(nutritionValues.sodioPorPorcion * 1000).toFixed(1)}mg</div>
-                  <div><span className="font-medium">Fibra:</span> {nutritionValues.fibraPorPorcion.toFixed(1)}g</div>
+                  <div><span className="font-medium">kJ:</span> {nutritionValues.kjPorPorcion.toFixed(1)}</div>
+                  <div><span className="font-medium">Grasas Totales:</span> {nutritionValues.grasaTotalPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Grasas Trans:</span> {nutritionValues.grasaTransPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Grasas Saturadas:</span> {nutritionValues.grasaSaturadaPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Proteínas:</span> {nutritionValues.proteinasPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Carbohidratos:</span> {nutritionValues.carbohidratosPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Sodio:</span> {(nutritionValues.sodioPorPorcion * 1000).toFixed(2)}mg</div>
+                  <div><span className="font-medium">Fibra:</span> {nutritionValues.fibraPorPorcion.toFixed(2)}g</div>
+                  <div><span className="font-medium">Otros:</span> {(nutritionValues.otrosPorPorcion || 0).toFixed(2)}g</div>
                 </div>
               </div>
             </div>

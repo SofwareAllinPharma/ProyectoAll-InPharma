@@ -39,6 +39,7 @@ export const ProductoFormModal: React.FC<Props> = ({
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const [selectedFormula, setSelectedFormula] = useState<Formula | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingFormulas, setIsLoadingFormulas] = useState(false);
 
@@ -76,6 +77,7 @@ export const ProductoFormModal: React.FC<Props> = ({
       setSelectedFormula(null);
     }
     setErrors({});
+    setServerError(null);
   }, [isOpen, producto]);
 
   // Recalcular cuando cambia la fórmula seleccionada o el modo de cálculo
@@ -168,20 +170,28 @@ export const ProductoFormModal: React.FC<Props> = ({
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setServerError(null); // Limpiar errores previos
+    
     try {
+      // Crear objeto de datos basado en el modo de cálculo
       const submitData: CreateProductoRequest | UpdateProductoRequest = {
         idFormula: formData.idFormula,
         nombreComercial: formData.nombreComercial.trim(),
-        pesoNeto: formData.pesoNeto,
-        cantPorcionesAportadas: formData.cantPorcionesAportadas,
-        calculationMode: formData.calculationMode,
         ...(producto && { idProducto: producto.idProducto }),
       };
+
+      // Solo enviar el campo correspondiente según el modo de cálculo
+      if (formData.calculationMode === 'pesoNeto') {
+        submitData.pesoNeto = formData.pesoNeto;
+      } else {
+        submitData.cantPorcionesAportadas = formData.cantPorcionesAportadas;
+      }
 
       await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('Error al guardar producto:', error);
+      setServerError(error instanceof Error ? error.message : 'Error desconocido al guardar el producto');
     } finally {
       setIsSubmitting(false);
     }
@@ -322,6 +332,7 @@ export const ProductoFormModal: React.FC<Props> = ({
                   type="number"
                   value={formData.pesoNeto || ''}
                   onChange={(e) => handleValueChange('pesoNeto', parseFloat(e.target.value) || 0)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${
                     formData.calculationMode === 'porciones' ? 'bg-gray-50 cursor-not-allowed' : ''
                   } ${errors.pesoNeto ? 'border-red-500' : 'border-gray-300'}`}
@@ -346,6 +357,7 @@ export const ProductoFormModal: React.FC<Props> = ({
                   type="number"
                   value={formData.cantPorcionesAportadas || ''}
                   onChange={(e) => handleValueChange('cantPorcionesAportadas', parseFloat(e.target.value) || 0)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${
                     formData.calculationMode === 'pesoNeto' ? 'bg-gray-50 cursor-not-allowed' : ''
                   } ${errors.cantPorcionesAportadas ? 'border-red-500' : 'border-gray-300'}`}
@@ -374,27 +386,46 @@ export const ProductoFormModal: React.FC<Props> = ({
           )}
 
           {/* Información nutricional */}
-          {selectedFormula && formData.cantPorcionesAportadas > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Información Nutricional Total del Producto</h4>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="font-medium">Kcalorías:</span> {((selectedFormula.kcalorias || selectedFormula.kcaloriasPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}
+            {selectedFormula && formData.cantPorcionesAportadas > 0 && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Información Nutricional Total del Producto</h4>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div><span className="font-medium">Kcalorías:</span> {(() => {
+                    const kcalPorPorcion = selectedFormula.kcalorias || selectedFormula.kcaloriasPorPorcion || 
+                      (4 * (selectedFormula.proteinas || selectedFormula.proteinasPorPorcion || 0) + 
+                       4 * (selectedFormula.carbohidratos || selectedFormula.carbohidratosPorPorcion || 0) + 
+                       9 * (selectedFormula.grasaTotal || selectedFormula.grasaTotalPorPorcion || 0));
+                    return (kcalPorPorcion * formData.cantPorcionesAportadas).toFixed(1);
+                  })()}</div>
+                  <div><span className="font-medium">kJ:</span> {(() => {
+                    const kcalPorPorcion = selectedFormula.kcalorias || selectedFormula.kcaloriasPorPorcion || 
+                      (4 * (selectedFormula.proteinas || selectedFormula.proteinasPorPorcion || 0) + 
+                       4 * (selectedFormula.carbohidratos || selectedFormula.carbohidratosPorPorcion || 0) + 
+                       9 * (selectedFormula.grasaTotal || selectedFormula.grasaTotalPorPorcion || 0));
+                    const kjPorPorcion = selectedFormula.kjuls || selectedFormula.kjPorPorcion || (kcalPorPorcion * 4.184);
+                    return (kjPorPorcion * formData.cantPorcionesAportadas).toFixed(1);
+                  })()}</div>
+                  <div><span className="font-medium">Grasas Totales:</span> {((selectedFormula.grasaTotal || selectedFormula.grasaTotalPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Grasas Trans:</span> {((selectedFormula.grasaTrans || selectedFormula.grasaTransPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Grasas Saturadas:</span> {((selectedFormula.grasaSaturada || selectedFormula.grasaSaturadaPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Proteínas:</span> {((selectedFormula.proteinas || selectedFormula.proteinasPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Carbohidratos:</span> {((selectedFormula.carbohidratos || selectedFormula.carbohidratosPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Sodio:</span> {((selectedFormula.sodio || selectedFormula.sodioPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}mg</div>
+                  <div><span className="font-medium">Fibra:</span> {((selectedFormula.fibra || selectedFormula.fibraPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
+                  <div><span className="font-medium">Otros:</span> {((selectedFormula.otros || selectedFormula.otrosPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(2)}g</div>
                 </div>
-                <div>
-                  <span className="font-medium">Proteínas:</span> {((selectedFormula.proteinas || selectedFormula.proteinasPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}g
-                </div>
-                <div>
-                  <span className="font-medium">Grasas Totales:</span> {((selectedFormula.grasaTotal || selectedFormula.grasaTotalPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}g
-                </div>
-                <div>
-                  <span className="font-medium">Carbohidratos:</span> {((selectedFormula.carbohidratos || selectedFormula.carbohidratosPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}g
-                </div>
-                <div>
-                  <span className="font-medium">Sodio:</span> {((selectedFormula.sodio || selectedFormula.sodioPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}mg
-                </div>
-                <div>
-                  <span className="font-medium">Fibra:</span> {((selectedFormula.fibra || selectedFormula.fibraPorPorcion || 0) * formData.cantPorcionesAportadas).toFixed(1)}g
+              </div>
+            )}
+
+          {/* Error del servidor */}
+          {serverError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-red-700">
+                  {serverError}
                 </div>
               </div>
             </div>

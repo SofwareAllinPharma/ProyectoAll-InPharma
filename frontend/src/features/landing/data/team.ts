@@ -39,7 +39,7 @@ export const TEAM: TeamMember[] = [
   {
     id: "ds",
     name: "Joa Bonugli",
-    phrase: "Datos confiables, decisiones mejores.",
+    phrase: "Datos, corta.",
     photo: "/images/team/joa.jpg",
   },
 ];

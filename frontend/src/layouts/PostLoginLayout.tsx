@@ -31,6 +31,7 @@ export default function PostLoginLoyout() {
           ) },
           { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen className="w-5 h-5" /> },
           { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask className="w-5 h-5" /> },
+          { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaClipboardList className="w-5 h-5" /> },
           { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers className="w-5 h-5" /> },
           { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog className="w-5 h-5" /> },
         ];

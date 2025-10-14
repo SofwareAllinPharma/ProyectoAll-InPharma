@@ -3,6 +3,7 @@ import { ProductosTable } from '../components/ProductosTable';
 import { ProductoSearchBar } from '../components/ProductoSearchBar';
 import { ProductoFormModal } from '../components/ProductoFormModal';
 import { ProductoActionModal } from '../components/ProductoActionModal';
+import { ProductoNutritionalModal } from '../components/ProductoNutritionalModal';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
 import { ProductoService } from '../services/producto.service';
 import type { 
@@ -22,13 +23,13 @@ export const ProductosPage: React.FC = () => {
   const [filters, setFilters] = useState<ProductoSearchFilters>({
     search: '',
     buscarPor: 'producto',
-    estado: 'activo',
   });
 
   // Estados para modales
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
+  const [showNutritionalModal, setShowNutritionalModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,7 +38,7 @@ export const ProductosPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const filtersToUse = searchFilters || { search: '', buscarPor: 'producto' as const, estado: 'activo' as const };
+      const filtersToUse = searchFilters || { search: '', buscarPor: 'producto' as const };
       const data = await ProductoService.getAllProductos(filtersToUse);
       setProductos(data);
     } catch (err) {
@@ -51,13 +52,19 @@ export const ProductosPage: React.FC = () => {
 
   // Cargar productos al montar el componente (sin filtros)
   useEffect(() => {
-    loadProductos({ search: '', buscarPor: 'producto', estado: 'activo' });
+    loadProductos({ search: '', buscarPor: 'producto' });
   }, []); // Solo se ejecuta al montar
 
   // Manejar búsqueda manual
   const handleSearch = useCallback(() => {
     loadProductos(filters);
   }, [filters]);
+
+  // Mostrar información nutricional
+  const handleShowNutrition = (producto: Producto) => {
+    setSelectedProducto(producto);
+    setShowNutritionalModal(true);
+  };
 
   // Manejar acciones del producto
   const handleProductoAction = (action: ProductoModalAction) => {
@@ -147,6 +154,7 @@ export const ProductosPage: React.FC = () => {
   const closeModals = () => {
     setShowFormModal(false);
     setShowActionModal(false);
+    setShowNutritionalModal(false);
     setShowDeleteModal(false);
     setSelectedProducto(null);
   };
@@ -214,6 +222,7 @@ export const ProductosPage: React.FC = () => {
       <ProductosTable
         productos={productos}
         onProductoAction={handleProductoAction}
+        onShowNutrition={handleShowNutrition}
         isLoading={isLoading}
       />
 
@@ -288,6 +297,12 @@ export const ProductosPage: React.FC = () => {
         onConfirm={handleDeleteProducto}
         onCancel={() => setShowDeleteModal(false)}
         isLoading={isSubmitting}
+      />
+
+      <ProductoNutritionalModal
+        isOpen={showNutritionalModal}
+        producto={selectedProducto}
+        onClose={closeModals}
       />
     </div>
   );
