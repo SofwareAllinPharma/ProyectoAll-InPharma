@@ -8,6 +8,21 @@ export interface InventarioProducto {
   estado: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT';
   updatedAt: string | null;
 }
+// Tipos para stock global
+export interface DistribucionDeposito {
+  idDeposito: number;
+  nombre: string;
+  cantidad: number;
+  porcentaje: number;
+}
+
+export interface StockGlobalRow {
+  idProducto: number;
+  producto: string;
+  stockTotal: number;
+  distribucion: DistribucionDeposito[];
+  updatedAt?: string;
+}
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -135,4 +150,28 @@ export class InventarioService {
       default: Number(d.default ?? 0),
     };
   }
+
 }
+
+export class InventarioGlobalService {
+  static async getStockGlobal(): Promise<StockGlobalRow[]> {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/inventario-global`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+      return response.data as StockGlobalRow[];
+    } catch (error) {
+      console.error('Error en getStockGlobal:', error);
+      throw error;
+    }
+  }
+}
+
+
+
+
+

@@ -7,6 +7,9 @@ import { DepositoService } from '../services/deposito.service';
 import DepositoFormModal from '../components/DepositoFormModal';
 import type { DepositoFormValues } from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
+import StockGlobalTable from '../../inventario/components/StockGlobalTable';
+import { InventarioGlobalService, } from '../../inventario/services/inventario.service';
+import type { StockGlobalRow } from '../../inventario/services/inventario.service';
 
 
 
@@ -19,6 +22,11 @@ export default function DepositosPage() {
 	const [successMsg, setSuccessMsg] = useState<string | null>(null);
 	const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
 	const [deleteTarget, setDeleteTarget] = useState<Deposito | null>(null);
+
+	// Stock global
+	const [stockGlobal, setStockGlobal] = useState<StockGlobalRow[]>([]);
+	const [loadingGlobal, setLoadingGlobal] = useState(false);
+	const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
 
 
 const load = async () => {
@@ -35,9 +43,24 @@ const load = async () => {
 	}
 };
 
+const loadStockGlobal = async () => {
+	setLoadingGlobal(true);
+	setErrorGlobal(null);
+	try {
+		const data = await InventarioGlobalService.getStockGlobal();
+		setStockGlobal(data);
+	} catch (e: any) {
+		setErrorGlobal(e?.message || 'Error al obtener stock global');
+		setStockGlobal([]);
+	} finally {
+		setLoadingGlobal(false);
+	}
+};
+
 
 useEffect(() => {
-void load();
+	void load();
+	void loadStockGlobal();
 }, []);
 
 
@@ -102,11 +125,27 @@ return (
 		) : error ? (
 			<div className="text-sm text-red-600">{error}</div>
 		) : (
-			<DepositGrid
-				items={items}
-				onOpenDetail={(id) => navigate(`/adminsis/depositos/${id}`)}
-				onDelete={(deposito) => setDeleteTarget(deposito)}
-			/>
+			<>
+				<DepositGrid
+					items={items}
+					onOpenDetail={(id) => navigate(`/adminsis/depositos/${id}`)}
+					onDelete={(deposito) => setDeleteTarget(deposito)}
+				/>
+
+				<div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+					<h3 className="text-lg font-semibold text-[#3E3529] mb-4">Stock Global de Productos</h3>
+					{errorGlobal ? (
+						<div className="text-sm text-red-600">{errorGlobal}</div>
+					) : (
+						<StockGlobalTable
+							data={stockGlobal}
+							loading={loadingGlobal}
+							onCrearPedido={row => navigate(`/adminsis/pedidos/crear?producto=${row.idProducto}`)}
+							onMovimientoStock={row => navigate(`/adminsis/movimientos/crear?producto=${row.idProducto}`)}
+						/>
+					)}
+				</div>
+			</>
 		)}
 
 		<DepositoFormModal
