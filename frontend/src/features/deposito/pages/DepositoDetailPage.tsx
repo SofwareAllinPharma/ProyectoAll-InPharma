@@ -128,6 +128,9 @@ export default function DepositoDetailPage() {
   };
 
   const totalProductos = resumen.total;
+  // Calcular la suma de cantidadProducto de todos los productos del inventario
+  const capacidadUsada = inventario.reduce((acc, prod) => acc + (typeof prod.cantidadProducto === 'number' ? prod.cantidadProducto : 0), 0);
+
   return (
     <div className="space-y-4">
       <DepositHeader
@@ -170,12 +173,12 @@ export default function DepositoDetailPage() {
           <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">
             <p className="text-sm text-gray-500 mb-1">Capacidad Total</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-[#3E3529]">{dep.capacidadUsada ?? 0}</span>
+              <span className="text-2xl font-bold text-[#3E3529]">{capacidadUsada}</span>
               <span className="text-lg text-gray-700 font-normal">/ {dep.capacidadTotal}</span>
               <span className="text-sm text-gray-500 ml-1">unidades</span>
             </div>
             <div className="mt-2">
-              <CapacityBar used={dep.capacidadUsada ?? 0} total={dep.capacidadTotal} showHeader={false} height={8} />
+              <CapacityBar used={capacidadUsada} total={dep.capacidadTotal} showHeader={false} height={8} />
             </div>
           </div>
           <div className="rounded-lg bg-gray-50 p-6 flex flex-col justify-center min-h-[110px]">

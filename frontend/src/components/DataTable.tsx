@@ -71,12 +71,12 @@ export default function DataTable<T extends object>({
           typeof val === "string"
             ? val
             : val instanceof Date
-            ? val.toISOString()
-            : typeof val === "number"
-            ? String(val)
-            : React.isValidElement(val)
-            ? ""
-            : String(val ?? "");
+              ? val.toISOString()
+              : typeof val === "number"
+                ? String(val)
+                : React.isValidElement(val)
+                  ? ""
+                  : String(val ?? "");
         return txt.toLowerCase().includes(st);
       })
     );
@@ -124,7 +124,7 @@ export default function DataTable<T extends object>({
     setSort((prev) => {
       if (!prev || prev.columnId !== col.id) return { columnId: col.id, direction: "asc" };
       if (prev.direction === "asc") return { columnId: col.id, direction: "desc" };
-      return null; 
+      return null;
     });
   };
 
@@ -149,7 +149,13 @@ export default function DataTable<T extends object>({
                       col.sortable && "cursor-pointer"
                     )}
                   >
-                    <div className={cx("flex items-center gap-1", (col.align === "center" || col.align === "right") && "justify-end")}>
+                    <div
+                      className={cx(
+                        "flex items-center gap-1",
+                        col.align === "center" && "justify-center",
+                        col.align === "right" && "justify-end"
+                      )}
+                    >
                       <span>{col.header}</span>
                       {col.sortable && (
                         <span className="text-white/80 text-[10px] leading-none">
@@ -197,8 +203,8 @@ export default function DataTable<T extends object>({
                     let content = col.cell
                       ? col.cell(row)
                       : col.accessor
-                      ? col.accessor(row)
-                      : null;
+                        ? col.accessor(row)
+                        : null;
                     if (content instanceof Date) {
                       content = content.toLocaleString();
                     }

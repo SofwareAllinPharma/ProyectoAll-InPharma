@@ -1,5 +1,13 @@
 import axios from 'axios';
 
+export interface InventarioGlobalResumen {
+  totalProductos: number;
+  normal: number;
+  bajo: number;
+  critico: number;
+  default: number;
+}
+
 export interface InventarioProducto {
   idProducto: number;
   nombreComercial: string;
@@ -8,12 +16,14 @@ export interface InventarioProducto {
   estado: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT';
   updatedAt: string | null;
 }
-// Tipos para stock global
+
 export interface DistribucionDeposito {
   idDeposito: number;
   nombre: string;
   cantidad: number;
   porcentaje: number;
+  estado?: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT';
+  umbralMin?: number;
 }
 
 export interface StockGlobalRow {
@@ -36,7 +46,6 @@ export class InventarioService {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
-      // Mapear los datos para calcular estado y asegurar consistencia de tipos
       return (response.data as any[]).map((item) => {
         const cantidad = item.cantidadProducto === undefined ? null : item.cantidadProducto;
         const umbral = item.umbralMin === undefined ? null : item.umbralMin;
@@ -74,9 +83,7 @@ export class InventarioService {
       return (response.data as any[]).map((item) => {
         const cantidad = item.cantidadProducto ?? null;
         const umbral = item.umbralMin ?? null;
-
         const estadoFE = String(item.estado ?? 'default').toUpperCase() as InventarioProducto['estado'];
-
         return {
           idProducto: item.idProducto,
           nombreComercial: item.nombreComercial,
@@ -131,6 +138,7 @@ export class InventarioService {
       throw error;
     }
   }
+
   static async getResumenEstados(idDeposito: number): Promise<{
     total: number; normal: number; bajo: number; critico: number; default: number;
   }> {
@@ -150,7 +158,6 @@ export class InventarioService {
       default: Number(d.default ?? 0),
     };
   }
-
 }
 
 export class InventarioGlobalService {
@@ -169,9 +176,20 @@ export class InventarioGlobalService {
       throw error;
     }
   }
+
+  static async getResumenEstadosGlobal(): Promise<InventarioGlobalResumen> {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/inventario-global/resumen-estados`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+      return response.data as InventarioGlobalResumen;
+    } catch (error) {
+      console.error('Error en getResumenEstadosGlobal:', error);
+      throw error;
+    }
+  }
 }
-
-
-
-
-

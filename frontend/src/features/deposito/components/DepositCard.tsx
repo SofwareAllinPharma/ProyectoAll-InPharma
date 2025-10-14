@@ -6,10 +6,12 @@ import CapacityBar from "./CapacityBar";
 export default function DepositCard({
   d,
   onOpenDetail,
+  productosEnDeposito
 }: {
   d: Deposito;
   onOpenDetail?: (id: number) => void;
   onDelete?: (deposito: Deposito) => void;
+  productosEnDeposito?: number;
 }) {
   const navigate = useNavigate();
 
@@ -18,7 +20,7 @@ export default function DepositCard({
     navigate(`/adminsis/depositos/${d.id}`);
   };
 
-  const used = d.capacidadUsada;
+  const used = typeof productosEnDeposito === 'number' ? productosEnDeposito : d.capacidadUsada;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
