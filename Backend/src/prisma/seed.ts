@@ -784,13 +784,10 @@ async function main() {
     },
   ];
 
-  for (const p of productos) {
-    await prisma.producto.upsert({
-      where: { nombreComercial: p.nombreComercial },
-      update: {},
-      create: p,
-    });
-  }
+  await prisma.producto.createMany({
+    data: productos,
+    skipDuplicates: true,
+  });
 
   console.log("✔ Seed ejecutado OK");
 }
