@@ -17,10 +17,20 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
   }, []);
 
   const path = location.pathname;
-  let variant: "landing" | "login" | "profiles" | "dashboard" = "landing";
-  if (path === "/" || path.startsWith("/quienes-somos")) variant = "landing";
+  type NavVariant =
+    | "landing-root"
+    | "landing-inner"
+    | "login"
+    | "profiles-root"
+    | "profiles-item"
+    | "dashboard";
+
+  let variant: NavVariant = "landing-root";
+  if (path === "/") variant = "landing-root";
+  else if (path.startsWith("/quienes-somos")) variant = "landing-inner";
   else if (path.startsWith("/auth/login")) variant = "login";
-  else if (path.startsWith("/perfiles")) variant = "profiles";
+  else if (path === "/perfiles" || path === "/perfiles/") variant = "profiles-root";
+  else if (path.startsWith("/perfiles/")) variant = "profiles-item";
   else if (path.startsWith("/tecnico") || path.startsWith("/adminfab") || path.startsWith("/adminsis")) variant = "dashboard";
 
   const handleLogout = () => {
@@ -33,10 +43,13 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
       <nav
         className={[
           "sticky top-0 z-[9999]",
-          "bg-white/60 backdrop-blur-md",
+          // Default solid white background. When scrolled we switch to translucent + blur.
+          "bg-white",
           "border-b border-[#5d5448]/20",
-          scrolled ? "shadow-sm" : "",
-        ].join(" ")}
+          scrolled ? "backdrop-blur-md shadow-sm bg-white/60" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between text-[#5d5448]">
           <div className="flex items-center gap-2">
@@ -51,18 +64,11 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
             </Link>
           </div>
 
-          <NavbarButtons
-            variant={variant}
-            onLogoutClick={() => setShowConfirm(true)}
-          />
+          <NavbarButtons variant={variant} onLogoutClick={() => setShowConfirm(true)} />
         </div>
       </nav>
 
-      <ConfirmLogoutModal
-        open={showConfirm}
-        onCancel={() => setShowConfirm(false)}
-        onConfirm={handleLogout}
-      />
+      <ConfirmLogoutModal open={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={handleLogout} />
     </>
   );
 }

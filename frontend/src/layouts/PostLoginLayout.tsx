@@ -20,7 +20,7 @@ export default function PostLoginLoyout() {
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
     if (pathname.startsWith('/adminsis')) {
-        return [
+        const itemsForAdmin = [
           { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: (
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
@@ -31,9 +31,15 @@ export default function PostLoginLoyout() {
           ) },
           { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen className="w-5 h-5" /> },
           { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask className="w-5 h-5" /> },
+          { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBoxOpen className="w-5 h-5" /> },
+          { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse className="w-5 h-5" /> },  
           { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers className="w-5 h-5" /> },
           { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog className="w-5 h-5" /> },
         ];
+        // Debug: print exact items returned for adminsis
+        // eslint-disable-next-line no-console
+        console.log('[PostLoginLayout] itemsForAdmin =', itemsForAdmin.map(i => i.id));
+        return itemsForAdmin;
     }
     if (pathname.startsWith('/tecnico')) {
         return [
@@ -58,20 +64,14 @@ export default function PostLoginLoyout() {
   const pathname = location.pathname;
   const isDashboard = pathname.startsWith('/adminsis') || pathname.startsWith('/adminfab') || pathname.startsWith('/tecnico');
 
-  // Ensure sidebar uses its internal default when entering a dashboard
-  // so it expands on desktop by default (avoids carrying over previous toggle).
   useEffect(() => {
     if (isDashboard) setSidebarCollapsed(undefined);
   }, [isDashboard]);
 
-  // DEBUG: show state to help diagnose missing sidebar
-  // Remove when issue is fixed
-  // eslint-disable-next-line no-console
-  console.log('[PostLoginLayout] pathname=', location.pathname, 'isDashboard=', isDashboard, 'items=', items.length, 'sidebarCollapsed=', sidebarCollapsed);
+  console.log('[PostLoginLayout] pathname=', location.pathname, 'isDashboard=', isDashboard, 'items=', items.length, 'itemsIds=', items.map(it => it.id ?? it.label), 'sidebarCollapsed=', sidebarCollapsed);
 
   return (
     <div className="min-h-screen bg-[#f5f1e8] text-[#5d5448]">
-  {/* show navbar menu only on non-dashboard pages and hide it on /perfiles */}
   <NavbarPostLogin {...(!isDashboard && !pathname.startsWith('/perfiles') ? { onMenuToggle: () => setSidebarCollapsed((s) => (s === undefined ? false : !s)) } : {})} />
 
       <div className="flex">

@@ -31,11 +31,28 @@ function PrimaryButton({ children, onClick }: { children: React.ReactNode; onCli
     );
 }
 
-export default function NavbarButtons({ variant, onLogoutClick }: { variant: "landing" | "login" | "profiles" | "dashboard"; onLogoutClick: () => void; }) {
-    if (variant === "landing") {
+export default function NavbarButtons({ variant, onLogoutClick }: { variant: "landing-root" | "landing-inner" | "login" | "profiles-root" | "profiles-item" | "dashboard"; onLogoutClick: () => void; }) {
+    // Map variants to exact button sets requested by the user:
+    // - landing-root: '¿Quiénes somos?' and 'Iniciar Sesión'
+    // - landing-inner (e.g. /quienes-somos): 'Inicio' and 'Iniciar Sesión'
+    // - login: '¿Quiénes somos?' and 'Inicio'
+    // - profiles-root (/perfiles): 'Salir'
+    // - profiles-item (/perfiles/:id): 'Perfiles' and 'Salir'
+    // - dashboard/other: 'Perfiles' and 'Salir'
+
+    if (variant === "landing-root") {
         return (
             <div className="flex items-center gap-6">
                 <GhostLink to="/quienes-somos">¿Quiénes somos?</GhostLink>
+                <GhostLink to="/auth/login">Iniciar Sesión</GhostLink>
+            </div>
+        );
+    }
+
+    if (variant === "landing-inner") {
+        return (
+            <div className="flex items-center gap-6">
+                <GhostLink to="/">Inicio</GhostLink>
                 <GhostLink to="/auth/login">Iniciar Sesión</GhostLink>
             </div>
         );
@@ -50,7 +67,7 @@ export default function NavbarButtons({ variant, onLogoutClick }: { variant: "la
         );
     }
 
-    if (variant === "profiles") {
+    if (variant === "profiles-root") {
         return (
             <div className="flex items-center gap-6">
                 <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
@@ -58,11 +75,11 @@ export default function NavbarButtons({ variant, onLogoutClick }: { variant: "la
         );
     }
 
-        return (
-                <div className="flex items-center gap-6">
-                                    {/* mobile menu shown in Navbar */}
-                    <GhostButton to="/perfiles">Perfiles</GhostButton>
-                    <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
-                </div>
-            );
+    // profiles-item and dashboard
+    return (
+        <div className="flex items-center gap-6">
+            <GhostButton to="/perfiles">Perfiles</GhostButton>
+            <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
+        </div>
+    );
 }

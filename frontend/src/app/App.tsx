@@ -12,7 +12,7 @@ import ResetPassword from "../features/auth/pages/ResetPassword";
 import SelectProfile from "../features/profiles/pages/SelectProfile";
 import TecnicoDashboard from "../features/views/tecnico/TecnicoDashboard";
 import AdminFabDashboard from "../features/views/adminFab/AdminFabricaDashboard";
-import AdminSisDashboard from "../features/views/adminSis/AdminSistemaDashboard";
+import AdminSisDashboard from "../features/views/adminSis/AdminSistemaView";
 
 export default function App() {
   return (
