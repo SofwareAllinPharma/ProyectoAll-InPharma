@@ -30,8 +30,16 @@ const FormulasPage: React.FC = () => {
   const reloadFormulas = async () => { const data = await FormulaService.getAllFormulas(); syncFormulas(data); };
   useEffect(() => { (async () => { setLoading(true); try { await reloadFormulas(); } catch { show({ message: 'Error cargando fórmulas', type: 'error' }); } finally { setLoading(false); } })(); }, []);
 
-  const handleSearch = (q = '') => { const term = q.trim().toLowerCase(); const source = formulasRef.current || formulas; setFiltered(!term ? source : source.filter(f => f.nombre.toLowerCase().includes(term))); };
+const handleSearch = (q?: string) => {
+  const term = (q ?? '').toString().trim().toLowerCase();
+  const source = formulasRef.current?.length ? formulasRef.current : formulas;
 
+  const filteredList = !term
+    ? source
+    : source.filter(f => (f?.nombre ?? '').toString().toLowerCase().includes(term));
+
+  setFiltered(filteredList);
+};
   useEffect(() => {}, [filtered]);
 
   const openEdit = (f: Formula) => {
