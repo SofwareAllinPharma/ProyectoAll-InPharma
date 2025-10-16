@@ -29,7 +29,7 @@ Content-Type: application/json
 
 {
   "nombreComercial": "Barra de Almendras",
-  "idFormula": 2,
+  "idFormula": 10,
   "cantPorcionesAportadas": 10
 }
 

@@ -25,8 +25,8 @@ export class ProductosService {
       where: { id: dto.idFormula },
     });
     if (!formula) throw new Error("Fórmula no encontrada");
-    if (formula.esProtegida)
-      throw new Error("No se puede crear producto con fórmula protegida");
+    //if (formula.esProtegida)
+    //throw new Error("No se puede crear producto con fórmula protegida");
 
     let pesoNeto = dto.pesoNeto;
     let cantPorcionesAportadas = dto.cantPorcionesAportadas;
