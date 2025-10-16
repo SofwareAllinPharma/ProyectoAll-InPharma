@@ -58,9 +58,8 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
   };
 
   const updateInsumo = (index: number, field: keyof FormulaInsumo, value: number) => {
-    // mark row as touched when user interacts
+    // mark row as touched when user starts interacting
     onTouchRow?.(index);
-
     // Prevent duplicate insumo selection
     if (field === 'idInsumo') {
       const already = formulaInsumos.some((f, i) => f.idInsumo === value && i !== index && value !== 0);
@@ -110,18 +109,15 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
         <h3 className="text-lg font-semibold text-gray-900 font-merriweather">
           Insumos de la Fórmula
         </h3>
-        <div className="flex items-center space-x-3">
-          <span className="text-xs text-gray-400">Escribí para buscar</span>
-          <button
-            type="button"
-            onClick={addInsumo}
-            disabled={disabled}
-            className="text-sm bg-[#7c6a55] text-white px-3 py-1 rounded-md hover:bg-[#6b5847] 
-                       disabled:opacity-50 disabled:cursor-not-allowed font-roboto transition-colors"
-          >
-            + Agregar Insumo
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={addInsumo}
+          disabled={disabled}
+          className="text-sm bg-[#7c6a55] text-white px-3 py-1 rounded-md hover:bg-[#6b5847] 
+                     disabled:opacity-50 disabled:cursor-not-allowed font-roboto transition-colors"
+        >
+          + Agregar Insumo
+        </button>
       </div>
 
       {formulaInsumos.length === 0 ? (
@@ -134,29 +130,33 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
           {formulaInsumos.map((formulaInsumo, index) => (
             <div key={index} className="space-y-1">
               <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-              <div className="flex-1 relative">
+              <div className="flex-1">
                 <select
                   value={formulaInsumo.idInsumo || ''}
                   onChange={(e) => updateInsumo(index, 'idInsumo', parseInt(e.target.value) || 0)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                   disabled={disabled}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none 
                            focus:ring-2 focus:ring-[#7c6a55] disabled:bg-gray-100 font-roboto text-sm"
                 >
                   <option value="">Seleccionar insumo</option>
-                  {availableInsumos.map((insumo) => (
-                    <option key={insumo.id} value={insumo.id}>
-                      {insumo.nombre}
-                    </option>
-                  ))}
+                  {availableInsumos.map((insumo) => {
+                    const usedElsewhere = formulaInsumos.some((f, i) => f.idInsumo === insumo.id && i !== index);
+                    return (
+                      <option key={insumo.id} value={insumo.id} disabled={usedElsewhere}>
+                        {insumo.nombre}
+                      </option>
+                    );
+                  })}
                 </select>
-                      {/* overlay hint removed (now shown near + Agregar Insumo) */}
               </div>
               
               <div className="w-32">
                 <input
                   type="number"
                   value={formulaInsumo.cantidadInsumo || ''}
-                  onChange={(e) => updateInsumo(index, 'cantidadInsumo', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => { onTouchRow?.(index); updateInsumo(index, 'cantidadInsumo', parseFloat(e.target.value) || 0); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                   disabled={disabled}
                   placeholder="Cantidad (g)"
                   min="0"
@@ -180,6 +180,7 @@ export const FormulaInsumoManager: React.FC<FormulaInsumoManagerProps> = ({
               </button>
               </div>
               <div className="px-3">
+                {rowErrors?.[index]?.idInsumo && <p className="mt-1 text-xs text-red-600">{rowErrors[index].idInsumo}</p>}
                 {rowErrors?.[index]?.cantidadInsumo && <p className="mt-1 text-xs text-red-600">{rowErrors[index].cantidadInsumo}</p>}
                 {rowErrors?.[index]?.duplicate && <p className="mt-1 text-xs text-red-600">{rowErrors[index].duplicate}</p>}
               </div>

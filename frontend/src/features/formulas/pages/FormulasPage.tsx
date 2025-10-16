@@ -9,6 +9,7 @@ import TipBox from '../../../components/ui/TipBox';
 import { useToast } from '../../../components/ui';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
+import FormulaViewModal from '../components/FormulaViewModal';
 
 const FormulasPage: React.FC = () => {
   const { show, toasts, hide } = useToast() as any;
@@ -20,6 +21,7 @@ const FormulasPage: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [protectedOpen, setProtectedOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const [selected, setSelected] = useState<Formula | null>(null);
   const [isCopy, setIsCopy] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -37,6 +39,7 @@ const FormulasPage: React.FC = () => {
     setIsCopy(false);
     f.esProtegida ? setProtectedOpen(true) : setFormOpen(true);
   };
+  const openView = (f: Formula) => { setSelected(f); setViewOpen(true); };
   const openDelete = (f: Formula) => { setSelected(f); setDeleteOpen(true); };
 
   const createCopy = (base?: Formula) => { const b = base ?? selected; if (!b) return; const nameBase = b.nombre; let max = 0; for (const e of formulas) if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) { const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10); if (!isNaN(n) && n > max) max = n; } setSelected({ ...b, nombre: `${nameBase}Copia_${max + 1}` } as Formula); setIsCopy(true); setProtectedOpen(false); setFormOpen(true); };
@@ -97,8 +100,13 @@ const FormulasPage: React.FC = () => {
         )}
         <div className="mb-6"><SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." /></div>
       </>
-    )} helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} modals={(<><FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} /><ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} /><DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} /></>)}>
-      {loading ? <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" /></div> : <FormulasTable formulas={filtered} onEdit={openEdit} onDelete={openDelete} />}
+    )} helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} modals={(<>
+      <FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} />
+      <ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} />
+      <DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} />
+      <FormulaViewModal isOpen={viewOpen} onClose={closeAll} formula={selected} />
+    </>)}>
+      {loading ? <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" /></div> : <FormulasTable formulas={filtered} onEdit={openEdit} onDelete={openDelete} onView={openView} />}
     </PageShell>
   );
 };

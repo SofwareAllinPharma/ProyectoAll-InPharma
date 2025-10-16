@@ -9,7 +9,8 @@ type UseFormulaFormArgs = {
 };
 
 export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormulaFormArgs) {
-  const [formData, setFormData] = useState({ nombre: '', porcionMinima: 100, esProtegida: false });
+  type FormDataShape = { nombre: string; porcionMinima: number; esProtegida: boolean };
+  const [formData, setFormData] = useState<FormDataShape>({ nombre: '', porcionMinima: 100, esProtegida: false });
   const [formulaInsumos, setFormulaInsumos] = useState<FormulaInsumo[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +24,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormu
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
+    otrosPorPorcion: 0,
   }));
 
   // sync when modal opens / formula changes
@@ -32,7 +34,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormu
       const suggestedName = isCopyMode && formula.nombre && !formula.nombre.includes('Copia') ? `${formula.nombre} - Copia1` : formula.nombre;
       setFormData({
         nombre: suggestedName,
-        porcionMinima: formula.porcionMinima,
+        porcionMinima: formula.porcionMinima ?? 100,
         esProtegida: isCopyMode ? false : formula.esProtegida,
       });
       setFormulaInsumos(formula.insumos || []);
@@ -59,11 +61,12 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormu
         grasaTransPorPorcion: 0,
         fibraPorPorcion: 0,
         sodioPorPorcion: 0,
+        otrosPorPorcion: 0,
       });
     }
   }, [formulaInsumos, formData.porcionMinima]);
 
-  const handleInputChange = useCallback((field: string, value: any) => {
+  const handleInputChange = useCallback((field: keyof FormDataShape, value: FormDataShape[keyof FormDataShape]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   }, [errors]);
@@ -91,7 +94,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormu
     insumos: formulaInsumos.map(fi => ({ idInsumo: fi.idInsumo, cantidadInsumo: fi.cantidadInsumo })),
   }), [formData, formulaInsumos]);
 
-  const handleSubmit = useCallback(async (onSubmit: (payload: CreateFormulaRequest) => Promise<any> | void) => {
+  const handleSubmit = useCallback(async (onSubmit: (payload: CreateFormulaRequest) => Promise<unknown> | void) => {
     if (!validateForm() || isSubmitting) return false;
     setIsSubmitting(true);
     try {

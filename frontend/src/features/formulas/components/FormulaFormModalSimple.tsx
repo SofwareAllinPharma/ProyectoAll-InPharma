@@ -37,6 +37,7 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
+    otrosPorPorcion: 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,6 +63,7 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
         grasaTransPorPorcion: 0,
         fibraPorPorcion: 0,
         sodioPorPorcion: 0,
+        otrosPorPorcion: 0,
       });
     }
   }, [formulaInsumos, totalPeso]);
@@ -88,7 +90,7 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
     setErrors({});
   }, [isOpen, formula, isCopyMode]);
 
-  const validateForm = (forceShowRows = false): boolean => {
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.nombre.trim()) {
@@ -99,14 +101,12 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
       newErrors.general = 'Agregá insumos y cantidades > 0 para calcular el peso total.';
     }
 
-    // validate rows
+    // validate rows (on submit validate all rows regardless of touched)
     const newRowErrors: Record<number, RowErrors> = {};
     formulaInsumos.forEach((fi, idx) => {
       const r: RowErrors = {};
-      const shouldShow = touchedRows[idx] || forceShowRows; // show if touched or forced (submit)
-      if (!fi.cantidadInsumo || fi.cantidadInsumo <= 0) {
-        if (shouldShow) r.cantidadInsumo = 'La cantidad debe ser mayor a 0 g';
-      }
+      if (!fi.idInsumo || fi.idInsumo === 0) r.idInsumo = 'Seleccioná un insumo';
+      if (!fi.cantidadInsumo || fi.cantidadInsumo <= 0) r.cantidadInsumo = 'La cantidad debe ser mayor a 0 g';
       const dup = formulaInsumos.findIndex((other, i) => other.idInsumo === fi.idInsumo && i !== idx && fi.idInsumo !== 0);
       if (dup !== -1) r.duplicate = 'Este insumo ya fue agregado';
       if (Object.keys(r).length > 0) newRowErrors[idx] = r;
@@ -120,26 +120,27 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
   const validateRow = (index: number) => {
     const fi = formulaInsumos[index];
     const r: RowErrors = {};
-    if (!fi) { setRowErrors(prev => { const c = { ...prev }; delete c[index]; return c; }); return; }
-    // only show idInsumo message if row touched
-    if (!fi.idInsumo || fi.idInsumo === 0) {
-      if (touchedRows[index]) r.idInsumo = 'Elegí un insumo';
+    if (!fi) { setRowErrors(prev => { const c = { ...prev }; delete c[index]; return c; }); setTouchedRows(prev => { const c = { ...prev }; delete c[index]; return c; }); return; }
+
+    // Only validate live if the row was touched; otherwise clear live errors
+    const touched = !!touchedRows[index];
+    if (!touched) {
+      setRowErrors(prev => { const c = { ...prev }; delete c[index]; return c; });
+      return;
     }
+
     if (!fi.cantidadInsumo || fi.cantidadInsumo <= 0) r.cantidadInsumo = 'La cantidad debe ser mayor a 0 g';
     const dup = formulaInsumos.findIndex((other, i) => other.idInsumo === fi.idInsumo && i !== index && fi.idInsumo !== 0);
     if (dup !== -1) r.duplicate = 'Este insumo ya fue agregado';
     setRowErrors(prev => { const c = { ...prev }; if (Object.keys(r).length === 0) delete c[index]; else c[index] = r; return c; });
   };
 
-  const touchRow = (index: number) => setTouchedRows(prev => ({ ...prev, [index]: true }));
-
   // clearRowErrors intentionally removed; updates are handled via validateRow and onRowRemoved
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // On submit we want to show all row errors, even if rows weren't touched yet
-  if (!validateForm(true) || isSubmitting) return;
+  if (!validateForm() || isSubmitting) return;
 
     console.log('Modal: Enviando datos del formulario...', {
       nombre: formData.nombre,
@@ -259,17 +260,26 @@ export const FormulaFormModalSimple: React.FC<FormulaFormModalProps> = ({
                 disabled={isLoading}
                 rowErrors={rowErrors}
                 onValidateRow={(idx: number) => validateRow(idx)}
-                onTouchRow={(idx: number) => touchRow(idx)}
+                onTouchRow={(idx: number) => setTouchedRows(prev => ({ ...prev, [idx]: true }))}
                 onSetRowError={(idx: number, err) => setRowErrors(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), ...err } }))}
-                onRowRemoved={(idx: number) => setRowErrors(prev => {
-                  // remove that index and shift down keys higher than idx
-                  const copy: Record<number, RowErrors> = {};
-                  Object.keys(prev).map(k => parseInt(k, 10)).forEach((k) => {
-                    if (k < idx) copy[k] = prev[k];
-                    else if (k > idx) copy[k-1] = prev[k];
+                onRowRemoved={(idx: number) => {
+                  setRowErrors(prev => {
+                    const copy: Record<number, RowErrors> = {};
+                    Object.keys(prev).map(k => parseInt(k, 10)).forEach((k) => {
+                      if (k < idx) copy[k] = prev[k];
+                      else if (k > idx) copy[k-1] = prev[k];
+                    });
+                    return copy;
                   });
-                  return copy;
-                })}
+                  setTouchedRows(prev => {
+                    const copy: Record<number, boolean> = {};
+                    Object.keys(prev).map(k => parseInt(k, 10)).forEach((k) => {
+                      if (k < idx) copy[k] = prev[k];
+                      else if (k > idx) copy[k-1] = prev[k];
+                    });
+                    return copy;
+                  });
+                }}
                 totalPeso={totalPeso}
               />
               {errors.general && <p className="mt-2 text-sm text-red-600">{errors.general}</p>}
