@@ -96,7 +96,7 @@ model Insumo {
 
 model Formula {
   id             Int              @id @default(autoincrement())
-  nombre         String           @unique
+  nombre         String           
   porcion        Float
   kcalorias      Float
   kjuls          Float

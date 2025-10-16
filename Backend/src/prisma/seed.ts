@@ -738,10 +738,8 @@ async function main() {
   ];
 
   for (const f of formulas) {
-    await prisma.formula.upsert({
-      where: { nombre: f.nombre },
-      update: {},
-      create: f,
+    await prisma.formula.create({
+      data: f,
     });
   }
 
