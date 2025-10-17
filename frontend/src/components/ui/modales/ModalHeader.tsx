@@ -4,4 +4,8 @@ export default function ModalHeader({ children, className = '' }: { children?: R
       {children}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/inventario

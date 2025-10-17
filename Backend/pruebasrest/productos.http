@@ -1,0 +1,46 @@
+### Listar productos
+GET http://localhost:4000/productos
+
+### Buscar por nombre de producto
+GET http://localhost:4000/productos?search=Barra
+
+### Buscar por nombre de fórmula
+GET http://localhost:4000/productos?formula=Pan
+
+### Buscar por nombre de insumo
+GET http://localhost:4000/productos?insumo=Avena
+
+### Obtener detalle de producto
+GET http://localhost:4000/productos/1
+
+### Crear producto (peso neto manual)
+POST http://localhost:4000/productos
+Content-Type: application/json
+
+{
+  "nombreComercial": "Producto cualquiera",
+  "idFormula": 5,
+  "pesoNeto": 300
+}
+
+### Crear producto (porciones manual)
+POST http://localhost:4000/productos
+Content-Type: application/json
+
+{
+  "nombreComercial": "Barra de Almendras",
+  "idFormula": 2,
+  "cantPorcionesAportadas": 10
+}
+
+### Modificar producto
+PUT http://localhost:4000/productos/1
+Content-Type: application/json
+
+{
+  "nombreComercial": "Barra de Avena Modificada",
+  "pesoNeto": 400
+}
+
+### Eliminar producto (baja lógica)
+DELETE http://localhost:4000/productos/1

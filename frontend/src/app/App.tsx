@@ -10,8 +10,8 @@ import ResetPassword from "../features/auth/pages/ResetPassword";
 
 // privado
 import SelectProfile from "../features/profiles/pages/SelectProfile";
-import TecnicoDashboard from "../features/views/tecnico/TecnicoDashboard";
-import AdminFabDashboard from "../features/views/adminFab/AdminFabricaDashboard";
+import TecnicoDashboard from "../features/views/tecnico/TecnicoView";
+import AdminFabDashboard from "../features/views/adminFab/AdminFabricaView";
 import AdminSisDashboard from "../features/views/adminSis/AdminSistemaView";
 
 export default function App() {

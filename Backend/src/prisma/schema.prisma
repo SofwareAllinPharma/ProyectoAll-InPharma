@@ -78,25 +78,26 @@ model PasswordReset {
 }
 
 model Insumo {
-  id                      Int              @id @default(autoincrement())
-  nombre                  String           @unique
-  cal_100g                Float
-  grasasTotales_100g      Float
-  grasasTrans_100g        Float
-  grasasSaturadas_100g    Float
-  proteinas_100g          Float
-  carbohidratos_100g      Float
-  sodio_100g              Float
-  fibra_100g              Float
-  otro_100g               Float
-  activo                  Boolean          @default(true)
-  formulaInsumos          FormulaInsumo[]
+  id                   Int             @id @default(autoincrement())
+  nombre               String          @unique
+  cal_100g             Float
+  grasasTotales_100g   Float
+  grasasTrans_100g     Float
+  grasasSaturadas_100g Float
+  proteinas_100g       Float
+  carbohidratos_100g   Float
+  sodio_100g           Float
+  fibra_100g           Float
+  otro_100g            Float
+  activo               Boolean         @default(true)
+  formulaInsumos       FormulaInsumo[]
+
   @@map("INSUMOS")
 }
 
 model Formula {
-  id             Int              @id @default(autoincrement())
-  nombre         String           @unique
+  id             Int             @id @default(autoincrement())
+  nombre         String          @unique
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -109,19 +110,72 @@ model Formula {
   fibra          Float
   otros          Float
   esProtegida    Boolean
-  activo         Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  activo         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   formulaInsumos FormulaInsumo[]
+
   @@map("FORMULA")
+  Producto Producto[]
 }
 
 model FormulaInsumo {
-  id             Int      @id @default(autoincrement())
+  id             Int     @id @default(autoincrement())
   idFormula      Int
   idInsumo       Int
   cantidadInsumo Float
-  formula        Formula  @relation(fields: [idFormula], references: [id])
-  insumo         Insumo   @relation(fields: [idInsumo], references: [id])
+  formula        Formula @relation(fields: [idFormula], references: [id])
+  insumo         Insumo  @relation(fields: [idInsumo], references: [id])
+
   @@map("FORMULAINSUMO")
+}
+
+model Deposito {
+  id             Int     @id @default(autoincrement())
+  nombre         String  @unique
+  direccion      String
+  responsable    String
+  capacidadTotal Int
+  capacidadUsada Int     @default(0)
+  estado         Boolean @default(true)
+
+
+  inventario     Inventario[]
+
+  @@map("DEPOSITOS")
+}
+
+model Producto {
+  idProducto           Int      @id @default(autoincrement())
+  idFormula            Int
+  nombreComercial      String   @unique
+  pesoNeto             Float
+  cantPorcionesAportadas Int
+  estaActivo           Boolean  @default(true)
+  formula              Formula  @relation(fields: [idFormula], references: [id])
+
+  
+  inventario     Inventario[]
+
+  @@map("PRODUCTOS")
+}
+
+model Inventario {
+  
+  idDeposito Int
+  idProducto Int
+
+  
+  deposito  Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  producto  Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
+
+  
+  cantidadProducto Int   @default(0)   
+  umbralMin        Int   @default(0)   
+  umbralMax        Int?                
+
+  @@id([idDeposito, idProducto])       
+  @@index([idDeposito])
+  @@index([idProducto])
+  @@map("INVENTARIO")
 }

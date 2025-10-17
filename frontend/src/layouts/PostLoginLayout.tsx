@@ -20,40 +20,33 @@ export default function PostLoginLoyout() {
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
     if (pathname.startsWith('/adminsis')) {
-        const itemsForAdmin = [
-          { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: (
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-              <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
-              <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
-              <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
-              <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
-            </svg>
-          ) },
-          { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen className="w-5 h-5" /> },
-          { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask className="w-5 h-5" /> },
-          { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBoxOpen className="w-5 h-5" /> },
-          { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse className="w-5 h-5" /> },  
-          { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers className="w-5 h-5" /> },
-          { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog className="w-5 h-5" /> },
-        ];
-        // Debug: print exact items returned for adminsis
-        // eslint-disable-next-line no-console
-        console.log('[PostLoginLayout] itemsForAdmin =', itemsForAdmin.map(i => i.id));
-        return itemsForAdmin;
+      return [
+        { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
+        { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
+        { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
+        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
+        { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaClipboardList /> },
+        { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
+        { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
+      ];
     }
     if (pathname.startsWith('/tecnico')) {
-        return [
-          { id: 'operaciones', label: 'Operaciones', to: '/tecnico', icon: <FaThLarge className="w-5 h-5" /> },
-          { id: 'mantenimiento', label: 'Mantenimiento', to: '/tecnico/mantenimiento', icon: <FaTruck className="w-5 h-5" /> },
-          { id: 'reportes', label: 'Reportes', to: '/tecnico/reportes', icon: <FaWarehouse className="w-5 h-5" /> },
-        ];
+      return [
+        { id: 'operaciones', label: 'Operaciones', to: '/tecnico' },
+        { id: 'depositos', label: 'Depósitos', to: '/tecnico/depositos' },
+        { id: 'mantenimiento', label: 'Mantenimiento', to: '/tecnico/mantenimiento' },
+        { id: 'reportes', label: 'Reportes', to: '/tecnico/reportes' },
+
+      ];
     }
     if (pathname.startsWith('/adminfab')) {
-        return [
-          { id: 'pedidos', label: 'Pedidos', to: '/adminfab', icon: <FaClipboardList className="w-5 h-5" /> },
-          { id: 'stock', label: 'Stock', to: '/adminfab/stock', icon: <FaWarehouse className="w-5 h-5" /> },
-          { id: 'mostrador', label: 'Mostrador', to: '/adminfab/mostrador', icon: <FaBoxOpen className="w-5 h-5" /> },
-        ];
+      return [
+        { id: 'pedidos', label: 'Pedidos', to: '/adminfab' },
+        { id: 'depositos', label: 'Depósitos', to: '/adminfab/depositos' },
+        { id: 'stock', label: 'Stock', to: '/adminfab/stock' },
+        { id: 'mostrador', label: 'Mostrador', to: '/adminfab/mostrador' },
+
+      ];
     }
 
     // Default: empty
@@ -84,9 +77,10 @@ export default function PostLoginLoyout() {
             onToggleCollapsed={(next) => setSidebarCollapsed(next)}
           />
         )}
-
-        <main className="flex-1 mx-auto max-w-7xl px-4 py-10">
-          <Outlet />
+        <main className="flex-1 overflow-x-hidden">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 lg:py-10">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

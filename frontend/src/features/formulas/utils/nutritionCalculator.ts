@@ -21,6 +21,7 @@ export const calculateNutrition = (
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
+    otrosPorPorcion: 0,
   };
 
   const pesoTotalFormula = formulaInsumos.reduce(
@@ -47,6 +48,7 @@ export const calculateNutrition = (
     totals.grasaTransPorPorcion += insumo.grasasTrans_100g * proporcion;
     totals.fibraPorPorcion += insumo.fibra_100g * proporcion;
     totals.sodioPorPorcion += insumo.sodio_100g * proporcion;
+    totals.otrosPorPorcion += insumo.otro_100g * proporcion;
   });
 
   if (porcionMinima !== pesoTotalFormula) {

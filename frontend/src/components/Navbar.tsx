@@ -51,18 +51,12 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
           .filter(Boolean)
           .join(" ")}
       >
-        <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between text-[#5d5448]">
-          <div className="flex items-center gap-2">
-            {onMenuToggle && (
-              <button onClick={onMenuToggle} className="md:hidden p-2 mr-2 rounded-lg border border-transparent text-[#5d5448] bg-white hover:bg-[#5d5448]/10">
-                ☰
-              </button>
-            )}
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
-              <span>All-In Pharma</span>
-            </Link>
-          </div>
+        {/* 👇 contenedor fluido, sin centrado fijo */}
+        <div className="h-16 flex items-center justify-between text-[#5d5448] px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/images/team/LogoCapsula.svg" alt="All-In Pharma" className="h-8 w-8 flex-shrink-0" />
+            <span>All-In Pharma</span>
+          </Link>
 
           <NavbarButtons variant={variant} onLogoutClick={() => setShowConfirm(true)} />
         </div>

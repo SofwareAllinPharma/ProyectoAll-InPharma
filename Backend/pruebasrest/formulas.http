@@ -11,7 +11,7 @@ GET http://localhost:4000/formulas?estado=no_protegida
 GET http://localhost:4000/formulas?search=Fórmula 
 
 ### Obtener detalle de una fórmula por ID
-GET http://localhost:4000/formulas/5
+GET http://localhost:4000/formulas/2
 
 ### Crear una nueva fórmula
 POST http://localhost:4000/formulas

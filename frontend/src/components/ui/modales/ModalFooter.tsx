@@ -4,4 +4,8 @@ export default function ModalFooter({ children, className = '' }: { children?: R
       {children}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/inventario
