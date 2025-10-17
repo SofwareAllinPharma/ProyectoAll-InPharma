@@ -1,5 +1,8 @@
 import React from 'react';
 import type { Producto, ProductoModalAction } from '../types/producto.types';
+import ActionMenu from '../../../components/ui/ActionMenu';
+import DataTable from '../../../components/ui/DataTable';
+import type { Column } from '../../../components/ui/DataTable';
 
 interface Props {
   productos: Producto[];
@@ -44,104 +47,110 @@ export const ProductosTable: React.FC<Props> = ({
     );
   }
 
-  if (productos.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-        <div className="text-center text-gray-500">
-          <p className="text-lg mb-2">No se encontraron productos</p>
-          <p className="text-sm">Ajusta los filtros de búsqueda o crea un nuevo producto</p>
+  const columns: Column<Producto>[] = [
+    { 
+      key: 'nombreComercial', 
+      title: 'Producto', 
+      width: '18%', 
+      align: 'center',
+      render: r => (
+        <button
+          onClick={() => onShowNutrition?.(r)}
+          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+          title="Ver información nutricional"
+        >
+          {r.nombreComercial}
+        </button>
+      )
+    },
+    { 
+      key: 'formula', 
+      title: 'Fórmula', 
+      width: '18%', 
+      align: 'center',
+      render: r => (
+        <div className="text-center">
+          <div className="text-sm text-gray-900">
+            {r.formula?.nombre || 'Fórmula no encontrada'}
+          </div>
+          {r.formula?.esProtegida && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mt-1">
+              Protegida
+            </span>
+          )}
         </div>
-      </div>
-    );
-  }
+      )
+    },
+    { 
+      key: 'pesoNeto', 
+      title: 'Peso Neto', 
+      width: '12%', 
+      align: 'center',
+      render: r => `${formatNumber(r.pesoNeto)}g`
+    },
+    { 
+      key: 'cantPorcionesAportadas', 
+      title: 'Porciones', 
+      width: '20%', 
+      align: 'center',
+      render: r => formatPorciones(r)
+    },
+    { 
+      key: 'pesoPorPorcion', 
+      title: 'Peso por Porción', 
+      width: '14%', 
+      align: 'center',
+      render: r => r.formula ? `${formatNumber(r.formula.porcion || r.formula.porcionMinima || 0)}g` : 'N/A'
+    },
+    { 
+      key: 'estaActivo', 
+      title: 'Estado', 
+      width: '10%', 
+      align: 'center',
+      render: r => (
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+          r.estaActivo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {r.estaActivo ? 'Activo' : 'Inactivo'}
+        </span>
+      )
+    },
+    { 
+      key: 'acciones', 
+      title: 'Acciones', 
+      width: '8%', 
+      align: 'center',
+      render: r => (
+        <ActionMenu 
+          items={[
+            { 
+              key: 'view', 
+              label: 'Ver acciones', 
+              onClick: () => onProductoAction({ type: 'view', producto: r }) 
+            }
+          ]} 
+        />
+      )
+    }
+  ];
+
+  const emptyState = (
+    <div className="text-center text-gray-500 py-4">
+      <p className="text-lg mb-2">No se encontraron productos</p>
+      <p className="text-sm">Ajusta los filtros de búsqueda o crea un nuevo producto</p>
+    </div>
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Producto
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fórmula
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Peso Neto
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Porciones
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Peso por Porción
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estado
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {productos.map((producto) => (
-              <tr key={producto.idProducto} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-center">
-                  <button
-                    onClick={() => onShowNutrition?.(producto)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                    title="Ver información nutricional"
-                  >
-                    {producto.nombreComercial}
-                  </button>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="text-sm text-gray-900">
-                    {producto.formula?.nombre || 'Fórmula no encontrada'}
-                  </div>
-                  {producto.formula?.esProtegida && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                      Protegida
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700 text-center">
-                  {formatNumber(producto.pesoNeto)}g
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700 text-center">
-                  {formatPorciones(producto)}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700 text-center">
-                  {producto.formula ? `${formatNumber(producto.formula.porcion || producto.formula.porcionMinima || 0)}g` : 'N/A'}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    producto.estaActivo
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {producto.estaActivo ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="relative flex justify-center">
-                    <button
-                      onClick={() => onProductoAction({ type: 'view', producto })}
-                      className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                      title="Acciones"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable 
+      columns={columns} 
+      data={productos} 
+      rowKey={r => r.idProducto} 
+      expandable={undefined}
+      emptyState={emptyState}
+      pagination 
+      defaultPageSize={10} 
+      pageSizeOptions={[5, 10, 20]} 
+    />
   );
 };
