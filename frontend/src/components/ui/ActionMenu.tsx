@@ -10,7 +10,7 @@ export type ActionItem = {
   onClick: () => void;
 };
 
-export default function ActionMenu({ items, ariaLabel = 'Acciones' }: { items: ActionItem[]; ariaLabel?: string }) {
+export default function ActionMenu({ items, ariaLabel = 'Acciones', menuWidth = 160 }: { items: ActionItem[]; ariaLabel?: string; menuWidth?: number }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -89,7 +89,7 @@ export default function ActionMenu({ items, ariaLabel = 'Acciones' }: { items: A
       </button>
 
       {open && portalRef.current && coords && createPortal(
-        <div style={{ position: 'absolute', left: coords.left, top: coords.top, width: 160, zIndex: 12000 }} role="presentation">
+          <div style={{ position: 'absolute', left: coords.left, top: coords.top, width: menuWidth, zIndex: 12000 }} role="presentation">
           <div id={`action-menu-${ariaLabel}`} className="bg-white rounded-md border border-gray-100 shadow-lg" role="menu" aria-label={ariaLabel} ref={menuRef}>
             {items.map((it, i) => (
               <button

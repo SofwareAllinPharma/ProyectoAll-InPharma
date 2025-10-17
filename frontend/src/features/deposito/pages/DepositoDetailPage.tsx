@@ -12,7 +12,9 @@ import type { DepositoFormValues } from "../components/DepositoFormModal";
 import PageShell from "../../../components/PageShell";
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/modales/Modal';
-import DepositoActionModal from "../components/DepositoActionModal";
+import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import ActionMenu from '../../../components/ui/ActionMenu';
 import DepositIcon from "../components/DepositIcon";
 import CapacityBar from "../components/CapacityBar";
 import ResumenCard from "../../../components/Card";
@@ -39,7 +41,8 @@ export default function DepositoDetailPage() {
   const [dep, setDep] = useState<Deposito | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
-  const [openActions, setOpenActions] = useState(false);
+  const [showUmbrales, setShowUmbrales] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showTrasladoModal, setShowTrasladoModal] = useState(false);
   const [showPedidoModal, setShowPedidoModal] = useState(false);
@@ -176,7 +179,7 @@ export default function DepositoDetailPage() {
                         </div>
                       )}
                     </div>
-                    <div className="ml-4" />
+                          <div className="ml-4" />
                   </div>
                 </>
               }
@@ -202,37 +205,28 @@ export default function DepositoDetailPage() {
               }
         modals={
           <>
-            <DepositoActionModal
-              open={openActions}
-              deposito={dep}
-              onEdit={() => {
-                setOpenActions(false);
-                setOpenForm(true);
-              }}
-              onDeactivate={() => {
-                setOpenActions(false);
-                handleDeactivate();
-              }}
-              onCancel={() => setOpenActions(false)}
-              onUmbralesSuccess={() => {
-                setOpenActions(false);
-                setSuccessMsg(
-                  "Los umbrales mínimos fueron guardados con éxito"
-                );
-                setTimeout(() => setSuccessMsg(null), 6000);
-                // Refrescar cards y tabla después de guardar umbrales
-                if (dep?.id) {
-                  setLoadingInventario(true);
-                  InventarioService.getInventarioByDeposito(dep.id)
-                    .then((data) => setInventario(data))
-                    .finally(() => setLoadingInventario(false));
-                  setLoadingResumen(true);
-                  InventarioService.getResumenEstados(dep.id)
-                    .then((data) => setResumen(data))
-                    .finally(() => setLoadingResumen(false));
-                }
-              }}
-            />
+                  <ConfigurarUmbralesModal
+                    open={showUmbrales}
+                    depositName={dep.nombre}
+                    depositoId={dep.id}
+                    onClose={() => setShowUmbrales(false)}
+                    onSuccess={() => {
+                      setShowUmbrales(false);
+                      setSuccessMsg("Los umbrales mínimos fueron guardados con éxito");
+                      setTimeout(() => setSuccessMsg(null), 6000);
+                      // Refrescar cards y tabla después de guardar umbrales
+                      if (dep?.id) {
+                        setLoadingInventario(true);
+                        InventarioService.getInventarioByDeposito(dep.id)
+                          .then((data) => setInventario(data))
+                          .finally(() => setLoadingInventario(false));
+                        setLoadingResumen(true);
+                        InventarioService.getResumenEstados(dep.id)
+                          .then((data) => setResumen(data))
+                          .finally(() => setLoadingResumen(false));
+                      }
+                    }}
+                  />
 
             <DepositoFormModal
               open={openForm}
@@ -241,6 +235,16 @@ export default function DepositoDetailPage() {
               onSave={handleUpdate}
               capacidadUsadaActual={dep.capacidadUsada ?? 0}
             />
+
+                  <DeleteConfirmModal
+                    open={showDeleteConfirm}
+                    deposito={dep}
+                    onConfirm={() => {
+                      setShowDeleteConfirm(false);
+                      handleDeactivate();
+                    }}
+                    onCancel={() => setShowDeleteConfirm(false)}
+                  />
 
             <Modal
               open={showTrasladoModal}
@@ -269,7 +273,7 @@ export default function DepositoDetailPage() {
         }
       >
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
-          <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F3EFE6]">
                 <DepositIcon className="h-6 w-6 text-[#7C6A55]" />
@@ -281,25 +285,31 @@ export default function DepositoDetailPage() {
                 <p className="text-gray-600">{dep.direccion}</p>
               </div>
             </div>
-            <button
-              onClick={() => setOpenActions(true)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-              title="Ver opciones"
-            >
-              <svg
-                className="h-6 w-6 text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                />
-              </svg>
-            </button>
+            <div className="flex items-center">
+              <ActionMenu
+                menuWidth={220}
+                items={[
+                  {
+                    key: 'edit',
+                    label: 'Modificar depósito',
+                    icon: <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>,
+                    onClick: () => setOpenForm(true),
+                  },
+                  {
+                    key: 'umbrales',
+                    label: 'Configurar umbrales',
+                    icon: <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+                    onClick: () => setShowUmbrales(true),
+                  },
+                  {
+                    key: 'delete',
+                    label: 'Eliminar depósito',
+                    icon: <svg className="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>,
+                    onClick: () => setShowDeleteConfirm(true),
+                  },
+                ]}
+              />
+            </div>
           </div>
 
           <div className="grid gap-6 mt-6 md:grid-cols-2">
