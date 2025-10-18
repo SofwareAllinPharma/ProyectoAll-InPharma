@@ -43,12 +43,30 @@ const handleSearch = (q?: string) => {
   useEffect(() => {}, [filtered]);
 
   const openEdit = (f: Formula) => {
+    setViewOpen(false); // Cerrar modal de consultar si está abierto
+    setDeleteOpen(false); // Cerrar modal de eliminar si está abierto
     setSelected(f);
     setIsCopy(false);
-    f.esProtegida ? setProtectedOpen(true) : setFormOpen(true);
+    if (f.esProtegida) {
+      setProtectedOpen(true);
+    } else {
+      setFormOpen(true);
+    }
   };
-  const openView = (f: Formula) => { setSelected(f); setViewOpen(true); };
-  const openDelete = (f: Formula) => { setSelected(f); setDeleteOpen(true); };
+  const openView = (f: Formula) => { 
+    setFormOpen(false); // Cerrar modal de formulario si está abierto
+    setProtectedOpen(false); // Cerrar modal de protegida si está abierto
+    setDeleteOpen(false); // Cerrar modal de eliminar si está abierto
+    setSelected(f); 
+    setViewOpen(true); 
+  };
+  const openDelete = (f: Formula) => { 
+    setViewOpen(false); // Cerrar modal de consultar si está abierto
+    setFormOpen(false); // Cerrar modal de formulario si está abierto
+    setProtectedOpen(false); // Cerrar modal de protegida si está abierto
+    setSelected(f); 
+    setDeleteOpen(true); 
+  };
 
   const createCopy = (base?: Formula) => { const b = base ?? selected; if (!b) return; const nameBase = b.nombre; let max = 0; for (const e of formulas) if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) { const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10); if (!isNaN(n) && n > max) max = n; } setSelected({ ...b, nombre: `${nameBase}Copia_${max + 1}` } as Formula); setIsCopy(true); setProtectedOpen(false); setFormOpen(true); };
 
