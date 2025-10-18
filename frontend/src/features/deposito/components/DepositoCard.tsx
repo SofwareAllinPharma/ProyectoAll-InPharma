@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Deposito } from "../types/deposito.types";
-import { default as DepositIcon } from "./DepositIcon";
+
 import CapacityBar from "./CapacityBar";
 
 export default function DepositCard({
@@ -27,7 +27,15 @@ export default function DepositCard({
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-start">
           <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#F3EFE6]">
-            <DepositIcon className="h-5 w-5 text-[#7C6A55]" />
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#7C6A55]" fill="none" stroke="currentColor">
+              <path
+                d="M3 10.5L12 5l9 5.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8.5z"
+                strokeWidth={1.7}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M8 12h8M8 15h8M8 18h8" strokeWidth={1.7} strokeLinecap="round" />
+            </svg>
           </div>
           <div>
             <h3 className="text-[17px] font-semibold text-gray-800">{d.nombre}</h3>

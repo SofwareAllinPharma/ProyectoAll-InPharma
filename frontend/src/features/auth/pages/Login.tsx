@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from '../../../lib/auth';
+import PasswordField from '../../../components/PasswordField';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -57,12 +58,9 @@ export default function Login() {
             placeholder="tu@email.com"
           />
 
-          <label className="block text-sm mb-1" htmlFor="password">
-            Contraseña
-          </label>
-          <input
+          <PasswordField
             id="password"
-            type="password"
+            label="Contraseña"
             required
             value={password}
             onChange={(e) => { setPassword(e.target.value); setAlert(null); }}
