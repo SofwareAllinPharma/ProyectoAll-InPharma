@@ -7,14 +7,12 @@ import type { Column } from '../../../components/ui/DataTable';
 interface Props {
   productos: Producto[];
   onProductoAction: (action: ProductoModalAction) => void;
-  onShowNutrition?: (producto: Producto) => void;
   isLoading?: boolean;
 }
 
 export const ProductosTable: React.FC<Props> = ({
   productos,
   onProductoAction,
-  onShowNutrition,
   isLoading = false,
 }) => {
   const formatNumber = (value: number): string => {
@@ -54,13 +52,9 @@ export const ProductosTable: React.FC<Props> = ({
       width: '18%', 
       align: 'center',
       render: r => (
-        <button
-          onClick={() => onShowNutrition?.(r)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-          title="Ver información nutricional"
-        >
+        <div className="text-sm font-medium text-gray-900">
           {r.nombreComercial}
-        </button>
+        </div>
       )
     },
     { 
@@ -120,17 +114,26 @@ export const ProductosTable: React.FC<Props> = ({
       title: 'Acciones', 
       width: '8%', 
       align: 'center',
-      render: r => (
-        <ActionMenu 
-          items={[
-            { 
-              key: 'view', 
-              label: 'Ver acciones', 
-              onClick: () => onProductoAction({ type: 'view', producto: r }) 
-            }
-          ]} 
-        />
-      )
+      render: r => {
+        const items = [
+          { 
+            key: 'view', 
+            label: 'Consultar', 
+            onClick: () => onProductoAction({ type: 'view', producto: r }) 
+          },
+          { 
+            key: 'edit', 
+            label: 'Editar', 
+            onClick: () => onProductoAction({ type: 'edit', producto: r }) 
+          },
+          { 
+            key: 'delete', 
+            label: 'Eliminar', 
+            onClick: () => onProductoAction({ type: 'delete', producto: r }) 
+          }
+        ];
+        return <ActionMenu items={items} />;
+      }
     }
   ];
 

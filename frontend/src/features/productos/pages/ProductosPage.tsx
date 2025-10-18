@@ -60,18 +60,12 @@ export const ProductosPage: React.FC = () => {
     loadProductos(filters);
   }, [filters]);
 
-  // Mostrar información nutricional
-  const handleShowNutrition = (producto: Producto) => {
-    setSelectedProducto(producto);
-    setShowNutritionalModal(true);
-  };
-
   // Manejar acciones del producto
   const handleProductoAction = (action: ProductoModalAction) => {
     switch (action.type) {
       case 'view':
         setSelectedProducto(action.producto || null);
-        setShowActionModal(true);
+        setShowNutritionalModal(true);
         break;
       case 'edit':
         setSelectedProducto(action.producto || null);
@@ -222,7 +216,6 @@ export const ProductosPage: React.FC = () => {
       <ProductosTable
         productos={productos}
         onProductoAction={handleProductoAction}
-        onShowNutrition={handleShowNutrition}
         isLoading={isLoading}
       />
 

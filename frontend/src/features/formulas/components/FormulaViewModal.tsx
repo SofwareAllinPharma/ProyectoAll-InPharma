@@ -7,7 +7,23 @@ interface Props { isOpen: boolean; onClose: () => void; formula: Formula | null 
 export const FormulaViewModal: React.FC<Props> = ({ isOpen, onClose, formula }) => {
   if (!isOpen || !formula) return null;
   return (
-    <FormModal open={isOpen} onClose={onClose} title={`Consultar: ${formula.nombre}`} formId="formula-view" loading={false}>
+    <FormModal 
+      open={isOpen} 
+      onClose={onClose} 
+      title={`Consultar: ${formula.nombre}`} 
+      formId="formula-view" 
+      loading={false}
+      footer={
+        <div className="flex justify-end">
+          <button 
+            onClick={onClose} 
+            className="px-6 py-3 rounded-lg bg-[#5d5448] text-white hover:bg-[#50453d]"
+          >
+            Cerrar
+          </button>
+        </div>
+      }
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <h4 className="text-sm font-semibold">Información Nutricional por Porción</h4>
