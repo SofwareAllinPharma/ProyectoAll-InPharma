@@ -1,5 +1,4 @@
 import ActionMenu from '../../../components/ui/ActionMenu';
-// imports intentionally minimal for this header
 import CapacityBar from './CapacityBar';
 
 type Props = {
@@ -8,7 +7,6 @@ type Props = {
   onEdit: () => void;
   onShowUmbrales: () => void;
   onShowDelete: () => void;
-  // onShowTraslado and onShowPedido handled at page level
 };
 
 export default function DepositoDetailHeader({ dep, capacidadUsada, onEdit, onShowUmbrales, onShowDelete }: Props) {

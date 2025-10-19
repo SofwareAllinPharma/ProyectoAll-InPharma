@@ -10,6 +10,10 @@ type SearchSelectProps<T> = {
   disabled?: boolean;
   className?: string;
   noResultsText?: string;
+  // opcional: permitir que el input interno reciba autofocus
+  inputAutoFocus?: boolean;
+  // opcional: callback cuando el input pierde foco
+  onInputBlur?: () => void;
 };
 
 export default function SearchSelect<T>({
@@ -22,6 +26,8 @@ export default function SearchSelect<T>({
   disabled = false,
   className = '',
   noResultsText = 'No hay resultados',
+  inputAutoFocus = false,
+  onInputBlur,
 }: SearchSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -75,6 +81,8 @@ export default function SearchSelect<T>({
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlight(0); }}
         onFocus={() => setOpen(true)}
+        autoFocus={inputAutoFocus}
+        onBlur={() => { onInputBlur?.(); }}
         onKeyDown={handleKey}
         disabled={disabled}
         aria-autocomplete="list"

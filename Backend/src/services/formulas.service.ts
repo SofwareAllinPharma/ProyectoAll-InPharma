@@ -27,6 +27,24 @@ export class FormulasService {
   }
 
   async createFormula(dto: any) {
+    // Validación: no permitir insumos repetidos
+    const insumoIds = dto.insumos.map((i: any) => i.idInsumo);
+    const insumoSet = new Set(insumoIds);
+    if (insumoIds.length !== insumoSet.size) {
+      throw new Error(
+        "No se puede agregar el mismo insumo más de una vez en la fórmula."
+      );
+    }
+
+    // Validación de nombre único solo entre fórmulas activas
+    const nombreExistente = await prisma.formula.findFirst({
+      where: {
+        nombre: { equals: dto.nombre, mode: "insensitive" },
+        activo: true,
+      },
+    });
+    if (nombreExistente) throw new Error("El nombre de la fórmula ya existe");
+
     // Validaciones
     if (!dto.nombre || typeof dto.nombre !== "string" || !dto.nombre.trim()) {
       throw new Error("El nombre es obligatorio");
@@ -35,11 +53,6 @@ export class FormulasService {
     if (!Array.isArray(dto.insumos) || dto.insumos.length === 0) {
       throw new Error("Debes agregar al menos un insumo a la fórmula");
     }
-
-    const nombreExistente = await prisma.formula.findFirst({
-      where: { nombre: { equals: dto.nombre, mode: "insensitive" } },
-    });
-    if (nombreExistente) throw new Error("El nombre de la fórmula ya existe");
 
     // Obtener insumos y calcular nutrientes
     const insumosIds = dto.insumos.map((i: any) => i.idInsumo);
@@ -89,13 +102,13 @@ export class FormulasService {
     );
 
     // kcalorias
-    let kcalorias =
-      dto.kcalorias ??
-      round(
-        4 * nutrientes.proteinas +
-          4 * nutrientes.carbohidratos +
-          9 * nutrientes.grasaTotal
-      );
+    let kcalorias = 0;
+    for (const fi of dto.insumos) {
+      const insumo = insumos.find((i) => i.id === fi.idInsumo);
+      if (!insumo) throw new Error(`Insumo ${fi.idInsumo} no encontrado`);
+      kcalorias += (insumo.cal_100g * fi.cantidadInsumo) / 100;
+    }
+    kcalorias = round(kcalorias);
 
     // kjuls
     let kjuls = round(kcalorias * 4.184);
@@ -122,6 +135,16 @@ export class FormulasService {
   }
 
   async updateFormula(id: number, dto: any) {
+    // Validación de nombre único solo entre fórmulas activas, excluyendo la actual
+    const nombreExistente = await prisma.formula.findFirst({
+      where: {
+        nombre: { equals: dto.nombre, mode: "insensitive" },
+        activo: true,
+        NOT: { id: id },
+      },
+    });
+    if (nombreExistente) throw new Error("El nombre de la fórmula ya existe");
+
     const formula = await prisma.formula.findUnique({ where: { id } });
     if (!formula) throw new Error("Fórmula no encontrada");
     if (formula.esProtegida)
@@ -176,13 +199,13 @@ export class FormulasService {
       (k) => (nutrientes[k] = round(nutrientes[k]))
     );
 
-    let kcalorias =
-      dto.kcalorias ??
-      round(
-        4 * nutrientes.proteinas +
-          4 * nutrientes.carbohidratos +
-          9 * nutrientes.grasaTotal
-      );
+    let kcalorias = 0;
+    for (const fi of dto.insumos) {
+      const insumo = insumos.find((i) => i.id === fi.idInsumo);
+      if (!insumo) throw new Error(`Insumo ${fi.idInsumo} no encontrado`);
+      kcalorias += (insumo.cal_100g * fi.cantidadInsumo) / 100;
+    }
+    kcalorias = round(kcalorias);
 
     let kjuls = round(kcalorias * 4.184);
 

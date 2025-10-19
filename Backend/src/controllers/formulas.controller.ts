@@ -46,6 +46,11 @@ export class FormulasController {
       const formula = await service.updateFormula(Number(id), dto);
       res.json(formula);
     } catch (err: any) {
+      if (err.code === "P2002" && err.meta?.target?.includes("nombre")) {
+        return res
+          .status(400)
+          .json({ error: "Ya existe una fórmula con ese nombre." });
+      }
       res.status(400).json({ error: err.message });
     }
   }

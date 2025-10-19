@@ -11,18 +11,19 @@ interface FormulaFormModalProps {
   formula?: Formula | null;
   isLoading?: boolean;
   isCopyMode?: boolean;
+  existingNames?: string[];
 }
 
-export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onClose, onSubmit, formula, isLoading = false, isCopyMode = false }) => {
+export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onClose, onSubmit, formula, isLoading = false, isCopyMode = false, existingNames = [] }) => {
   const formId = 'formula-form';
-  const { formData, formulaInsumos, nutritionValues, errors, isSubmitting, handleInputChange, handleInsumosChange, handleSubmit } = useFormulaForm({ formula: formula ?? null, isOpen, isCopyMode });
+  const { formData, formulaInsumos, nutritionValues, errors, isSubmitting, isValid, handleInputChange, handleInsumosChange, handleSubmit } = useFormulaForm({ formula: formula ?? null, isOpen, isCopyMode, existingNames: existingNames ?? [] });
 
   if (!isOpen) return null;
 
   if (!isOpen) return null;
 
   return (
-    <FormModal open={isOpen} onClose={onClose} title={formula && !isCopyMode ? 'Editar Fórmula' : isCopyMode ? 'Crear Copia de Fórmula' : 'Agregar Nueva Fórmula'} formId={formId} loading={isLoading || isSubmitting}>
+  <FormModal open={isOpen} onClose={onClose} title={formula && !isCopyMode ? 'Editar Fórmula' : isCopyMode ? 'Crear Copia de Fórmula' : 'Agregar Nueva Fórmula'} formId={formId} loading={isLoading || isSubmitting} submitDisabled={!isValid} submitLabel={formula && !isCopyMode ? 'Guardar Fórmula' : 'Crear Fórmula'}>
       <form id={formId} onSubmit={(e) => { e.preventDefault(); void handleSubmit(onSubmit); }}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-6">
@@ -34,11 +35,7 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onCl
                 {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Porción Mínima (g)</label>
-                <input type="number" value={formData.porcionMinima} onChange={(e) => handleInputChange('porcionMinima', parseFloat(e.target.value) || 0)} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${errors.porcionMinima ? 'border-red-500' : 'border-gray-300'}`} min={0} step={0.1} />
-                {errors.porcionMinima && <p className="mt-1 text-sm text-red-600">{errors.porcionMinima}</p>}
-              </div>
+              {/* Porción mínima: ahora se calcula automáticamente a partir de los insumos */}
 
               <div>
                 <label className="flex items-center space-x-2">

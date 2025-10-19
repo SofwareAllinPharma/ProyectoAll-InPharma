@@ -17,7 +17,6 @@ export interface CreateProductoRequest {
   nombreComercial: string;
   pesoNeto?: number;
   cantPorcionesAportadas?: number;
-  calculationMode: 'pesoNeto' | 'porciones'; // Para indicar cómo se está calculando
 }
 
 export interface UpdateProductoRequest extends CreateProductoRequest {
@@ -40,5 +39,5 @@ export interface ProductCalculation {
 export interface ProductoSearchFilters {
   search: string;
   buscarPor: 'producto' | 'formula' | 'insumo';
-  estado: 'activo' | 'inactivo' | 'todos';
+  estado?: 'activo' | 'inactivo' | string;
 }

@@ -1,4 +1,4 @@
-import { } from 'react';
+import React from 'react';
 import type { Insumo } from '../../../../insumos/types/insumo.types';
 import type { FormulaInsumo } from '../../../types/formula.types';
 import SearchSelect from '../../../../../components/ui/SearchSelect';
@@ -10,9 +10,12 @@ interface Props {
   onUpdate: (index: number, field: keyof FormulaInsumo, value: number) => void;
   onRemove: (index: number) => void;
   disabled?: boolean;
+  rowErrors?: string[];
+  autoFocus?: boolean;
+  onRowBlur?: (index: number) => void;
 }
 
-export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumos, onUpdate, onRemove, disabled = false }: Props) {
+export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumos, onUpdate, onRemove, disabled = false, rowErrors = [], autoFocus = false, onRowBlur }: Props) {
   return (
     <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
       <div className="flex-1">
@@ -22,9 +25,14 @@ export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumo
           getKey={(i) => i.id}
           getLabel={(i) => i.nombre}
           onSelect={(selected) => onUpdate(index, 'idInsumo', selected.id)}
+          inputAutoFocus={autoFocus}
+          onInputBlur={() => onRowBlur && onRowBlur(index)}
           placeholder="Seleccionar insumo"
           disabled={disabled}
         />
+        <div className="mt-1 text-sm text-red-600">
+          {rowErrors.length > 0 && <div>{rowErrors.join(' • ')}</div>}
+        </div>
       </div>
 
       <div className="w-32">

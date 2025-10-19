@@ -166,6 +166,12 @@ Podes usar este gestor online de prisma si te da paja usar pgadmin o la consola 
 ``` bash
 npx prisma db seed
 ```
+
+# problemas con prisma generate
+``` powershell
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+
 ## 📊 6. Visualizar con pgAdmin
 
 Abrí pgAdmin → expandí **Databases → allinpharma → Schemas → public →

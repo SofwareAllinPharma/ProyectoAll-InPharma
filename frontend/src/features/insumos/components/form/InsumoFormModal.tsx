@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Insumo, CreateInsumoDto } from '../../types/insumo.types';
 import InsumoFormFields from './InsumoFormFields';
 import FormModal from '../../../../components/ui/modales/FormModal';
+import FormActions from '../../../../components/form/FormActions';
 
 interface InsumoFormModalProps {
   open: boolean;
@@ -48,10 +49,6 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
 
     setErrors({});
     nameRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
   }, [open, insumo, onCancel]);
 
   const validateForm = (): boolean => {
@@ -88,8 +85,18 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
   const formId = 'insumo-form';
 
   return (
-    <FormModal open={open} onClose={onCancel} title={isEditing ? 'Editar Insumo' : 'Agregar Nuevo Insumo'} formId={formId} loading={loading} containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-      <form id={formId} onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+    <FormModal
+      open={open}
+      onClose={onCancel}
+      title={isEditing ? 'Editar Insumo' : 'Agregar Nuevo Insumo'}
+      formId={formId}
+      loading={loading}
+      submitLabel={isEditing ? 'Guardar Insumo' : 'Crear Insumo'}
+      cancelLabel="Cancelar"
+      containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+         footer={<div className="-mt-6"><FormActions onCancel={onCancel} submitting={loading} disabled={false} submitLabel={isEditing ? 'Guardar Insumos' : 'Crear Insumo'} formId={formId} /></div>}
+    >
+      <form id={formId} onSubmit={handleSubmit} className="pt-3 pb-2 overflow-y-auto max-h-[calc(90vh-120px)]">
         <InsumoFormFields formData={formData} onChange={handleInputChange} errors={errors} loading={loading} nameRef={nameRef} />
       </form>
     </FormModal>

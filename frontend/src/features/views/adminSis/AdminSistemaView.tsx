@@ -96,7 +96,6 @@ const ResumenComponent = () => {
             <p className="text-sm text-gray-600">Fórmulas nutricionales desarrolladas</p>
           </div>
         </div>
-
         {/* Card de Productos */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between">
@@ -106,12 +105,12 @@ const ResumenComponent = () => {
                 <span className="text-4xl font-bold text-purple-600">
                   {loading ? '...' : productosCount}
                 </span>
-                <span className="text-sm text-gray-500">activos</span>
+                <span className="text-sm text-gray-500">creados</span>
               </div>
             </div>
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
               <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
           </div>

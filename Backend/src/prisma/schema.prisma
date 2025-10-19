@@ -96,8 +96,8 @@ model Insumo {
 }
 
 model Formula {
-  id             Int             @id @default(autoincrement())
-  nombre         String          @unique
+  id             Int              @id @default(autoincrement())
+  nombre         String           
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -148,15 +148,15 @@ model Deposito {
 model Producto {
   idProducto           Int      @id @default(autoincrement())
   idFormula            Int
-  nombreComercial      String   @unique
+  nombreComercial      String   
   pesoNeto             Float
   cantPorcionesAportadas Int
   estaActivo           Boolean  @default(true)
   formula              Formula  @relation(fields: [idFormula], references: [id])
 
+  inventario           Inventario[]
   
-  inventario     Inventario[]
-
+  @@index([nombreComercial, estaActivo])
   @@map("PRODUCTOS")
 }
 

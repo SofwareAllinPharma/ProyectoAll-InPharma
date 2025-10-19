@@ -12,6 +12,7 @@ export default function FormModal({
   footer,
   children,
   containerClass = 'bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[95vh] overflow-hidden',
+  submitDisabled = false,
   formId,
 }: {
   open: boolean;
@@ -24,6 +25,7 @@ export default function FormModal({
   footer?: React.ReactNode;
   children: React.ReactNode;
   containerClass?: string;
+  submitDisabled?: boolean;
   formId?: string;
 }) {
   const cancelRef = useRef<HTMLButtonElement | null>(null);
@@ -47,7 +49,7 @@ export default function FormModal({
           ) : (
             <div className="flex justify-end gap-3">
               <button ref={cancelRef} onClick={onClose} className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" disabled={loading}>{cancelLabel}</button>
-              <button form={formId} type="submit" className="px-6 py-3 rounded-lg bg-[#5d5448] text-white hover:bg-[#50453d] flex items-center gap-2 disabled:opacity-50" disabled={loading}>
+              <button form={formId} type="submit" className="px-6 py-3 rounded-lg bg-[#5d5448] text-white hover:bg-[#50453d] flex items-center gap-2 disabled:opacity-50" disabled={loading || submitDisabled}>
                 {loading && <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle></svg>}
                 {submitLabel}
               </button>

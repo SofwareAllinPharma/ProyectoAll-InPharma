@@ -11,7 +11,7 @@ export default function FormulaFormFields({
   isLoading,
   nutritionValues,
 }: {
-  formData: { nombre: string; porcionMinima: number; esProtegida: boolean };
+  formData: { nombre: string; esProtegida: boolean };
   onInputChange: (field: string, value: any) => void;
   formulaInsumos: FormulaInsumo[];
   onInsumosChange: (insumos: FormulaInsumo[]) => void;
@@ -19,6 +19,8 @@ export default function FormulaFormFields({
   isLoading?: boolean;
   nutritionValues: NutritionCalculation;
 }) {
+  const totalPeso = formulaInsumos.reduce((s, i) => s + (i.cantidadInsumo || 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -33,20 +35,6 @@ export default function FormulaFormFields({
             disabled={isLoading}
           />
           {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Porción Mínima (g)</label>
-          <input
-            type="number"
-            value={formData.porcionMinima}
-            onChange={(e) => onInputChange('porcionMinima', parseInt(e.target.value) || 0)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${errors.porcionMinima ? 'border-red-500' : 'border-gray-300'}`}
-            placeholder="100"
-            min="1"
-            disabled={isLoading}
-          />
-          {errors.porcionMinima && <p className="mt-1 text-sm text-red-600">{errors.porcionMinima}</p>}
         </div>
       </div>
 
@@ -66,15 +54,20 @@ export default function FormulaFormFields({
 
       <div>
         <h3 className="text-lg font-semibold text-[#3e3529] mb-4">Composición de Insumos</h3>
-        <FormulaInsumoManager formulaInsumos={formulaInsumos} onChange={onInsumosChange} disabled={isLoading} />
+        {/* limitamos la altura del manager para que el modal mantenga el footer visible
+            cuando hay muchos insumos. */}
+        <div className="max-h-[40vh] overflow-auto">
+          <FormulaInsumoManager formulaInsumos={formulaInsumos} onChange={onInsumosChange} disabled={isLoading} />
+        </div>
         {errors.insumos && <p className="mt-2 text-sm text-red-600">{errors.insumos}</p>}
+        {errors.porcion && <p className="mt-2 text-sm text-red-600">{errors.porcion}</p>}
       </div>
 
       {formulaInsumos.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-[#3e3529] mb-4">Información Nutricional por Porción ({formData.porcionMinima}g)</h3>
+          <h3 className="text-lg font-semibold text-[#3e3529] mb-4">Información Nutricional por Porción ({totalPeso}g)</h3>
           <div className="bg-gray-50 rounded-lg p-4">
-            <NutritionDisplay nutrition={nutritionValues} porcionMinima={formData.porcionMinima} />
+            <NutritionDisplay nutrition={nutritionValues} porcionMinima={totalPeso} />
           </div>
         </div>
       )}

@@ -1,4 +1,3 @@
-// Use the new table component (FormulasTableNew). Keep barrel exports consistent with moved files.
 export * from './components/FormulasTable';
 export { default as SearchBar } from './components/SearchBar';
 export * from './components/ProtectedFormulaModal';

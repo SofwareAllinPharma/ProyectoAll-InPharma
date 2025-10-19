@@ -3,10 +3,6 @@ import type {
   NutritionCalculation,
 } from "../types/formula.types";
 
-/**
- * Calcula la información nutricional total de una fórmula
- * basada en los insumos y sus cantidades
- */
 export const calculateNutrition = (
   formulaInsumos: FormulaInsumo[],
   porcionMinima: number = 100
@@ -21,7 +17,6 @@ export const calculateNutrition = (
     grasaTransPorPorcion: 0,
     fibraPorPorcion: 0,
     sodioPorPorcion: 0,
-    otrosPorPorcion: 0,
   };
 
   const pesoTotalFormula = formulaInsumos.reduce(
@@ -48,7 +43,6 @@ export const calculateNutrition = (
     totals.grasaTransPorPorcion += insumo.grasasTrans_100g * proporcion;
     totals.fibraPorPorcion += insumo.fibra_100g * proporcion;
     totals.sodioPorPorcion += insumo.sodio_100g * proporcion;
-    totals.otrosPorPorcion += insumo.otro_100g * proporcion;
   });
 
   if (porcionMinima !== pesoTotalFormula) {
@@ -93,3 +87,6 @@ export const validateFormulaInsumos = (
 
   return errors;
 };
+
+export const calculateTotalPeso = (formulaInsumos: FormulaInsumo[]) =>
+  formulaInsumos.reduce((total, fi) => total + (fi.cantidadInsumo || 0), 0);

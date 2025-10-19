@@ -1,119 +1,96 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { CreateFormulaRequest, FormulaInsumo, Formula, NutritionCalculation } from '../types/formula.types';
-import { calculateNutrition, validateFormulaInsumos } from '../utils/nutritionCalculator';
+import { calculateNutrition, validateFormulaInsumos, calculateTotalPeso } from '../utils/nutritionCalculator';
 
-type UseFormulaFormArgs = {
-  formula?: Formula | null;
-  isOpen: boolean;
-  isCopyMode?: boolean;
-};
+type Args = { formula?: Formula | null; isOpen: boolean; isCopyMode?: boolean; existingNames?: string[] };
 
-export function useFormulaForm({ formula, isOpen, isCopyMode = false }: UseFormulaFormArgs) {
-  const [formData, setFormData] = useState({ nombre: '', porcionMinima: 100, esProtegida: false });
-  const [formulaInsumos, setFormulaInsumos] = useState<FormulaInsumo[]>([]);
+export function useFormulaForm({ formula, isOpen, isCopyMode = false, existingNames = [] }: Args) {
+  type F = { nombre: string; esProtegida: boolean };
+  const [formData, setFormData] = useState<F>({ nombre: '', esProtegida: false });
+  const [insumos, setInsumos] = useState<FormulaInsumo[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nutritionValues, setNutritionValues] = useState<NutritionCalculation>(() => ({
-    kcaloriasPorPorcion: 0,
-    kjPorPorcion: 0,
-    carbohidratosPorPorcion: 0,
-    proteinasPorPorcion: 0,
-    grasaTotalPorPorcion: 0,
-    grasaSaturadaPorPorcion: 0,
-    grasaTransPorPorcion: 0,
-    fibraPorPorcion: 0,
-    sodioPorPorcion: 0,
-  }));
+  const [submitting, setSubmitting] = useState(false);
+  const [nutrition, setNutrition] = useState<NutritionCalculation>(() => ({ kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0, otrosPorPorcion: 0 }));
 
-  // sync when modal opens / formula changes
   useEffect(() => {
     if (!isOpen) return;
     if (formula) {
-      const suggestedName = isCopyMode && formula.nombre && !formula.nombre.includes('Copia') ? `${formula.nombre} - Copia1` : formula.nombre;
-      setFormData({
-        nombre: suggestedName,
-        porcionMinima: formula.porcionMinima,
-        esProtegida: isCopyMode ? false : formula.esProtegida,
-      });
-      setFormulaInsumos(formula.insumos || []);
-    } else {
-      setFormData({ nombre: '', porcionMinima: 100, esProtegida: false });
-      setFormulaInsumos([]);
-    }
-    setErrors({});
-    setIsSubmitting(false);
+      const name = isCopyMode && formula.nombre && !formula.nombre.includes('Copia') ? `${formula.nombre} - Copia1` : formula.nombre;
+      setFormData({ nombre: name, esProtegida: isCopyMode ? false : formula.esProtegida });
+      setInsumos(formula.insumos || []);
+      const e = validateFormulaInsumos(formula.insumos || []);
+      setErrors(e.length ? { insumos: e.join(', ') } : {});
+    } else { setFormData({ nombre: '', esProtegida: false }); setInsumos([]); setErrors({}); }
+    setSubmitting(false);
   }, [isOpen, formula, isCopyMode]);
 
-  // calculate nutrition when inputs change
   useEffect(() => {
-    if (formulaInsumos.length > 0 && formData.porcionMinima > 0) {
-      setNutritionValues(calculateNutrition(formulaInsumos, formData.porcionMinima));
-    } else {
-      setNutritionValues({
-        kcaloriasPorPorcion: 0,
-        kjPorPorcion: 0,
-        carbohidratosPorPorcion: 0,
-        proteinasPorPorcion: 0,
-        grasaTotalPorPorcion: 0,
-        grasaSaturadaPorPorcion: 0,
-        grasaTransPorPorcion: 0,
-        fibraPorPorcion: 0,
-        sodioPorPorcion: 0,
-      });
-    }
-  }, [formulaInsumos, formData.porcionMinima]);
+    const total = calculateTotalPeso(insumos);
+    setNutrition(total > 0 ? calculateNutrition(insumos, total) : { kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0, otrosPorPorcion: 0 });
+  }, [insumos]);
 
-  const handleInputChange = useCallback((field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
-  }, [errors]);
+  const handleInputChange = useCallback((k: keyof F, v: F[keyof F]) => {
+    setFormData(s => ({ ...s, [k]: v }));
+    setErrors(prev => {
+      const next = { ...prev };
+      if (k === 'nombre') {
+        const val = String(v).trim();
+        next.nombre = !val ? 'El nombre es obligatorio' : (existingNames.includes(val) && (!formula || formula.nombre !== val) ? 'Ya existe una fórmula con ese nombre' : '');
+      } else delete next[k as string];
+      return next;
+    });
+  }, [existingNames, formula]);
 
-  const handleInsumosChange = useCallback((insumos: FormulaInsumo[]) => {
-    setFormulaInsumos(insumos);
-    if (errors.insumos) setErrors(prev => ({ ...prev, insumos: '' }));
-  }, [errors]);
+  const handleInsumosChange = useCallback((list: FormulaInsumo[], touched = false) => {
+    setInsumos(list);
+    setErrors(prev => {
+      const next = { ...prev };
+      const e = validateFormulaInsumos(list);
+      next.insumos = touched ? (e.length ? e.join(', ') : '') : prev.insumos || '';
+      const total = calculateTotalPeso(list);
+      next.porcion = touched ? (total <= 0 ? 'La porción debe ser mayor a 0' : '') : prev.porcion || '';
+      return next;
+    });
+  }, [formula]);
 
   const validateForm = useCallback(() => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
-    if (formData.porcionMinima <= 0) newErrors.porcionMinima = 'La porción mínima debe ser mayor a 0';
-    if (formulaInsumos.length === 0) newErrors.insumos = 'Debe agregar al menos un insumo';
-    const insumosErrors = validateFormulaInsumos(formulaInsumos);
-    if (insumosErrors.length > 0) newErrors.insumos = insumosErrors.join(', ');
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData, formulaInsumos]);
+    const n: Record<string, string> = {};
+    if (!formData.nombre.trim()) n.nombre = 'El nombre es obligatorio';
+    const total = calculateTotalPeso(insumos);
+    if (total <= 0) n.porcion = 'La porción debe ser mayor a 0';
+    if (!insumos.length) n.insumos = 'Debe agregar al menos un insumo';
+    const e = validateFormulaInsumos(insumos); if (e.length) n.insumos = e.join(', ');
+    setErrors(n); return !Object.keys(n).length;
+  }, [formData, insumos]);
 
-  const buildPayload = useCallback((): CreateFormulaRequest => ({
-    nombre: formData.nombre,
-    porcionMinima: formData.porcionMinima,
-    esProtegida: formData.esProtegida,
-    insumos: formulaInsumos.map(fi => ({ idInsumo: fi.idInsumo, cantidadInsumo: fi.cantidadInsumo })),
-  }), [formData, formulaInsumos]);
+  const isValid = Object.values(errors).every(v => !v);
 
-  const handleSubmit = useCallback(async (onSubmit: (payload: CreateFormulaRequest) => Promise<any> | void) => {
-    if (!validateForm() || isSubmitting) return false;
-    setIsSubmitting(true);
-    try {
-      await onSubmit(buildPayload());
-      return true;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [validateForm, isSubmitting, buildPayload]);
+  const buildPayload = useCallback((): CreateFormulaRequest => ({ nombre: formData.nombre, porcionMinima: calculateTotalPeso(insumos), esProtegida: formData.esProtegida, insumos: insumos.map(i => ({ idInsumo: i.idInsumo, cantidadInsumo: i.cantidadInsumo })) }), [formData, insumos]);
+
+  const handleSubmit = useCallback(async (onSubmit: (p: CreateFormulaRequest) => Promise<unknown> | void) => {
+    if (!validateForm() || submitting) return false; setSubmitting(true);
+    try { await onSubmit(buildPayload()); return true; } finally { setSubmitting(false); }
+  }, [validateForm, submitting, buildPayload]);
 
   return {
     formData,
-    formulaInsumos,
-    nutritionValues,
+    // new names
+    insumos,
+    nutrition,
     errors,
-    isSubmitting,
+    submitting,
+    isValid,
     handleInputChange,
     handleInsumosChange,
     validateForm,
     buildPayload,
     handleSubmit,
     setFormData,
-    setFormulaInsumos,
+    setInsumos,
+    // legacy aliases for backwards compatibility
+    formulaInsumos: insumos,
+    nutritionValues: nutrition,
+    isSubmitting: submitting,
+    setFormulaInsumos: setInsumos,
   };
 }

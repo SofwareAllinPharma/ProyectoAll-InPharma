@@ -18,8 +18,8 @@ POST http://localhost:4000/productos
 Content-Type: application/json
 
 {
-  "nombreComercial": "Producto cualquiera",
-  "idFormula": 5,
+  "nombreComercial": "Producto con formula protegida",
+  "idFormula": 10,
   "pesoNeto": 300
 }
 

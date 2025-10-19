@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Producto } from '../types/producto.types';
 
@@ -11,35 +11,31 @@ interface Props {
 }
 
 export const ProductoActionModal: React.FC<Props> = ({
+  isOpen,
   producto,
   onEdit,
   onDelete,
   onClose,
 }) => {
-  if (!producto) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+  // Prevenir scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
     }
-  };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  };
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !producto) return null;
 
   return createPortal(
     <div 
       className="fixed inset-0 bg-black/30 z-[10000] flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={-1}
     >
       <div 
         className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
@@ -106,7 +102,6 @@ export const ProductoActionModal: React.FC<Props> = ({
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="text-xs text-gray-600">
               <p><strong>Estado:</strong> {producto.estaActivo ? 'Activo' : 'Inactivo'}</p>
-              <p><strong>ID:</strong> {producto.idProducto}</p>
               {producto.formula && (
                 <p><strong>Peso por porción:</strong> {producto.formula.porcion || producto.formula.porcionMinima || 0}g</p>
               )}

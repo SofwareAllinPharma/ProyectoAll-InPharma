@@ -22,10 +22,6 @@ export const ProductoSearchBar: React.FC<Props> = ({
     onFiltersChange({ ...filters, buscarPor });
   };
 
-  const handleEstadoChange = (estado: ProductoSearchFilters['estado']) => {
-    onFiltersChange({ ...filters, estado });
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       onSearch();
@@ -65,18 +61,6 @@ export const ProductoSearchBar: React.FC<Props> = ({
             <option value="producto">Por Producto</option>
             <option value="formula">Por Fórmula</option>
             <option value="insumo">Por Insumo</option>
-          </select>
-
-          {/* Estado */}
-          <select
-            value={filters.estado}
-            onChange={(e) => handleEstadoChange(e.target.value as ProductoSearchFilters['estado'])}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm"
-            disabled={isLoading}
-          >
-            <option value="todos">Todos</option>
-            <option value="activo">Activos</option>
-            <option value="inactivo">Inactivos</option>
           </select>
 
           {/* Botón de búsqueda */}

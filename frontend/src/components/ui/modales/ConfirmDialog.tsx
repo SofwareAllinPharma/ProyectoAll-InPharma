@@ -44,11 +44,11 @@ export default function ConfirmDialog({
           </div>
         </div>
 
-        <div className="flex-1 mb-6">
-          {/* espacio flexible entre texto y botones para empujar el footer abajo */}
+        <div className="flex-1">
+          {/* espacio flexible entre texto y botones; reducido para bajar gap */}
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-4">
           {footer ? (
             footer
           ) : (
