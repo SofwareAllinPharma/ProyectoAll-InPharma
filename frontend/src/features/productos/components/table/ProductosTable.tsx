@@ -1,8 +1,10 @@
 import React from 'react';
-import type { Producto, ProductoModalAction } from '../types/producto.types';
-import ActionMenu from '../../../components/ui/ActionMenu';
-import DataTable from '../../../components/ui/DataTable';
-import type { Column } from '../../../components/ui/DataTable';
+import type { Producto, ProductoModalAction } from '../../types/producto.types';
+import DataTable from '../../../../components/ui/DataTable';
+import type { Column } from '../../../../components/ui/DataTable';
+import ProductoNombreCell from './ProductoNombreCell';
+import ProductoFormulaCell from './ProductoFormulaCell';
+import ProductoAccionesCell from './ProductoAccionesCell';
 
 interface Props {
   productos: Producto[];
@@ -24,7 +26,7 @@ export const ProductosTable: React.FC<Props> = ({
     
     const porcionesCompletas = Math.floor(producto.cantPorcionesAportadas);
     const porcionParcial = producto.cantPorcionesAportadas - porcionesCompletas;
-    const pesoPorPorcion = producto.formula.porcion || producto.formula.porcionMinima || 0;
+  const pesoPorPorcion = producto.formula.porcionMinima || 0;
     const pesoParcial = porcionParcial * pesoPorPorcion;
     
     if (pesoParcial < 0.01) {
@@ -46,34 +48,19 @@ export const ProductosTable: React.FC<Props> = ({
   }
 
   const columns: Column<Producto>[] = [
-    { 
-      key: 'nombreComercial', 
-      title: 'Producto', 
-      width: '18%', 
+    {
+      key: 'nombreComercial',
+      title: 'Producto',
+      width: '18%',
       align: 'center',
-      render: r => (
-        <div className="text-sm font-medium text-gray-900">
-          {r.nombreComercial}
-        </div>
-      )
+      render: r => <ProductoNombreCell producto={r} onAction={onProductoAction} />
     },
-    { 
-      key: 'formula', 
-      title: 'Fórmula', 
-      width: '18%', 
+    {
+      key: 'formula',
+      title: 'Fórmula',
+      width: '18%',
       align: 'center',
-      render: r => (
-        <div className="text-center">
-          <div className="text-sm text-gray-900">
-            {r.formula?.nombre || 'Fórmula no encontrada'}
-          </div>
-          {r.formula?.esProtegida && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mt-1">
-              Protegida
-            </span>
-          )}
-        </div>
-      )
+      render: r => <ProductoFormulaCell producto={r} />
     },
     { 
       key: 'pesoNeto', 
@@ -89,12 +76,12 @@ export const ProductosTable: React.FC<Props> = ({
       align: 'center',
       render: r => formatPorciones(r)
     },
-    { 
-      key: 'pesoPorPorcion', 
-      title: 'Peso por Porción', 
-      width: '14%', 
+    {
+      key: 'pesoPorPorcion',
+      title: 'Peso por Porción',
+      width: '14%',
       align: 'center',
-      render: r => r.formula ? `${formatNumber(r.formula.porcion || r.formula.porcionMinima || 0)}g` : 'N/A'
+      render: r => r.formula ? `${formatNumber(r.formula.porcionMinima || 0)}g` : 'N/A'
     },
     { 
       key: 'estaActivo', 
@@ -109,31 +96,12 @@ export const ProductosTable: React.FC<Props> = ({
         </span>
       )
     },
-    { 
-      key: 'acciones', 
-      title: 'Acciones', 
-      width: '8%', 
+    {
+      key: 'acciones',
+      title: 'Acciones',
+      width: '8%',
       align: 'center',
-      render: r => {
-        const items = [
-          { 
-            key: 'view', 
-            label: 'Consultar', 
-            onClick: () => onProductoAction({ type: 'view', producto: r }) 
-          },
-          { 
-            key: 'edit', 
-            label: 'Editar', 
-            onClick: () => onProductoAction({ type: 'edit', producto: r }) 
-          },
-          { 
-            key: 'delete', 
-            label: 'Eliminar', 
-            onClick: () => onProductoAction({ type: 'delete', producto: r }) 
-          }
-        ];
-        return <ActionMenu items={items} />;
-      }
+      render: r => <ProductoAccionesCell producto={r} onAction={onProductoAction} />
     }
   ];
 

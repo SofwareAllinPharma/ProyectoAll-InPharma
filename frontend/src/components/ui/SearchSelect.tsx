@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type SearchSelectProps<T> = {
   items: T[];
@@ -33,19 +34,32 @@ export default function SearchSelect<T>({
   const [query, setQuery] = useState('');
   const [highlight, setHighlight] = useState(0);
   const ref = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
-    // show label of value when provided
     if (value) setQuery(getLabel(value));
   }, [value, getLabel]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const inRef = ref.current && ref.current.contains(target);
+      const inPortal = portalRef.current && portalRef.current.contains(target as Node);
+      if (!inRef && !inPortal) setOpen(false);
     };
     window.addEventListener('mousedown', onDoc);
     return () => window.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  useEffect(() => {
+    if (!portalRef.current) portalRef.current = document.createElement('div');
+    const el = portalRef.current;
+    document.body.appendChild(el);
+    return () => {
+      try { document.body.removeChild(el); } catch {}
+    };
   }, []);
 
   const filtered = query.trim()
@@ -72,9 +86,49 @@ export default function SearchSelect<T>({
     }
   };
 
+  // compute input rect when opening or on resize/scroll
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const inp = inputRef.current;
+      if (!inp) return setRect(null);
+      const r = inp.getBoundingClientRect();
+      setRect({ top: r.bottom, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open, inputRef.current]);
+
+  const dropdown = (
+    <div style={rect ? { position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px' } : undefined} className="z-[10010] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+      {filtered.length === 0 ? (
+        <div className="p-3 text-sm text-gray-500">{noResultsText}</div>
+      ) : (
+        filtered.map((it, idx) => (
+          <button
+            key={String(getKey(it))}
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); }}
+            onClick={() => { onSelect(it); setOpen(false); }}
+            onMouseEnter={() => setHighlight(idx)}
+            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 ${idx === highlight ? 'bg-gray-100' : ''}`}
+          >
+            {getLabel(it)}
+          </button>
+        ))
+      )}
+    </div>
+  );
+
   return (
     <div className={`relative ${className}`} ref={ref}>
       <input
+        ref={inputRef}
         type="text"
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm"
         placeholder={placeholder}
@@ -88,26 +142,7 @@ export default function SearchSelect<T>({
         aria-autocomplete="list"
       />
 
-      {open && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-          {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500">{noResultsText}</div>
-          ) : (
-            filtered.map((it, idx) => (
-              <button
-                key={String(getKey(it))}
-                type="button"
-                onMouseDown={(e) => { e.preventDefault(); }}
-                onClick={() => { onSelect(it); setOpen(false); }}
-                onMouseEnter={() => setHighlight(idx)}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 ${idx === highlight ? 'bg-gray-100' : ''}`}
-              >
-                {getLabel(it)}
-              </button>
-            ))
-          )}
-        </div>
-      )}
+      {open && portalRef.current ? createPortal(dropdown, portalRef.current) : open && dropdown}
     </div>
   );
 }

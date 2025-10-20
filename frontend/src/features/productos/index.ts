@@ -1,5 +1,5 @@
 // Exportar la página principal
-export { ProductosPage } from './pages/ProductosPage';
+export { default as ProductosPage } from './pages/ProductosPage';
 
 // Exportar tipos
 export type {
@@ -15,8 +15,7 @@ export type {
 export { ProductoService } from './services/producto.service';
 
 // Exportar componentes
-export { ProductosTable } from './components/ProductosTable';
+export { ProductosTable } from './components/table/ProductosTable';
 export { ProductoSearchBar } from './components/ProductoSearchBar';
-export { ProductoFormModal } from './components/ProductoFormModal';
-export { ProductoActionModal } from './components/ProductoActionModal';
+export { ProductoFormModal } from './components/form/ProductoFormModal';
 export { DeleteConfirmModal } from './components/DeleteConfirmModal';

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { InsumosPage } from '../../insumos';
 import FormulasPage from '../../formulas/pages/FormulasPage';
-import { ProductosPage } from '../../productos/pages/ProductosPage';
+import { ProductosPage } from '../../productos';
 
 import { InsumoService } from '../../insumos/services/insumo.service';
 import { FormulaService } from '../../formulas/services/formula.service';
