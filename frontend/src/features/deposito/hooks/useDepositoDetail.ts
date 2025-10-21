@@ -66,6 +66,32 @@ export default function useDepositoDetail(id?: number | string | null) {
       .finally(() => setLoadingResumen(false));
   }, [dep?.id]);
 
+  const refreshInventario = async () => {
+    if (!dep?.id) return;
+    setLoadingInventario(true);
+    try {
+      const data = await InventarioService.getInventarioByDeposito(dep.id);
+      setInventario(data);
+    } catch {
+      setInventario([]);
+    } finally {
+      setLoadingInventario(false);
+    }
+  };
+
+  const refreshResumen = async () => {
+    if (!dep?.id) return;
+    setLoadingResumen(true);
+    try {
+      const data = await InventarioService.getResumenEstados(dep.id);
+      setResumen({ total: data.total ?? 0, normal: data.normal ?? 0, bajo: data.bajo ?? 0, critico: data.critico ?? 0 });
+    } catch {
+      setResumen({ total: 0, normal: 0, bajo: 0, critico: 0 });
+    } finally {
+      setLoadingResumen(false);
+    }
+  };
+
   const handleUpdate = async (v: any) => {
     try {
       const updated = await DepositoService.update(dep!.id, { responsable: v.responsable, capacidadTotal: Number(v.capacidadTotal) });
@@ -82,6 +108,12 @@ export default function useDepositoDetail(id?: number | string | null) {
     try {
       if (!dep) return;
       await DepositoService.deactivate(dep.id);
+      // show a red toast to indicate deletion
+      try {
+        show({ message: 'El depósito se eliminó correctamente', type: 'error' });
+      } catch {
+        // ignore if toast context unavailable
+      }
       navigate('/adminsis/depositos', { replace: true });
     } catch (e: any) {
       alert(e?.message || 'No se pudo desactivar el depósito.');
@@ -110,5 +142,7 @@ export default function useDepositoDetail(id?: number | string | null) {
     capacidadUsada,
     handleUpdate,
     handleDeactivate,
+    refreshInventario,
+    refreshResumen,
   };
 }
