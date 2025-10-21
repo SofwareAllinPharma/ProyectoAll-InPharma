@@ -1,4 +1,5 @@
 import React from 'react';
+import { useToast } from './ui';
 
 type PageShellProps = {
   title: string;
@@ -35,6 +36,15 @@ export default function PageShell({
   containerClassName,
   preTitle,
 }: PageShellProps) {
+  const toastCtx = (() => {
+    try {
+      return useToast() as any;
+    } catch {
+      return null;
+    }
+  })();
+  const toasts = toastCtx?.toasts as any[] | undefined;
+  const hide = toastCtx?.hide as ((id: number) => void) | undefined;
   const containerClasses = containerClassName ?? 'bg-white rounded-lg shadow-sm border border-gray-200 p-4';
 
   return (
@@ -78,6 +88,23 @@ export default function PageShell({
               </svg>
             </button>
           </div>
+        </div>
+      )}
+
+      {toasts && toasts.length > 0 && (
+        <div className="mb-4">
+          {toasts.map((t: any) => (
+            <div key={t.id} className="mb-3">
+              <div className={`w-full rounded-md ${t.type !== 'custom' ? (t.type === 'success' ? 'bg-green-50' : t.type === 'error' ? 'bg-red-50' : t.type === 'info' ? 'bg-blue-50' : 'bg-yellow-50') : ''} border ${t.type === 'error' ? 'border-red-200' : 'border-green-200'}`}>
+                <div className="p-4 flex items-start gap-3">
+                  <div className={`${t.type === 'success' ? 'text-green-800' : t.type === 'error' ? 'text-red-800' : t.type === 'info' ? 'text-blue-800' : 'text-yellow-800'} flex-1`}>{t.title ? <div className="font-semibold">{t.title}</div> : null}<div className="text-sm mt-1">{t.message}</div></div>
+                  <div>
+                    <button onClick={() => hide && hide(t.id)} className="text-gray-400 hover:text-gray-600">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
