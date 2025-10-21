@@ -3,6 +3,7 @@ import Modal from '../../../components/ui/modales/Modal';
 import type { Deposito } from '../types/deposito.types';
 import TextField from '../../../components/form/TextField';
 import NumberField from '../../../components/form/NumberField';
+import { Controller } from 'react-hook-form';
 import ModalHeader from '../../../components/ui/modales/ModalHeader';
 import { validateUniqueName, minCapacityValidator } from '../utils/validators';
 import FormActions from '../../../components/form/FormActions';
@@ -27,7 +28,7 @@ type Props = {
 export default function DepositoFormModal({ open, deposito, onSave, onCancel, loading = false, existingNames = [], capacidadUsadaActual }: Props) {
   const isEdit = !!deposito;
   const methods = useDepositoForm(deposito, open);
-  const { register, handleSubmit, formState: { errors, isValid } } = methods;
+  const { register, handleSubmit, formState: { errors, isValid }, control } = methods;
 
   if (!open) return null;
 
@@ -43,8 +44,27 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
 
           <TextField label="Dirección" disabled={isEdit || loading} {...{ inputProps: { ...register('direccion', { required: onlyCreate ? 'La dirección es requerida' : false, minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined, }) }, error: errors.direccion?.message as string | undefined }} />
 
+
           <div className="grid gap-4 md:grid-cols-2">
-            <NumberField label="Capacidad total" min={1} inputProps={{ ...register('capacidadTotal', { required: 'Requerido', valueAsNumber: true, min: { value: 1, message: 'Debe ser > 0' }, validate: isEdit && typeof capacidadUsadaActual === 'number' ? minCapacityValidator(capacidadUsadaActual) : undefined, }) }} error={errors.capacidadTotal?.message as string | undefined} />
+            <Controller
+              name="capacidadTotal"
+              control={control}
+              rules={{
+                required: 'Requerido',
+                min: { value: 1, message: 'Debe ser > 0' },
+                validate: isEdit && typeof capacidadUsadaActual === 'number' ? minCapacityValidator(capacidadUsadaActual) : undefined,
+              }}
+              render={({ field }) => (
+                <NumberField
+                  label="Capacidad total"
+                  value={field.value}
+                  onChange={v => field.onChange(Number.isNaN(v) ? '' : Math.floor(v))}
+                  disabled={loading}
+                  step={1}
+                  className=""
+                />
+              )}
+            />
 
             <TextField label="Responsable" disabled={loading} {...{ inputProps: { ...register('responsable', { required: 'Requerido', minLength: { value: 3, message: 'Mínimo 3 caracteres' }, }) }, error: errors.responsable?.message as string | undefined }} />
           </div>
