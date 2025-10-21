@@ -1,5 +1,5 @@
 import React from 'react';
-import { useToast } from './ui';
+import { useToast } from './ui/toast/ToastContext';
 
 type PageShellProps = {
   title: string;

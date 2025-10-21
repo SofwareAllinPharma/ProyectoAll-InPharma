@@ -63,7 +63,7 @@ export default function FormulaFormFields({
         <div>
           <h3 className="text-lg font-semibold text-[#3e3529] mb-4">Información Nutricional por Porción ({totalPeso}g)</h3>
           <div className="bg-gray-50 rounded-lg p-4">
-            <NutritionDisplay nutrition={nutritionValues} porcionMinima={totalPeso} />
+            <NutritionDisplay nutrition={nutritionValues} porcion={totalPeso} />
           </div>
         </div>
       )}

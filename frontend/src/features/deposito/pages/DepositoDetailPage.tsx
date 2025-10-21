@@ -7,7 +7,7 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import DepositoDetailHeader from '../components/DepositoDetailHeader';
 import DepositoDetailSummary from '../components/DepositoDetailSummary';
 import useDepositoDetail from '../hooks/useDepositoDetail';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 import Button from '../../../components/ui/Button';
 import { FaTruck, FaPlus } from 'react-icons/fa';
 
