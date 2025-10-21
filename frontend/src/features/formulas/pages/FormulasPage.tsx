@@ -6,7 +6,7 @@ import { FormulaFormModal } from '../components/form/FormulaFormModal';
 import { ProtectedFormulaModal } from '../components/ProtectedFormulaModal';
 import { DeleteConfirmModal } from '../components/form/DeleteConfirmModal';
 import TipBox from '../../../components/ui/TipBox';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
 

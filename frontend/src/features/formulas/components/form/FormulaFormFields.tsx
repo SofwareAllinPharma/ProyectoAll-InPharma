@@ -54,11 +54,7 @@ export default function FormulaFormFields({
 
       <div>
         <h3 className="text-lg font-semibold text-[#3e3529] mb-4">Composición de Insumos</h3>
-        {/* limitamos la altura del manager para que el modal mantenga el footer visible
-            cuando hay muchos insumos. */}
-        <div className="max-h-[40vh] overflow-auto">
-          <FormulaInsumoManager formulaInsumos={formulaInsumos} onChange={onInsumosChange} disabled={isLoading} />
-        </div>
+        <FormulaInsumoManager formulaInsumos={formulaInsumos} onChange={onInsumosChange} disabled={isLoading} />
         {errors.insumos && <p className="mt-2 text-sm text-red-600">{errors.insumos}</p>}
         {errors.porcion && <p className="mt-2 text-sm text-red-600">{errors.porcion}</p>}
       </div>

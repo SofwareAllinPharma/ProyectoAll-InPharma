@@ -13,7 +13,7 @@ export function fromApi(a: ApiFormula): Formula {
   return {
     id: a.id,
     nombre: a.nombre,
-    porcionMinima: a.porcion,
+    porcion: a.porcion,
     kcaloriasPorPorcion: a.kcalorias,
     kjPorPorcion: a.kjuls,
     carbohidratosPorPorcion: a.carbohidratos,

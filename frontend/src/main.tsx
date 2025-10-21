@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import App from './app/App.tsx'
 import { AuthProvider } from './lib/auth'
-import { ToastProvider } from './components/ui';
+import { ToastProvider } from './components/ui/toast/ToastContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

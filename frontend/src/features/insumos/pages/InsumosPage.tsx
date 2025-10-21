@@ -1,5 +1,5 @@
 import { } from 'react';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 // types handled in the hook
 import { useInsumos } from '../hooks/useInsumos';
 import InsumosTable from '../components/InsumosTable';

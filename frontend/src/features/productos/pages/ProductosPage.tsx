@@ -35,7 +35,7 @@ const ProductosPage: React.FC = () => {
   };
 
   useEffect(() => { void load(); }, []);
-  const onSearch = useCallback(() => void load(filters), [filters]);
+  const onSearch = useCallback((f?: ProductoSearchFilters) => void load(f ?? filters), [filters]);
 
   const closeAll = () => setModals({ form: false, action: false, nutr: false, del: false });
 
@@ -51,6 +51,27 @@ const ProductosPage: React.FC = () => {
     }
   };
 
+  // Función para crear producto y recargar la lista
+  const handleCreateProducto = async (data: any) => {
+    await ProductoService.createProducto(data);
+    await load();
+  };
+
+  // Función para editar producto y recargar la lista
+  const handleUpdateProducto = async (data: any) => {
+    if (!selected) return;
+    await ProductoService.updateProducto(selected.idProducto, data);
+    await load();
+  };
+
+  // Función para eliminar producto y recargar la lista
+  const handleDeleteProducto = async () => {
+    if (!selected) return;
+    await ProductoService.deleteProducto(selected.idProducto);
+    await load();
+    closeAll();
+  };
+
   return (
     <PageShell
       title="Productos"
@@ -62,9 +83,21 @@ const ProductosPage: React.FC = () => {
       searchNode={<ProductoSearchBar filters={filters} onFiltersChange={setFilters} onSearch={onSearch} isLoading={loading} />}
       modals={(
         <>
-          <ProductoFormModal isOpen={modals.form} onClose={closeAll} onSubmit={async () => {}} producto={selected ?? undefined} isLoading={submitting} />
+          <ProductoFormModal
+            isOpen={modals.form}
+            onClose={closeAll}
+            onSubmit={selected ? handleUpdateProducto : handleCreateProducto}
+            producto={selected ?? undefined}
+            isLoading={submitting}
+          />
           <ProductoNutritionalModal isOpen={modals.nutr} producto={selected} onClose={closeAll} />
-          <DeleteConfirmModal isOpen={modals.del} producto={selected} onConfirm={() => {}} onCancel={() => setModals(s => ({ ...s, del: false }))} isLoading={submitting} />
+          <DeleteConfirmModal
+            isOpen={modals.del}
+            producto={selected}
+            onConfirm={handleDeleteProducto}
+            onCancel={() => setModals(s => ({ ...s, del: false }))}
+            isLoading={submitting}
+          />
         </>
       )}
     >

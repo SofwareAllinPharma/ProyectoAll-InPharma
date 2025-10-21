@@ -4,6 +4,7 @@ import type {
   UpdateProductoRequest,
   ProductoSearchFilters,
 } from '../types/producto.types';
+import { fromApi as mapFormulaFromApi } from '../../formulas/lib/mappers';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -54,11 +55,19 @@ export class ProductoService {
     const endpoint = `/productos${queryString ? `?${queryString}` : ''}`;
     
     const response = await this.request<Producto[]>(endpoint);
+    // map nested formula objects from API shape to frontend Formula type
+    if (Array.isArray(response)) {
+      return response.map((p) => ({
+        ...p,
+        formula: p.formula ? mapFormulaFromApi(p.formula as any) : undefined,
+      }));
+    }
     return response || [];
   }
 
   static async getProductoById(id: number): Promise<Producto> {
-    return this.request<Producto>(`/productos/${id}`);
+    const res = await this.request<Producto>(`/productos/${id}`);
+    return { ...res, formula: res.formula ? mapFormulaFromApi(res.formula as any) : undefined } as Producto;
   }
 
   static async createProducto(data: CreateProductoRequest): Promise<Producto> {

@@ -39,7 +39,7 @@ export default function FormulaSearchSelect({ value, onChange, className, noResu
       items={formulas}
       value={value}
       getKey={(f) => f.id}
-      getLabel={(f) => `${f.nombre} (${f.porcionMinima || 0}g)`}
+      getLabel={(f) => `${f.nombre} (${f.porcion || 0}g)`}
       onSelect={(f) => onChange(f)}
       placeholder={loading ? 'Cargando fórmulas...' : 'Buscar o seleccionar fórmula'}
       disabled={loading}

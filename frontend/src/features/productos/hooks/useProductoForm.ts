@@ -14,13 +14,13 @@ export function useProductoForm(params: {
     if (selectedFormula && formData.calculationMode === 'pesoNeto' && formData.pesoNeto > 0) {
       const calculation = ProductoService.calculatePorcionesFromPesoNeto(
         formData.pesoNeto,
-        selectedFormula.porcionMinima || 0
+        selectedFormula.porcion || 0
       );
       setFormData((prev: any) => ({ ...prev, cantPorcionesAportadas: calculation.cantPorcionesAportadas }));
     } else if (selectedFormula && formData.calculationMode === 'porciones' && formData.cantPorcionesAportadas > 0) {
       const pesoNeto = ProductoService.calculatePesoNetoFromPorciones(
         formData.cantPorcionesAportadas,
-        selectedFormula.porcionMinima || 0
+        selectedFormula.porcion || 0
       );
       setFormData((prev: any) => ({ ...prev, pesoNeto }));
     }
@@ -28,7 +28,25 @@ export function useProductoForm(params: {
   }, [selectedFormula, formData.calculationMode, formData.pesoNeto, formData.cantPorcionesAportadas]);
 
   const handleCalculationModeChange = (mode: 'pesoNeto'|'porciones') => {
-    setFormData((prev: any) => ({ ...prev, calculationMode: mode, pesoNeto: 0, cantPorcionesAportadas: 0 }));
+    setFormData((prev: any) => {
+      const next: any = { ...prev, calculationMode: mode };
+      // preserve existing values; if the target editable value is missing (0)
+      // and the complementary value exists, compute it using selectedFormula
+      if (mode === 'pesoNeto') {
+        if ((!next.pesoNeto || next.pesoNeto === 0) && prev.cantPorcionesAportadas && selectedFormula && selectedFormula.porcion) {
+          // compute pesoNeto from porciones
+          next.pesoNeto = ProductoService.calculatePesoNetoFromPorciones(prev.cantPorcionesAportadas, selectedFormula.porcion || 0);
+        }
+        // keep cantPorcionesAportadas as-is so the UI still shows the last value
+      } else {
+        if ((!next.cantPorcionesAportadas || next.cantPorcionesAportadas === 0) && prev.pesoNeto && selectedFormula && selectedFormula.porcion) {
+          const calc = ProductoService.calculatePorcionesFromPesoNeto(prev.pesoNeto, selectedFormula.porcion || 0);
+          next.cantPorcionesAportadas = calc.cantPorcionesAportadas;
+        }
+        // keep pesoNeto as-is so the UI still shows the last value
+      }
+      return next;
+    });
   };
 
   const handleValueChange = (field: 'pesoNeto'|'cantPorcionesAportadas', value: number) => {

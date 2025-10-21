@@ -11,7 +11,7 @@ export interface FormulaInsumo {
 export interface Formula {
   id: number;
   nombre: string;
-  porcionMinima: number;
+  porcion: number;
   kcaloriasPorPorcion: number;
   kjPorPorcion: number;
   carbohidratosPorPorcion: number;
@@ -34,7 +34,7 @@ export interface FormulaInsumoRequest {
 
 export interface CreateFormulaRequest {
   nombre: string;
-  porcionMinima?: number;
+  porcion?: number;
   esProtegida: boolean;
   insumos: FormulaInsumoRequest[];
 }

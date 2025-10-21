@@ -26,7 +26,7 @@ export const ProductosTable: React.FC<Props> = ({
     
     const porcionesCompletas = Math.floor(producto.cantPorcionesAportadas);
     const porcionParcial = producto.cantPorcionesAportadas - porcionesCompletas;
-  const pesoPorPorcion = producto.formula.porcionMinima || 0;
+  const pesoPorPorcion = producto.formula.porcion || 0;
     const pesoParcial = porcionParcial * pesoPorPorcion;
     
     if (pesoParcial < 0.01) {
@@ -81,25 +81,12 @@ export const ProductosTable: React.FC<Props> = ({
       title: 'Peso por Porción',
       width: '14%',
       align: 'center',
-      render: r => r.formula ? `${formatNumber(r.formula.porcionMinima || 0)}g` : 'N/A'
-    },
-    { 
-      key: 'estaActivo', 
-      title: 'Estado', 
-      width: '10%', 
-      align: 'center',
-      render: r => (
-        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          r.estaActivo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {r.estaActivo ? 'Activo' : 'Inactivo'}
-        </span>
-      )
+      render: r => r.formula ? `${formatNumber(r.formula.porcion || 0)}g` : 'N/A'
     },
     {
       key: 'acciones',
       title: 'Acciones',
-      width: '8%',
+      width: '12%',
       align: 'center',
       render: r => <ProductoAccionesCell producto={r} onAction={onProductoAction} />
     }

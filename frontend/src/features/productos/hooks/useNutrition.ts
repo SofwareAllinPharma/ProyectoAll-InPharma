@@ -2,7 +2,7 @@ import type { Producto } from '../types/producto.types';
 
 export function computeNutrition(producto: Producto) {
   const formula = producto.formula!;
-  const pesoPorPorcion = formula.porcionMinima || 0;
+  const pesoPorPorcion = formula.porcion || 0;
 
   const nutritionPerPortion = {
     kcalorias: (() => {

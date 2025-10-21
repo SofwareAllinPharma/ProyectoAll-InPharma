@@ -9,7 +9,7 @@ type Props = {
 
 export default function ProductNutritionCollapse({ formula, cantPorciones }: Props) {
   const totals = useMemo(() => {
-    if (!formula || cantPorciones <= 0) return null;
+    if (!formula || !Number.isFinite(cantPorciones) || cantPorciones <= 0) return null;
     const kcalPorPorcion = formula.kcaloriasPorPorcion || (
       4 * (formula.proteinasPorPorcion || 0) +
       4 * (formula.carbohidratosPorPorcion || 0) +

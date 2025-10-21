@@ -5,7 +5,7 @@ import type { ProductoSearchFilters } from '../types/producto.types';
 interface Props {
   filters: ProductoSearchFilters;
   onFiltersChange: (filters: ProductoSearchFilters) => void;
-  onSearch: () => void;
+  onSearch: (f?: ProductoSearchFilters) => void;
   isLoading?: boolean;
 }
 
@@ -30,14 +30,15 @@ export const ProductoSearchBar: React.FC<Props> = ({
       searchTerm={filters.search || ''}
       debounceMs={300}
       onSearch={(q) => {
-        onFiltersChange({ ...filters, search: q });
-        onSearch();
+        const next = { ...filters, search: q };
+        onFiltersChange(next);
+        onSearch(next);
       }}
       className="w-full"
       rightNode={(
         <select
           value={filters.buscarPor}
-          onChange={(e) => { onFiltersChange({ ...filters, buscarPor: e.target.value as ProductoSearchFilters['buscarPor'] }); onSearch(); }}
+          onChange={(e) => { const next = { ...filters, buscarPor: e.target.value as ProductoSearchFilters['buscarPor'] }; onFiltersChange(next); onSearch(next); }}
           className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm bg-white"
           disabled={isLoading}
         >

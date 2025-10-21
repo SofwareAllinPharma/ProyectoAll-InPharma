@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 import type { Insumo, CreateInsumoDto } from '../types/insumo.types';
 import { InsumoService } from '../services/insumo.service';
 

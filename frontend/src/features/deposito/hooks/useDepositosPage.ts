@@ -3,7 +3,7 @@ import { DepositoService } from '../services/deposito.service';
 import { InventarioGlobalService } from '../../inventario/services/inventario.service';
 import type { Deposito } from '../types/deposito.types';
 import type { StockGlobalRow } from '../../inventario/services/inventario.service';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 
 export default function useDepositosPage() {
   const [items, setItems] = useState<Deposito[]>([]);

@@ -4,7 +4,7 @@ import { DepositoService } from '../services/deposito.service';
 import { InventarioService } from '../../inventario/services/inventario.service';
 import type { Deposito } from '../types/deposito.types';
 import type { InventarioProducto } from '../../inventario/services/inventario.service';
-import { useToast } from '../../../components/ui';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 
 export default function useDepositoDetail(id?: number | string | null) {
   const navigate = useNavigate();

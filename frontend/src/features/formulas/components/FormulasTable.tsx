@@ -50,7 +50,7 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
         <span>{f.nombre}</span>
       </div>
     ) },
-    { key: 'porcion', title: 'Porción', align: 'center', render: (f: Formula) => `${fmt(f.porcionMinima)}g` },
+  { key: 'porcion', title: 'Porción', align: 'center', render: (f: Formula) => `${fmt(f.porcion)}g` },
     { key: 'insumos', title: 'Insumos', align: 'center', render: (f: Formula) => <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">{f.insumos?.length || 0} insumos</span> },
     { key: 'kcal', title: 'Kcal', align: 'center', render: (f: Formula) => fmt(f.kcaloriasPorPorcion) },
     { key: 'proteinas', title: 'Proteínas', align: 'center', render: (f: Formula) => `${fmt(f.proteinasPorPorcion)}g` },

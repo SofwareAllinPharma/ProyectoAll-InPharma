@@ -22,7 +22,18 @@ export const FormulaInsumoManager: React.FC<Props> = ({ formulaInsumos, onChange
   useEffect(() => {
     const calc = () => {
       const el = firstRef.current; if (!el) return setHeight(undefined);
-      const row = el.clientHeight, gap = 12, visible = 4;
+      const row = el.clientHeight;
+      const gap = 12;
+      const visible = 4;
+      if ((formulaInsumos?.length || 0) <= visible) return setHeight(undefined);
+      // if measurement is 0 (not yet rendered), retry on next frame
+      if (row === 0) {
+        requestAnimationFrame(() => {
+          const r = firstRef.current?.clientHeight || 0;
+          if (r > 0) setHeight(Math.max(0, Math.round(r * visible + gap * (visible - 1))));
+        });
+        return;
+      }
       setHeight(Math.max(0, Math.round(row * visible + gap * (visible - 1))));
     };
     calc(); window.addEventListener('resize', calc); return () => window.removeEventListener('resize', calc);
@@ -44,7 +55,7 @@ export const FormulaInsumoManager: React.FC<Props> = ({ formulaInsumos, onChange
     <div className="space-y-4">
       <FormulaInsumoHeader onAdd={add} disabled={disabled} />
       {formulaInsumos.length === 0 ? <FormulaInsumoEmpty /> : (
-        <div className="overflow-auto" style={height ? { height: `${height}px` } : undefined}>
+        <div className={height ? 'overflow-auto' : undefined} style={height ? { maxHeight: `${height}px` } : undefined}>
           <div className="space-y-3">
             {formulaInsumos.map((fi, idx) => {
               const show = Boolean(touched[idx]);
