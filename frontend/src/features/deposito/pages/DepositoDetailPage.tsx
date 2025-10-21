@@ -7,6 +7,7 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import DepositoDetailHeader from '../components/DepositoDetailHeader';
 import DepositoDetailSummary from '../components/DepositoDetailSummary';
 import useDepositoDetail from '../hooks/useDepositoDetail';
+import { useToast } from '../../../components/ui';
 import Button from '../../../components/ui/Button';
 import { FaTruck, FaPlus } from 'react-icons/fa';
 
@@ -32,7 +33,12 @@ export default function DepositoDetailPage() {
     capacidadUsada,
     handleUpdate,
     handleDeactivate,
+    refreshInventario,
+    refreshResumen,
   } = useDepositoDetail(id);
+
+  const { show } = useToast();
+  
 
   if (error) return (
     <div className="space-y-2">
@@ -65,7 +71,22 @@ export default function DepositoDetailPage() {
         }
         modals={
           <>
-            <ConfigurarUmbralesModal open={showUmbrales} depositName={dep.nombre} depositoId={dep.id} onClose={() => setShowUmbrales(false)} onSuccess={() => { setShowUmbrales(false); }} />
+            <ConfigurarUmbralesModal
+              open={showUmbrales}
+              depositName={dep.nombre}
+              depositoId={dep.id}
+              onClose={() => setShowUmbrales(false)}
+              onSuccess={async () => {
+                setShowUmbrales(false);
+                // refresh table and resumen, then show toast
+                try {
+                  await Promise.all([refreshInventario?.(), refreshResumen?.()]);
+                } catch {
+                  // ignore refresh errors
+                }
+                show({ message: 'Umbrales actualizados correctamente', type: 'success' });
+              }}
+            />
 
             <DepositoFormModal open={openForm} deposito={dep} onCancel={() => setOpenForm(false)} onSave={handleUpdate} capacidadUsadaActual={dep.capacidadUsada ?? 0} />
 
