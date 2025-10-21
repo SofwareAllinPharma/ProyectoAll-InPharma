@@ -43,7 +43,7 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
           <div className="lg:col-span-2 space-y-4">
             <div className="px-1">
               <h3 className="text-xl font-semibold text-gray-900">{formula.nombre}</h3>
-              <p className="text-base text-gray-700 mt-0.5">Porción mínima: {formula.porcionMinima}g</p>
+              <p className="text-base text-gray-700 mt-0.5">Porción: {formula.porcion}g</p>
             </div>
 
             <div>

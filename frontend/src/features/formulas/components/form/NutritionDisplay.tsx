@@ -3,12 +3,11 @@ import type { NutritionCalculation } from '../../types/formula.types';
 
 interface Props {
   nutrition: NutritionCalculation;
-  // mantenemos compatibilidad: el componente acepta 'porcionMinima'
-  // pero la validación ahora publica errores bajo la clave 'porcion'
-  porcionMinima: number;
+  // aceptamos 'porcion' (peso total de la porción) para mostrar en el header
+  porcion: number;
 }
 
-export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcionMinima }) => {
+export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcion }) => {
   const nutritionItems = [
     { label: 'Calorías', value: nutrition.kcaloriasPorPorcion, unit: 'kcal' },
     { label: 'Kilojoules', value: nutrition.kjPorPorcion, unit: 'kJ' },
@@ -24,7 +23,7 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcionMinima }) 
   return (
     <div>
       <h3 className="text-lg font-semibold text-[#3e3529] mb-4 font-playfair">
-        Información Nutricional por Porción ({porcionMinima}g)
+        Información Nutricional por Porción ({porcion}g)
       </h3>
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
