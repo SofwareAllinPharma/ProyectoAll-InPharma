@@ -110,7 +110,7 @@ export default function useDepositoDetail(id?: number | string | null) {
       await DepositoService.deactivate(dep.id);
       // show a red toast to indicate deletion
       try {
-        show({ message: 'El depósito se eliminó correctamente', type: 'error' });
+  show({ message: 'El depósito se eliminó correctamente', type: 'success' });
       } catch {
         // ignore if toast context unavailable
       }

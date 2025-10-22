@@ -11,6 +11,7 @@ import type {
   ProductoSearchFilters,
   ProductoModalAction,
 } from '../types/producto.types';
+import { useToast } from '../../../components/ui/toast/ToastContext';
 
 const ProductosPage: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -37,6 +38,8 @@ const ProductosPage: React.FC = () => {
   useEffect(() => { void load(); }, []);
   const onSearch = useCallback((f?: ProductoSearchFilters) => void load(f ?? filters), [filters]);
 
+  const { show } = useToast() as any;
+
   const closeAll = () => setModals({ form: false, action: false, nutr: false, del: false });
 
   const handleProductoAction = (action: ProductoModalAction) => {
@@ -53,23 +56,41 @@ const ProductosPage: React.FC = () => {
 
   // Función para crear producto y recargar la lista
   const handleCreateProducto = async (data: any) => {
-    await ProductoService.createProducto(data);
-    await load();
+    try {
+      await ProductoService.createProducto(data);
+      show({ message: 'Producto creado correctamente', type: 'success' });
+      await load();
+    } catch (e) {
+      show({ message: (e as Error)?.message || 'Error creando producto', type: 'error' });
+      throw e;
+    }
   };
 
   // Función para editar producto y recargar la lista
   const handleUpdateProducto = async (data: any) => {
     if (!selected) return;
-    await ProductoService.updateProducto(selected.idProducto, data);
-    await load();
+    try {
+      await ProductoService.updateProducto(selected.idProducto, data);
+      show({ message: 'Producto actualizado correctamente', type: 'success' });
+      await load();
+    } catch (e) {
+      show({ message: (e as Error)?.message || 'Error actualizando producto', type: 'error' });
+      throw e;
+    }
   };
 
   // Función para eliminar producto y recargar la lista
   const handleDeleteProducto = async () => {
     if (!selected) return;
-    await ProductoService.deleteProducto(selected.idProducto);
-    await load();
-    closeAll();
+    try {
+      await ProductoService.deleteProducto(selected.idProducto);
+      show({ message: 'Producto eliminado correctamente', type: 'success' });
+      await load();
+      closeAll();
+    } catch (e) {
+      show({ message: (e as Error)?.message || 'Error eliminando producto', type: 'error' });
+      throw e;
+    }
   };
 
   return (
