@@ -97,7 +97,7 @@ model Insumo {
 
 model Formula {
   id             Int              @id @default(autoincrement())
-  nombre         String           
+  nombre         String           @unique
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -148,7 +148,7 @@ model Deposito {
 model Producto {
   idProducto           Int      @id @default(autoincrement())
   idFormula            Int
-  nombreComercial      String   
+  nombreComercial      String   @unique
   pesoNeto             Float
   cantPorcionesAportadas Int
   estaActivo           Boolean  @default(true)
