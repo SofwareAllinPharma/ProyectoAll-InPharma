@@ -68,28 +68,28 @@ export default function Toast({ title, message, type = 'info', color, onClose, d
         <div className="flex items-start gap-3">
           <div className={`flex-shrink-0 ${classes}`}>
             {/* simple icon per type */}
-            {type === 'success' && (
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 00-1.414-1.414L8 11.172l-3.293-3.293A1 1 0 003.293 9.293l4 4a1 1 0 001.414 0l8-8z"/></svg>
-            )}
-            {type === 'error' && (
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.68-1.36 3.445 0l6.518 11.587C19.35 16.7 18.425 18 17.04 18H2.96c-1.385 0-2.31-1.3-1.18-2.314L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-.993.883L9 6v4a1 1 0 001.993.117L11 10V6a1 1 0 00-1-1z"/></svg>
-            )}
-            {type === 'info' && (
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-9-1a1 1 0 112 0v5a1 1 0 11-2 0V9zm1-3a1.25 1.25 0 100 2.5A1.25 1.25 0 0010 6z"/></svg>
-            )}
-            {type === 'warning' && (
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.68-1.36 3.445 0l6.518 11.587C19.35 16.7 18.425 18 17.04 18H2.96c-1.385 0-2.31-1.3-1.18-2.314L8.257 3.1zM9 7h2v5H9V7zm0 6h2v2H9v-2z"/></svg>
-            )}
+              {type === 'success' && (
+                <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 00-1.414-1.414L8 11.172l-3.293-3.293A1 1 0 003.293 9.293l4 4a1 1 0 001.414 0l8-8z"/></svg>
+              )}
+              {type === 'error' && (
+                <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.68-1.36 3.445 0l6.518 11.587C19.35 16.7 18.425 18 17.04 18H2.96c-1.385 0-2.31-1.3-1.18-2.314L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-.993.883L9 6v4a1 1 0 001.993.117L11 10V6a1 1 0 00-1-1z"/></svg>
+              )}
+              {type === 'info' && (
+                <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-9-1a1 1 0 112 0v5a1 1 0 11-2 0V9zm1-3a1.25 1.25 0 100 2.5A1.25 1.25 0 0010 6z"/></svg>
+              )}
+              {type === 'warning' && (
+                <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.68-1.36 3.445 0l6.518 11.587C19.35 16.7 18.425 18 17.04 18H2.96c-1.385 0-2.31-1.3-1.18-2.314L8.257 3.1zM9 7h2v5H9V7zm0 6h2v2H9v-2z"/></svg>
+              )}
           </div>
 
           <div className="flex-1">
             {title && <div className={`font-semibold ${classes}`}>{title}</div>}
-            <div className={`text-sm mt-1 ${type === 'custom' ? 'text-white/90' : classes}`}>{message}</div>
+              <div className={`text-base mt-1 ${type === 'custom' ? 'text-white/90' : classes}`}>{message}</div>
           </div>
 
           <div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
         </div>

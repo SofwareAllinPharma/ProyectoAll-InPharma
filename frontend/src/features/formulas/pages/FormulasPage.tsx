@@ -11,7 +11,7 @@ import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
 
 const FormulasPage: React.FC = () => {
-  const { show, toasts, hide } = useToast() as any;
+  const { show } = useToast() as any;
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const formulasRef = useRef<Formula[]>([]);
   const [filtered, setFiltered] = useState<Formula[]>([]);
@@ -92,9 +92,6 @@ const FormulasPage: React.FC = () => {
   return (
     <PageShell title="Fórmulas" subtitle="Gestiona las fórmulas nutricionales de la fábrica" onCreate={() => { setSelected(null); setIsCopy(false); setFormOpen(true); }} createLabel="Agregar Fórmula" loading={loading} noContainer searchNode={(
       <>
-        {toasts && toasts.length > 0 && (
-          <div className="mb-4">{toasts.map((t: any) => <div key={t.id} className="mb-3"><div className={`w-full rounded-md ${t.type==='success'?'bg-green-50':'bg-blue-50'} border border-green-200`}><div className="p-4 flex items-start gap-3"><div className="flex-1 text-green-800">{t.message}</div><div><button onClick={() => hide(t.id)} className="text-gray-400">×</button></div></div></div></div>)}</div>
-        )}
         <div className="mb-6"><SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." /></div>
       </>
   )} helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} modals={(<><FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} existingNames={formulas.map(f => f.nombre)} /><ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} /><DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} /></>)}>

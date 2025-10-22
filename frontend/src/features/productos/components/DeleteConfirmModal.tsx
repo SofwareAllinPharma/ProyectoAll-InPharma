@@ -22,7 +22,6 @@ export const DeleteConfirmModal: React.FC<Props> = ({ isOpen, producto, onConfir
         <p><strong>Fórmula:</strong> {producto.formula?.nombre || 'No disponible'}</p>
         <p><strong>Peso neto:</strong> {producto.pesoNeto.toFixed(2)}g</p>
         <p><strong>Porciones:</strong> {producto.cantPorcionesAportadas.toFixed(2)}</p>
-        <p><strong>Estado actual:</strong> {producto.estaActivo ? 'Activo' : 'Inactivo'}</p>
       </div>
     </div>
   );
