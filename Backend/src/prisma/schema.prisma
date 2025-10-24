@@ -78,8 +78,8 @@ model PasswordReset {
 }
 
 model Insumo {
-  id                   Int             @id @default(autoincrement())
-  nombre               String          @unique
+  id                   Int     @id @default(autoincrement())
+  nombre               String  @unique
   cal_100g             Float
   grasasTotales_100g   Float
   grasasTrans_100g     Float
@@ -89,15 +89,15 @@ model Insumo {
   sodio_100g           Float
   fibra_100g           Float
   otro_100g            Float
-  activo               Boolean         @default(true)
+  activo               Boolean @default(true)
   formulaInsumos       FormulaInsumo[]
 
   @@map("INSUMOS")
 }
 
 model Formula {
-  id             Int              @id @default(autoincrement())
-  nombre         String           @unique
+  id             Int       @id @default(autoincrement())
+  nombre         String    @unique
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -110,13 +110,13 @@ model Formula {
   fibra          Float
   otros          Float
   esProtegida    Boolean
-  activo         Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  activo         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   formulaInsumos FormulaInsumo[]
 
   @@map("FORMULA")
-  Producto Producto[]
+  Producto       Producto[]
 }
 
 model FormulaInsumo {
@@ -130,6 +130,68 @@ model FormulaInsumo {
   @@map("FORMULAINSUMO")
 }
 
+model Tipos_Movimiento {
+  idTipoMovimiento Int    @id @default(autoincrement())
+  
+  nombre           String @db.VarChar(120) @unique
+
+  movimientos Movimiento_Producto[]
+
+  @@map("TIPOS_MOVIMIENTO")
+}
+
+model Movimiento_Producto {
+  idMovimiento           Int      @id @default(autoincrement())
+  fechaHoraActualizacion DateTime @default(now())
+  
+  idDepositoOrigen       Int // Siempre requerido
+  idProducto             Int
+  
+
+  idDepositoDestino      Int?
+  
+  cantidad               Int
+  responsable            String   @db.VarChar(255)
+  observaciones          String?  @db.Text
+  idTipoMovimiento       Int
+
+  inventarioOrigen  Inventario @relation("MovimientosOrigen", fields: [idDepositoOrigen, idProducto], references: [idDeposito, idProducto])
+  inventarioDestino Inventario? @relation("MovimientosDestino", fields: [idDepositoDestino, idProducto], references: [idDeposito, idProducto])
+  
+  tipoMovimiento    Tipos_Movimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+  cambiosDeEstado   Cambio_Estado_Movimiento[]
+
+  @@index([idDepositoOrigen, idProducto])
+  @@index([idDepositoDestino, idProducto])
+  @@index([idTipoMovimiento])
+  @@map("MOVIMIENTO_PRODUCTO")
+}
+
+model Estado_Movimiento {
+  idEstadoMovimiento Int    @id @default(autoincrement())
+  nombre             String @db.VarChar(120) @unique
+
+  cambios Cambio_Estado_Movimiento[] @relation("estado_cambios")
+
+  @@map("ESTADO_MOVIMIENTO")
+}
+
+model Cambio_Estado_Movimiento {
+  idCambioEstadoMovimiento Int       @id @default(autoincrement())
+  idEstadoMovimiento       Int
+  fechaHoraInicio          DateTime
+  fechaHoraFin             DateTime?
+
+  estadoMovimiento Estado_Movimiento @relation("estado_cambios", fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
+
+  idMovimiento     Int
+  movimiento       Movimiento_Producto @relation(fields: [idMovimiento], references: [idMovimiento])
+
+  @@index([idEstadoMovimiento])
+  @@index([idMovimiento])
+  @@map("CAMBIO_ESTADO_MOVIMIENTO")
+}
+
 model Deposito {
   id             Int     @id @default(autoincrement())
   nombre         String  @unique
@@ -139,42 +201,41 @@ model Deposito {
   capacidadUsada Int     @default(0)
   estado         Boolean @default(true)
 
-
-  inventario     Inventario[]
+  inventario Inventario[]
 
   @@map("DEPOSITOS")
 }
 
 model Producto {
-  idProducto           Int      @id @default(autoincrement())
-  idFormula            Int
-  nombreComercial      String   @unique
-  pesoNeto             Float
+  idProducto             Int        @id @default(autoincrement())
+  idFormula              Int
+  nombreComercial        String     @unique
+  pesoNeto               Float
   cantPorcionesAportadas Int
-  estaActivo           Boolean  @default(true)
-  formula              Formula  @relation(fields: [idFormula], references: [id])
+  estaActivo             Boolean    @default(true)
+  formula                Formula    @relation(fields: [idFormula], references: [id])
 
-  inventario           Inventario[]
-  
+  inventario Inventario[]
+
   @@index([nombreComercial, estaActivo])
   @@map("PRODUCTOS")
 }
 
 model Inventario {
-  
   idDeposito Int
   idProducto Int
 
-  
-  deposito  Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
-  producto  Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
+  deposito Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  producto Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
 
-  
-  cantidadProducto Int   @default(0)   
-  umbralMin        Int   @default(0)   
-  umbralMax        Int?                
+  cantidadProducto Int  @default(0)
+  umbralMin        Int  @default(0)
+  umbralMax        Int?
 
-  @@id([idDeposito, idProducto])       
+  movimientosComoOrigen  Movimiento_Producto[] @relation("MovimientosOrigen")
+  movimientosComoDestino Movimiento_Producto[] @relation("MovimientosDestino")
+
+  @@id([idDeposito, idProducto])
   @@index([idDeposito])
   @@index([idProducto])
   @@map("INVENTARIO")

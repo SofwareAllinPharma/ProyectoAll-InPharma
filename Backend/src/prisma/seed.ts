@@ -2,6 +2,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { id } from 'zod/v4/locales'
 
 const prisma = new PrismaClient()
 
@@ -106,7 +107,7 @@ async function main() {
     skipDuplicates: true,
   })
 
-  console.log('✔ Seed ejecutado OK')
+  console.log('✔ Seed de INSUMOS ejecutado OK');
 
   // 5) Depósitos
 
@@ -117,7 +118,7 @@ async function main() {
       responsable: "Juan Pérez",
       capacidadTotal: 5000,
       capacidadUsada: 0,
-      estado: true, // activo
+      estado: true, 
     },
     {
       nombre: "Depósito Secundario",
@@ -125,10 +126,19 @@ async function main() {
       responsable: "María Gómez",
       capacidadTotal: 2500,
       capacidadUsada: 0,
-      estado: true, // activo
+      estado: true, 
     },
+    {
+      nombre: "Fábrica Principal",
+      direccion: "Calle Falsa 456",
+      responsable: "Carlos López",
+      capacidadTotal: 10000,
+      capacidadUsada: 0,
+      estado: true,
+    }
 
   ];
+
 
   for (const d of depositos) {
     await prisma.deposito.upsert({
@@ -140,9 +150,7 @@ async function main() {
 
   console.log("Seed de DEPOSITOS ejecutado OK");
 
-  // 6) Fórmulas + Productos + Inventario (umbrales)
 
-// ——— insumos que vamos a usar en las fórmulas
 const insumosNecesarios = [
   'Concentrado de Suero de Queso',
   'Cacao Amargo Fenix 54',
@@ -193,7 +201,6 @@ const formulaA = await prisma.formula.upsert({
   },
 });
 
-// ——— Fórmula 2: “Colágeno Plus”
 const formulaB = await prisma.formula.upsert({
   where: { nombre: 'Colágeno Plus' },
   update: {},
@@ -221,7 +228,6 @@ const formulaB = await prisma.formula.upsert({
   },
 });
 
-// ——— Productos comerciales
 const prodA = await prisma.producto.upsert({
   where: { nombreComercial: 'Prote A 900g' },
   update: {},
@@ -244,9 +250,9 @@ const prodB = await prisma.producto.upsert({
   },
 });
 
-// ——— Inventario inicial con umbrales (por depósito x producto)
+
 const deps = await prisma.deposito.findMany({
-  where: { nombre: { in: ['Depósito Central', 'Depósito Secundario'] } },
+  where: { nombre: { in: ['Depósito Central', 'Depósito Secundario', 'Fábrica Principal'] } },
 });
 const depId = Object.fromEntries(deps.map(d => [d.nombre, d.id]));
 
@@ -255,6 +261,9 @@ await prisma.inventario.createMany({
     // Depósito Central
     { idDeposito: depId['Depósito Central'],  idProducto: prodA.idProducto, cantidadProducto: 15, umbralMin: 10, umbralMax: 0 },
     { idDeposito: depId['Depósito Central'],  idProducto: prodB.idProducto, cantidadProducto: 3, umbralMin:  8, umbralMax: 0 },
+    // Fábrica Principal
+    { idDeposito: depId['Fábrica Principal'],  idProducto: prodA.idProducto, cantidadProducto: 50, umbralMin: 20, umbralMax: 0 },
+    { idDeposito: depId['Fábrica Principal'],  idProducto: prodB.idProducto, cantidadProducto: 25, umbralMin: 15, umbralMax: 0 },
     // Depósito Secundario
     { idDeposito: depId['Depósito Secundario'], idProducto: prodA.idProducto, cantidadProducto: 2, umbralMin: 5, umbralMax: 0 },
     { idDeposito: depId['Depósito Secundario'], idProducto: prodB.idProducto, cantidadProducto: 10, umbralMin: 4, umbralMax:  0 },
@@ -264,6 +273,126 @@ await prisma.inventario.createMany({
 
 console.log('Seed de FORMULAS, PRODUCTOS e INVENTARIO (umbrales) ejecutado OK');
 
+
+  const estadoCreado = await prisma.estado_Movimiento.upsert({
+    where: { idEstadoMovimiento: 1 },
+    update: { nombre: 'Creado' },
+    create: { idEstadoMovimiento: 1, nombre: 'Creado' },
+  });
+
+  const estadoEnCamino = await prisma.estado_Movimiento.upsert({
+    where: { idEstadoMovimiento: 2 },
+    update: { nombre: 'En Camino' },
+    create: { idEstadoMovimiento: 2, nombre: 'En Camino' },
+  });
+
+  const estadoEntregado = await prisma.estado_Movimiento.upsert({
+    where: { idEstadoMovimiento: 3 },
+    update: { nombre: 'Entregado' },
+    create: { idEstadoMovimiento: 3, nombre: 'Entregado' },
+  });
+
+  const estadoCancelado = await prisma.estado_Movimiento.upsert({
+    where: { idEstadoMovimiento: 4 },
+    update: { nombre: 'Cancelado' },
+    create: { idEstadoMovimiento: 4, nombre: 'Cancelado' },
+  });
+
+  console.log('Seed de ESTADOS_MOVIMIENTO ejecutado OK (con IDs fijos)');
+
+  const tipoTraslado = await prisma.tipos_Movimiento.upsert({
+    where: { nombre: 'Traslado' },
+    update: {},
+    create: { nombre: 'Traslado' },
+  });
+
+  const tipoEgreso = await prisma.tipos_Movimiento.upsert({
+    where: { nombre: 'Egreso' },
+    update: {},
+    create: { nombre: 'Egreso' },
+  });
+
+  console.log("Seed de TIPOS_MOVIMIENTO ejecutado OK (Egreso y Traslado)")
+
+  const depFabrica = await prisma.deposito.findUnique({ where: { nombre: 'Fábrica Principal' } });
+  const depCentral = await prisma.deposito.findUnique({ where: { nombre: 'Depósito Central' } });
+  const productoA = await prisma.producto.findUnique({ where: { nombreComercial: 'Prote A 900g' } });
+  const productoB = await prisma.producto.findUnique({ where: { nombreComercial: 'Colágeno Plus 300g' } });
+
+  if (!depFabrica || !depCentral || !productoA || !productoB) {
+    console.error('Error: No se encontraron depósitos o productos base para crear movimientos.');
+    return; 
+  }
+
+  const existingMovs = await prisma.movimiento_Producto.count();
+
+  if (existingMovs === 0) {
+    console.log('Generando movimientos de ejemplo...');
+
+    // Ejemplo 1: TRASLADO (Origen y Destino REQUERIDOS)
+    await prisma.movimiento_Producto.create({
+      data: {
+        idDepositoOrigen: depFabrica.id,
+        idProducto: productoA.idProducto,
+        idDepositoDestino: depCentral.id, // <-- Se provee el Destino
+        cantidad: 5,
+        responsable: 'adminfab@aip.com',
+        observaciones: `Traslado programado @${depFabrica.nombre} --> @${depCentral.nombre}`,
+        idTipoMovimiento: tipoTraslado.idTipoMovimiento,
+        cambiosDeEstado: {
+          create: [
+            {
+              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-20T09:00:00Z'),
+              fechaHoraFin: new Date('2025-10-20T11:00:00Z'),
+            },
+            {
+              idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-20T11:00:00Z'),
+              fechaHoraFin: new Date('2025-10-21T08:30:00Z'),
+            },
+            {
+              idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-21T08:30:00Z'),
+            },
+          ],
+        },
+      },
+    });
+
+    // Ejemplo 2: EGRESO (Destino debe ser NULL)
+    await prisma.movimiento_Producto.create({
+      data: {
+        idDepositoOrigen: depCentral.id,
+        idProducto: productoB.idProducto,
+        // idDepositoDestino: NO se provee (automáticamente es NULL)
+        cantidad: 1,
+        responsable: 'tecnico@aip.com',
+        observaciones: `Venta registrada desde @${depCentral.nombre}`,
+        idTipoMovimiento: tipoEgreso.idTipoMovimiento,
+        cambiosDeEstado: {
+          create: [
+            {
+              // Venta directa, se crea y entrega
+              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-22T14:00:00Z'),
+              fechaHoraFin: new Date('2025-10-22T14:01:00Z'),
+            },
+             {
+              idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-22T14:01:00Z'),
+            },
+          ],
+        },
+      },
+    });
+    console.log('Seed de MOVIMIENTOS ejecutado OK');
+  } else {
+    console.log('Los movimientos de ejemplo ya existen, omitiendo creación.');
+  }
+
+  
+  console.log('✔ Seed ejecutado OK');
 
 }
 
