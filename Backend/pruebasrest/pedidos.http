@@ -1,0 +1,54 @@
+### Listar pedidos (paginado)
+GET http://localhost:4000/pedidos?pagina=1&pageSize=10
+
+### Crear pedido por gramos
+POST http://localhost:4000/pedidos
+Content-Type: application/json
+
+{
+  "idProducto": 1,
+  "gramos": 1000,
+  "observacion": "Lote mañana",
+  "mailUsuarioCreador": "tecnico@aip.com",
+  "idPerfilCreador": 1
+}
+
+### Crear pedido por paquetes
+POST http://localhost:4000/pedidos
+Content-Type: application/json
+
+{
+  "idProducto": 1,
+  "paquetes": 10,
+  "mailUsuarioCreador": "tecnico@aip.com",
+  "idPerfilCreador": 1
+}
+
+### Crear pedido por porciones
+POST http://localhost:4000/pedidos
+Content-Type: application/json
+
+{
+  "idProducto": 2,
+  "porciones": 50,
+  "mailUsuarioCreador": "tecnico@aip.com",
+  "idPerfilCreador": 1
+}
+
+### Detalle
+GET http://localhost:4000/pedidos/1
+
+### Tomar pedido
+POST http://localhost:4000/pedidos/1/tomar
+Content-Type: application/json
+
+{
+  "mailUsuarioCocinero": "adminfab@aip.com",
+  "idPerfilCocinero": 2
+}
+
+### Finalizar elaboración
+POST http://localhost:4000/pedidos/1/finalizar
+
+### Cancelar
+POST http://localhost:4000/pedidos/2/cancelar

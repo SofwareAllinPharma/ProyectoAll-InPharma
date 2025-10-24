@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const formulas_controller_1 = require("../controllers/formulas.controller");
+const router = (0, express_1.Router)();
+const controller = new formulas_controller_1.FormulasController();
+router.get("/", controller.list);
+router.get("/:id", controller.detail);
+router.post("/", controller.create);
+router.put("/:id", controller.update);
+router.post("/:id/clone", controller.clone);
+router.delete("/:id", controller.delete);
+exports.default = router;

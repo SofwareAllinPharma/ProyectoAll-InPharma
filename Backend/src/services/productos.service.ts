@@ -133,6 +133,23 @@ export class ProductosService {
   }
 
   async softDeleteProducto(idProducto: number) {
+    // Bloquear eliminación si hay pedidos en Creado/EnElaboración/ElaboradoYDepositadoEnFábrica
+    const estadosNoPermitidos = [
+      "Creado",
+      "EnElaboración",
+      "ElaboradoYDepositadoEnFábrica",
+    ];
+    const existe = await prisma.pedido.findFirst({
+      where: {
+        idProducto,
+        cambioActual: { estado: { nombre: { in: estadosNoPermitidos } } },
+      },
+    });
+    if (existe) {
+      throw new Error(
+        "No se puede eliminar el producto: tiene pedidos no cancelados"
+      );
+    }
     return this.repo.softDelete(idProducto);
   }
 }
