@@ -392,7 +392,7 @@ console.log('Seed de FORMULAS, PRODUCTOS e INVENTARIO (umbrales) ejecutado OK');
   }
 
   
-  console.log('✔ Seed ejecutado OK');
+  console.log('✔ Seed ejecutado OKa');
 
 }
 
