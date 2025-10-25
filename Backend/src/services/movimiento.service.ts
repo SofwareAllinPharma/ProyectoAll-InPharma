@@ -17,44 +17,50 @@ export class MovimientoService {
         
         const skip = (page - 1) * limit;
 
-    const where: Prisma.Movimiento_ProductoWhereInput = {};
+        // Build composable conditions to avoid overwriting parts of `where`
+        const and: Prisma.Movimiento_ProductoWhereInput[] = [];
 
+        // Producto: buscar en inventarioOrigen o inventarioDestino
         if (producto) {
-            where.inventarioOrigen = {
-                producto: {
-                    nombreComercial: { contains: producto, mode: 'insensitive' }
-                }
-            };
+            and.push({
+                OR: [
+                    { inventarioOrigen: { producto: { nombreComercial: { contains: producto, mode: 'insensitive' } } } },
+                    { inventarioDestino: { producto: { nombreComercial: { contains: producto, mode: 'insensitive' } } } }
+                ]
+            });
         }
 
-        if (fechaDesde || fechaHasta) {
-            where.cambiosDeEstado = {
-                some: {
-                    fechaHoraInicio: {
-                        gte: fechaDesde ? new Date(fechaDesde) : undefined,
-                        lte: fechaHasta ? new Date(fechaHasta) : undefined,
-                    },
-                }
-            };
+        // Fecha desde / hasta: aplicable sobre cambiosDeEstado (solo si se provee fechaDesde)
+        // Requisito: fechaDesde es necesaria para activar el filtro de fechas; fechaHasta es opcional
+        const cambiosDeEstadoSome: any = {};
+        if (fechaDesde) {
+            // always set lower bound
+            cambiosDeEstadoSome.fechaHoraInicio = { gte: new Date(fechaDesde) };
+            // optional upper bound
+            if (fechaHasta) {
+                cambiosDeEstadoSome.fechaHoraInicio.lte = new Date(fechaHasta);
+            }
         }
 
+        // Estado actual (idEstado) se interpreta como existencia de un cambio con fechaHoraFin === null
         if (idEstado) {
-            where.cambiosDeEstado = {
-                ...where.cambiosDeEstado,
-                some: {
-                    ... (where.cambiosDeEstado as any)?.some,
-                    idEstadoMovimiento: idEstado,
-                    fechaHoraFin: null 
-                }
-            };
+            cambiosDeEstadoSome.idEstadoMovimiento = idEstado;
+            // buscamos el estado actual => fechaHoraFin null
+            cambiosDeEstadoSome.fechaHoraFin = null;
         }
 
-        if (idDeposito) {
-            where.OR = [
-                { idDepositoOrigen: idDeposito },
-                { idDepositoDestino: idDeposito }
-            ];
+        // Sólo añadimos la condición de cambiosDeEstado si tenemos algún criterio válido
+        if (Object.keys(cambiosDeEstadoSome).length > 0) {
+            and.push({ cambiosDeEstado: { some: cambiosDeEstadoSome } });
         }
+
+        // Depósito: origen o destino
+        if (idDeposito) {
+            and.push({ OR: [{ idDepositoOrigen: idDeposito }, { idDepositoDestino: idDeposito }] });
+        }
+
+        // Final where
+        const where: Prisma.Movimiento_ProductoWhereInput = and.length > 0 ? { AND: and } : {};
 
         const [movimientos, total] = await prisma.$transaction([
             prisma.movimiento_Producto.findMany({
