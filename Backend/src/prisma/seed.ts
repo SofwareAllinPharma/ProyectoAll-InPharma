@@ -386,6 +386,33 @@ console.log('Seed de FORMULAS, PRODUCTOS e INVENTARIO (umbrales) ejecutado OK');
         },
       },
     });
+    
+    // Ejemplo 3: TRASLADO que actualmente está "En Camino"
+    await prisma.movimiento_Producto.create({
+      data: {
+        idDepositoOrigen: depCentral.id,
+        idProducto: productoA.idProducto,
+        idDepositoDestino: depFabrica.id,
+        cantidad: 2,
+        responsable: 'tecnico@aip.com',
+        observaciones: `Traslado en curso desde @${depCentral.nombre} hacia @${depFabrica.nombre}`,
+        idTipoMovimiento: tipoTraslado.idTipoMovimiento,
+        cambiosDeEstado: {
+          create: [
+            {
+              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-24T08:00:00Z'),
+              fechaHoraFin: new Date('2025-10-24T09:00:00Z'),
+            },
+            {
+              idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
+              fechaHoraInicio: new Date('2025-10-24T09:00:00Z'),
+              // fechaHoraFin omitida => movimiento actualmente EN CAMINO
+            },
+          ],
+        },
+      },
+    });
     console.log('Seed de MOVIMIENTOS ejecutado OK');
   } else {
     console.log('Los movimientos de ejemplo ya existen, omitiendo creación.');

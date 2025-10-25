@@ -17,10 +17,8 @@ export class MovimientoService {
         
         const skip = (page - 1) * limit;
 
-        // Build composable conditions to avoid overwriting parts of `where`
         const and: Prisma.Movimiento_ProductoWhereInput[] = [];
 
-        // Producto: buscar en inventarioOrigen o inventarioDestino
         if (producto) {
             and.push({
                 OR: [
@@ -30,36 +28,26 @@ export class MovimientoService {
             });
         }
 
-        // Fecha desde / hasta: aplicable sobre cambiosDeEstado (solo si se provee fechaDesde)
-        // Requisito: fechaDesde es necesaria para activar el filtro de fechas; fechaHasta es opcional
         const cambiosDeEstadoSome: any = {};
         if (fechaDesde) {
-            // always set lower bound
             cambiosDeEstadoSome.fechaHoraInicio = { gte: new Date(fechaDesde) };
-            // optional upper bound
             if (fechaHasta) {
                 cambiosDeEstadoSome.fechaHoraInicio.lte = new Date(fechaHasta);
             }
         }
-
-        // Estado actual (idEstado) se interpreta como existencia de un cambio con fechaHoraFin === null
         if (idEstado) {
             cambiosDeEstadoSome.idEstadoMovimiento = idEstado;
-            // buscamos el estado actual => fechaHoraFin null
             cambiosDeEstadoSome.fechaHoraFin = null;
         }
 
-        // Sólo añadimos la condición de cambiosDeEstado si tenemos algún criterio válido
         if (Object.keys(cambiosDeEstadoSome).length > 0) {
             and.push({ cambiosDeEstado: { some: cambiosDeEstadoSome } });
         }
 
-        // Depósito: origen o destino
         if (idDeposito) {
             and.push({ OR: [{ idDepositoOrigen: idDeposito }, { idDepositoDestino: idDeposito }] });
         }
 
-        // Final where
         const where: Prisma.Movimiento_ProductoWhereInput = and.length > 0 ? { AND: and } : {};
 
         const [movimientos, total] = await prisma.$transaction([
@@ -134,5 +122,137 @@ export class MovimientoService {
                 itemsPerPage: limit
             }
         };
+    }
+
+
+    async getById(idMovimiento: number) {
+        const mov = await prisma.movimiento_Producto.findUnique({
+            where: { idMovimiento },
+            include: {
+                tipoMovimiento: true,
+                cambiosDeEstado: {
+                    orderBy: { fechaHoraInicio: 'asc' },
+                    include: { estadoMovimiento: true }
+                },
+                inventarioOrigen: { include: { deposito: true, producto: true } },
+                inventarioDestino: { include: { deposito: true, producto: true } },
+            }
+        });
+
+        if (!mov) throw new Error('Movimiento no encontrado');
+
+        function formatDateArg(date?: Date | null): string | null {
+            if (!date) return null;
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const year = String(date.getUTCFullYear());
+            const hour = String(date.getUTCHours()).padStart(2, '0');
+            const minute = String(date.getUTCMinutes()).padStart(2, '0');
+            return `${day}-${month}-${year}-${hour}:${minute}`;
+        }
+
+        const CREATED_STATE_ID = 1;
+        const cambioCreado = mov.cambiosDeEstado.find(c => c.idEstadoMovimiento === CREATED_STATE_ID);
+        const fechaCreacionRaw = cambioCreado?.fechaHoraFin ?? cambioCreado?.fechaHoraInicio ?? mov.cambiosDeEstado[0]?.fechaHoraInicio ?? null;
+        const fechaCreacion = formatDateArg(fechaCreacionRaw as Date | null);
+
+        const estadoActual = mov.cambiosDeEstado.find(c => c.fechaHoraFin === null)
+            ?.estadoMovimiento.nombre || 'Indefinido';
+
+        const producto = mov.inventarioOrigen?.producto ?? mov.inventarioDestino?.producto ?? null;
+
+        const detalle = {
+            idMovimiento: mov.idMovimiento,
+            fechaCreacion,
+            fechaHoraActualizacion: formatDateArg(mov.fechaHoraActualizacion),
+            responsable: mov.responsable,
+            producto: producto ? {
+                idProducto: producto.idProducto,
+                idFormula: producto.idFormula,
+                nombreComercial: producto.nombreComercial,
+                pesoNeto: producto.pesoNeto,
+                cantPorcionesAportadas: producto.cantPorcionesAportadas,
+                estaActivo: producto.estaActivo
+            } : null,
+            estado: estadoActual,
+            cantidad: mov.cantidad,
+            depositoOrigen: mov.inventarioOrigen?.deposito ? {
+                id: mov.inventarioOrigen.deposito.id,
+                nombre: mov.inventarioOrigen.deposito.nombre
+            } : { id: mov.idDepositoOrigen },
+            depositoDestino: mov.inventarioDestino?.deposito ? {
+                id: mov.inventarioDestino.deposito.id,
+                nombre: mov.inventarioDestino.deposito.nombre
+            } : (mov.idDepositoDestino ? { id: mov.idDepositoDestino } : null),
+            tipoMovimiento: mov.tipoMovimiento ? { idTipoMovimiento: mov.tipoMovimiento.idTipoMovimiento, nombre: mov.tipoMovimiento.nombre } : null,
+            observaciones: mov.observaciones || null,
+            cambiosDeEstado: mov.cambiosDeEstado.map(c => ({
+                idCambioEstadoMovimiento: c.idCambioEstadoMovimiento,
+                idEstadoMovimiento: c.idEstadoMovimiento,
+                nombreEstado: c.estadoMovimiento?.nombre || null,
+                fechaHoraInicio: formatDateArg(c.fechaHoraInicio),
+                fechaHoraFin: formatDateArg(c.fechaHoraFin)
+            }))
+        };
+
+        return detalle;
+    }
+
+
+    async CambiarEstado(idMovimiento: number, nombreEstadoDestino: string, usuario?: string) {
+        const mov = await prisma.movimiento_Producto.findUnique({
+            where: { idMovimiento },
+            include: { cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } } }
+        });
+
+        if (!mov) throw new Error('Movimiento no encontrado');
+
+        const cambios = mov.cambiosDeEstado || [];
+        const cambioActual = cambios.find(c => c.fechaHoraFin === null) ?? cambios[cambios.length - 1];
+        const nombreActual = cambioActual?.estadoMovimiento?.nombre ?? null;
+
+        const normalize = (s?: string | null) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, '');
+        const actualNorm = normalize(nombreActual);
+        const destinoNorm = normalize(nombreEstadoDestino);
+
+        if (['cancelado', 'entregado'].includes(actualNorm)) {
+            throw new Error('Estado final, no puede modificarse');
+        }
+
+        const allowedFrom: Record<string, string[]> = {
+            encamino: ['cancelado', 'entregado'],
+            creado: ['cancelado', 'encamino']
+        };
+
+        const allowed = allowedFrom[actualNorm] ?? [];
+        if (!allowed.includes(destinoNorm)) {
+            throw new Error(`Transición no permitida desde '${nombreActual ?? 'indefinido'}' a '${nombreEstadoDestino}'`);
+        }
+
+        const estadoDestino = await prisma.estado_Movimiento.findUnique({ where: { nombre: nombreEstadoDestino } });
+        if (!estadoDestino) throw new Error('Estado destino no existe');
+
+        const now = new Date();
+
+        await prisma.$transaction(async (tx) => {
+            if (cambioActual && cambioActual.fechaHoraFin === null) {
+                await tx.cambio_Estado_Movimiento.update({
+                    where: { idCambioEstadoMovimiento: cambioActual.idCambioEstadoMovimiento },
+                    data: { fechaHoraFin: now }
+                });
+            }
+
+            // create new cambio (fechaHoraFin stays null)
+            await tx.cambio_Estado_Movimiento.create({
+                data: {
+                    idEstadoMovimiento: estadoDestino.idEstadoMovimiento,
+                    fechaHoraInicio: now,
+                    fechaHoraFin: null,
+                    idMovimiento: idMovimiento
+                }
+            });
+        });
+
+        return this.getById(idMovimiento);
     }
 }
