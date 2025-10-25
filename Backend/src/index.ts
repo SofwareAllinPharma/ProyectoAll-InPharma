@@ -9,6 +9,7 @@ import formulasRoutes from "./routes/formulas.routes";
 import productosRoutes from "./routes/productos.routes";
 import inventarioRoutes from './routes/inventario.routes';
 import inventarioGlobalRoutes from './routes/inventarioGlobal.routes';
+import movimientoRoutes from './routes/movimiento.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -31,13 +32,13 @@ app.use("/formulas", formulasRoutes);
 app.use("/productos", productosRoutes);
 app.use('/inventario', inventarioRoutes);
 app.use('/inventario-global', inventarioGlobalRoutes);
+app.use('/movimientos', movimientoRoutes);
 
 // Root “health/ok” SOLO para "/"
 app.get("/", (_req, res) => {
   res.send("API corriendo correctamente");
 });
 
-// (opcional) 404 explícito
 app.use((_req, res) => {
   res.status(404).json({ error: "Ruta no encontrada" });
 });
