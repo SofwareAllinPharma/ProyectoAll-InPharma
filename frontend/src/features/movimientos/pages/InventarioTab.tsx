@@ -1,10 +1,9 @@
-import React from 'react';
 import DepositoDetailSummary from '../../deposito/components/DepositoDetailSummary';
 
 interface Props {
-  resumen: any;
+  resumen: unknown;
   loadingResumen: boolean;
-  inventario: any[];
+  inventario: unknown[];
   loadingInventario: boolean;
   onCrearPedido?: () => void;
   onMovimientoStock?: () => void;

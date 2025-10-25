@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TipoMovimiento } from '../types/movimiento.types';
 
 interface Props {

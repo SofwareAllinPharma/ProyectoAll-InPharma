@@ -1,4 +1,3 @@
-import React from 'react';
 import type { EstadoMovimiento } from '../types/movimiento.types';
 
 interface Props {
