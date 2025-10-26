@@ -6,7 +6,7 @@ import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
 
 interface Props {
-  idDeposito: number;
+  idDeposito?: number; // ✅ Ahora es opcional
 }
 
 export default function MovimientosTab({ idDeposito }: Props) {
@@ -37,10 +37,16 @@ export default function MovimientosTab({ idDeposito }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            Movimientos de Inventario
+            {idDeposito 
+              ? 'Movimientos de Inventario' 
+              : 'Movimientos Globales de Inventario'
+            }
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Historial de salidas y traslados del depósito
+            {idDeposito
+              ? 'Historial de salidas y traslados del depósito'
+              : 'Historial de todos los movimientos en todos los depósitos'
+            }
           </p>
         </div>
         
