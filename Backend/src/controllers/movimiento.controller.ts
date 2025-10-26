@@ -64,4 +64,24 @@ export class MovimientoController {
             res.status(400).json({ error: err.message });
         }
     }
+
+    async crearMovimiento(req: Request, res: Response) {
+        try {
+            const payload = req.body as {
+                idTipoMovimiento?: number;
+                nombreTipoMovimiento?: string;
+                idProducto: number;
+                cantidad: number;
+                idDepositoOrigen: number;
+                idDepositoDestino?: number | null;
+                responsable?: string;
+                observaciones?: string | null;
+            };
+
+            const created = await service.registrarMovimiento(payload);
+            res.status(201).json(created);
+        } catch (err: any) {
+            res.status(400).json({ error: err.message });
+        }
+    }
 }

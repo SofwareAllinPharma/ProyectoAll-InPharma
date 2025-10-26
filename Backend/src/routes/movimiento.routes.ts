@@ -5,6 +5,7 @@ const router = Router();
 const controller = new MovimientoController();
 
 router.get('/', controller.getAllMovimientos);
+router.put('/', controller.crearMovimiento);
 router.get('/:id', controller.getMovimientoById);
 router.post('/:id/estado', controller.CambiarEstado);
 
