@@ -1,32 +1,27 @@
 import { prisma } from "../lib/prisma";
-import type { Prisma } from "@prisma/client";
-
-// === Tipos derivados del delegate (v6-friendly) ===
-type CreateData = Prisma.Args<typeof prisma.insumo, "create">["data"];
-type UpdateData = Prisma.Args<typeof prisma.insumo, "update">["data"];
-type Entity = Awaited<ReturnType<typeof prisma.insumo.findFirst>>;
+import { Insumo } from "@prisma/client";
 
 export class InsumosRepository {
-  async findAll() {
-    return prisma.insumo.findMany({
-      where: { activo: true },
-      orderBy: { nombre: "asc" },
-    });
+  async findAll(): Promise<Insumo[]> {
+    // Ordenar por nombre ignorando mayúsculas/minúsculas y usando el nombre real de la tabla
+    return prisma.$queryRaw<Insumo[]>`
+      SELECT * FROM "INSUMOS" ORDER BY LOWER(nombre) ASC
+    `;
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<Insumo | null> {
     return prisma.insumo.findUnique({ where: { id } });
   }
 
-  async create(data: CreateData) {
+  async create(data: Omit<Insumo, "id">): Promise<Insumo> {
     return prisma.insumo.create({ data });
   }
 
-  async update(id: number, data: UpdateData) {
+  async update(id: number, data: Partial<Omit<Insumo, "id">>): Promise<Insumo> {
     return prisma.insumo.update({ where: { id }, data });
   }
 
-  async delete(id: number) {
-    await prisma.insumo.update({ where: { id }, data: { activo: false } });
+  async delete(id: number): Promise<Insumo> {
+    return prisma.insumo.delete({ where: { id } });
   }
 }

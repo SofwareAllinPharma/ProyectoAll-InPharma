@@ -1,7 +1,16 @@
 // src/prisma/seed.ts
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+
+// Prefer `bcryptjs` (pure JS). If not installed, fall back to `bcrypt`.
+let bcrypt: any;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  bcrypt = require("bcryptjs");
+} catch (e) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  bcrypt = require("bcrypt");
+}
 
 const prisma = new PrismaClient();
 
@@ -20,36 +29,39 @@ async function main() {
     });
   }
 
-  const plain = process.env.SEED_DEFAULT_PASSWORD;
-  if (!plain) {
+  // Contraseña para usuarios de seed: usar la variable de entorno si existe,
+  // sino usar una contraseña por defecto segura para desarrollo.
+  const plain = process.env.SEED_DEFAULT_PASSWORD ?? "changeme";
+  if (!process.env.SEED_DEFAULT_PASSWORD) {
     console.log(
-      "SEED_DEFAULT_PASSWORD no definida: omito creación/actualización de usuarios."
+      "SEED_DEFAULT_PASSWORD no definida: usando contraseña por defecto 'changeme' para usuarios de seed."
     );
   }
 
-  const hash = plain ? await bcrypt.hash(plain, 10) : null;
+  const hash = await bcrypt.hash(plain, 10);
+
+  // Usuarios que referencian los pedidos/roles del seed. Nos aseguramos de
+  // que existan siempre (upsert) para evitar violaciones de FK al crear pedidos.
   const usuarios = [
     { mail: "adminfab@aip.com", idPerfil: 2 },
     { mail: "adminsis@aip.com", idPerfil: 3 },
     { mail: "softwareallinpharma@gmail.com", idPerfil: 3 },
     { mail: "tecnico@aip.com", idPerfil: 1 },
   ];
-
-  if (hash) {
-    for (const u of usuarios) {
-      await prisma.usuario.upsert({
-        where: { mail: u.mail },
-        update: { contrasena: hash }, // Prisma -> columna "contraseña"
-        create: { mail: u.mail, contrasena: hash },
-      });
-    }
-
-    // 3) Relación Usuario-Perfil (clave compuesta)
-    await prisma.usuarioPerfil.createMany({
-      data: usuarios.map((u) => ({ mail: u.mail, idPerfil: u.idPerfil })),
-      skipDuplicates: true,
+  for (const u of usuarios) {
+    // upsert Usuario (contraseña siempre definida, incluso si es la por defecto)
+    await prisma.usuario.upsert({
+      where: { mail: u.mail },
+      update: { contrasena: hash }, // Prisma -> columna "contraseña"
+      create: { mail: u.mail, contrasena: hash },
     });
   }
+
+  // 3) Relación Usuario-Perfil (clave compuesta)
+  await prisma.usuarioPerfil.createMany({
+    data: usuarios.map((u) => ({ mail: u.mail, idPerfil: u.idPerfil })),
+    skipDuplicates: true,
+  });
 
   // 4) Insumos
   const insumos = [
