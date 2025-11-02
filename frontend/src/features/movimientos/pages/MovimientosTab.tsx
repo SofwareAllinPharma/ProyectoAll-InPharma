@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import MovimientosCards from '../components/MovimientosCards';
 import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
