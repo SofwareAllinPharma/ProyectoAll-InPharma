@@ -330,89 +330,107 @@ console.log('Seed de FORMULAS, PRODUCTOS e INVENTARIO (umbrales) ejecutado OK');
     console.log('Generando movimientos de ejemplo...');
 
     // Ejemplo 1: TRASLADO (Origen y Destino REQUERIDOS)
-    await prisma.movimiento_Producto.create({
-      data: {
-        idDepositoOrigen: depFabrica.id,
-        idProducto: productoA.idProducto,
-        idDepositoDestino: depCentral.id, // <-- Se provee el Destino
-        cantidad: 5,
-        responsable: 'adminfab@aip.com',
-        observaciones: `Traslado programado @${depFabrica.nombre} --> @${depCentral.nombre}`,
-        idTipoMovimiento: tipoTraslado.idTipoMovimiento,
-        cambiosDeEstado: {
-          create: [
-            {
-              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-20T09:00:00Z'),
-              fechaHoraFin: new Date('2025-10-20T11:00:00Z'),
+    {
+      const observaciones1 = `Traslado programado @${depFabrica.nombre} --> @${depCentral.nombre}`;
+      const exists1 = await prisma.movimiento_Producto.findFirst({ where: { observaciones: observaciones1 } });
+      if (!exists1) {
+        await prisma.movimiento_Producto.create({
+          data: {
+            idDepositoOrigen: depFabrica.id,
+            idProducto: productoA.idProducto,
+            idDepositoDestino: depCentral.id, // <-- Se provee el Destino
+            cantidad: 5,
+            responsable: 'adminfab@aip.com',
+            observaciones: observaciones1,
+            idTipoMovimiento: tipoTraslado.idTipoMovimiento,
+            cambiosDeEstado: {
+              create: [
+                {
+                  idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-20T09:00:00Z'),
+                  fechaHoraFin: new Date('2025-10-20T11:00:00Z'),
+                },
+                {
+                  idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-20T11:00:00Z'),
+                  fechaHoraFin: new Date('2025-10-21T08:30:00Z'),
+                },
+                {
+                  idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-21T08:30:00Z'),
+                },
+              ],
             },
-            {
-              idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-20T11:00:00Z'),
-              fechaHoraFin: new Date('2025-10-21T08:30:00Z'),
-            },
-            {
-              idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-21T08:30:00Z'),
-            },
-          ],
-        },
-      },
-    });
+          },
+        });
+      }
+    }
 
     // Ejemplo 2: EGRESO (Destino debe ser NULL)
-    await prisma.movimiento_Producto.create({
-      data: {
-        idDepositoOrigen: depCentral.id,
-        idProducto: productoB.idProducto,
-        // idDepositoDestino: NO se provee (automáticamente es NULL)
-        cantidad: 1,
-        responsable: 'tecnico@aip.com',
-        observaciones: `Venta registrada desde @${depCentral.nombre}`,
-        idTipoMovimiento: tipoEgreso.idTipoMovimiento,
-        cambiosDeEstado: {
-          create: [
-            {
-              // Venta directa, se crea y entrega
-              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-22T14:00:00Z'),
-              fechaHoraFin: new Date('2025-10-22T14:01:00Z'),
+    {
+      const observaciones2 = `Venta registrada desde @${depCentral.nombre}`;
+      const exists2 = await prisma.movimiento_Producto.findFirst({ where: { observaciones: observaciones2 } });
+      if (!exists2) {
+        await prisma.movimiento_Producto.create({
+          data: {
+            idDepositoOrigen: depCentral.id,
+            idProducto: productoB.idProducto,
+            // idDepositoDestino: NO se provee (automáticamente es NULL)
+            cantidad: 1,
+            responsable: 'tecnico@aip.com',
+            observaciones: observaciones2,
+            idTipoMovimiento: tipoEgreso.idTipoMovimiento,
+            cambiosDeEstado: {
+              create: [
+                {
+                  // Venta directa, se crea y entrega
+                  idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-22T14:00:00Z'),
+                  fechaHoraFin: new Date('2025-10-22T14:01:00Z'),
+                },
+                 {
+                  idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-22T14:01:00Z'),
+                },
+              ],
             },
-             {
-              idEstadoMovimiento: estadoEntregado.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-22T14:01:00Z'),
-            },
-          ],
-        },
-      },
-    });
+          },
+        });
+      }
+    }
     
     // Ejemplo 3: TRASLADO que actualmente está "En Camino"
-    await prisma.movimiento_Producto.create({
-      data: {
-        idDepositoOrigen: depCentral.id,
-        idProducto: productoA.idProducto,
-        idDepositoDestino: depFabrica.id,
-        cantidad: 2,
-        responsable: 'tecnico@aip.com',
-        observaciones: `Traslado en curso desde @${depCentral.nombre} hacia @${depFabrica.nombre}`,
-        idTipoMovimiento: tipoTraslado.idTipoMovimiento,
-        cambiosDeEstado: {
-          create: [
-            {
-              idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-24T08:00:00Z'),
-              fechaHoraFin: new Date('2025-10-24T09:00:00Z'),
+    {
+      const observaciones3 = `Traslado en curso desde @${depCentral.nombre} hacia @${depFabrica.nombre}`;
+      const exists3 = await prisma.movimiento_Producto.findFirst({ where: { observaciones: observaciones3 } });
+      if (!exists3) {
+        await prisma.movimiento_Producto.create({
+          data: {
+            idDepositoOrigen: depCentral.id,
+            idProducto: productoA.idProducto,
+            idDepositoDestino: depFabrica.id,
+            cantidad: 2,
+            responsable: 'tecnico@aip.com',
+            observaciones: observaciones3,
+            idTipoMovimiento: tipoTraslado.idTipoMovimiento,
+            cambiosDeEstado: {
+              create: [
+                {
+                  idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-24T08:00:00Z'),
+                  fechaHoraFin: new Date('2025-10-24T09:00:00Z'),
+                },
+                {
+                  idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
+                  fechaHoraInicio: new Date('2025-10-24T09:00:00Z'),
+                  // fechaHoraFin omitida => movimiento actualmente EN CAMINO
+                },
+              ],
             },
-            {
-              idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
-              fechaHoraInicio: new Date('2025-10-24T09:00:00Z'),
-              // fechaHoraFin omitida => movimiento actualmente EN CAMINO
-            },
-          ],
-        },
-      },
-    });
+          },
+        });
+      }
+    }
     console.log('Seed de MOVIMIENTOS ejecutado OK');
   } else {
     console.log('Los movimientos de ejemplo ya existen, omitiendo creación.');
