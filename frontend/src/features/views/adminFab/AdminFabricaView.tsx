@@ -1,12 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
 
-// Secciones (placeholders por ahora)
-const PedidosComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Pedidos</h2>
-    <p>Crear pedidos y consultar existentes.</p>
-  </div>
-);
+import { PedidosPage } from "../../../features/pedidos";
+import DepositosPage from "../../deposito/pages/DepositosPage";
+import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 
 const StockComponent = () => (
   <div>
@@ -28,9 +24,13 @@ export default function AdminFabDashboard() {
       {/* Home del módulo fábrica */}
       <Route index element={<Navigate to="pedidos" replace />} />
 
-      <Route path="pedidos" element={<PedidosComponent />} />
+      <Route path="pedidos" element={<PedidosPage />} />
       <Route path="stock" element={<StockComponent />} />
       <Route path="mostrador" element={<MostradorComponent />} />
+
+      {/* Depósitos */}
+      <Route path="depositos" element={<DepositosPage />} />
+      <Route path="depositos/:id" element={<DepositoDetailPage />} />
 
       {/* Fallback dentro del módulo */}
       <Route path="*" element={<Navigate to="pedidos" replace />} />

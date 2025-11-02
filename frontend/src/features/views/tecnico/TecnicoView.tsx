@@ -1,4 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { PedidosPage } from "../../pedidos";
+import DepositosPage from "../../deposito/pages/DepositosPage";
+import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 
 // Secciones (placeholders por ahora)
 const OperacionesComponent = () => (
@@ -29,7 +32,12 @@ export default function TecnicoDashboard() {
       <Route index element={<OperacionesComponent />} />
 
       <Route path="mantenimiento" element={<MantenimientoComponent />} />
+      <Route path="pedidos" element={<PedidosPage />} />
       <Route path="reportes" element={<ReportesComponent />} />
+
+      {/* Depósitos */}
+      <Route path="depositos" element={<DepositosPage />} />
+      <Route path="depositos/:id" element={<DepositoDetailPage />} />
 
       {/* Fallback dentro del módulo */}
       <Route path="*" element={<Navigate to="" replace />} />

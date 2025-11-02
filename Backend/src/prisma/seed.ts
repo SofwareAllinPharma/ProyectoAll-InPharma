@@ -31,7 +31,7 @@ async function main() {
 
   // Contraseña para usuarios de seed: usar la variable de entorno si existe,
   // sino usar una contraseña por defecto segura para desarrollo.
-  const plain = process.env.SEED_DEFAULT_PASSWORD ?? "changeme";
+  const plain = process.env.SEED_DEFAULT_PASSWORD ?? "admin2025";
   if (!process.env.SEED_DEFAULT_PASSWORD) {
     console.log(
       "SEED_DEFAULT_PASSWORD no definida: usando contraseña por defecto 'changeme' para usuarios de seed."
