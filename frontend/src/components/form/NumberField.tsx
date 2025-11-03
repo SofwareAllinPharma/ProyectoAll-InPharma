@@ -7,9 +7,10 @@ interface Props {
   className?: string;
   step?: number;
   label?: string;
+  onBlur?: () => void;
 }
 
-export default function NumberField({ value, onChange, placeholder, disabled = false, className = '', step = 1, label }: Props) {
+export default function NumberField({ value, onChange, placeholder, disabled = false, className = '', step = 1, label, onBlur }: Props) {
   return (
     <div>
       {label && (
@@ -29,6 +30,7 @@ export default function NumberField({ value, onChange, placeholder, disabled = f
           const parsed = parseFloat(v);
           onChange(Number.isNaN(parsed) ? NaN : parsed);
         }}
+  onBlur={() => onBlur && onBlur()}
         disabled={disabled}
         placeholder={placeholder}
         min="0"

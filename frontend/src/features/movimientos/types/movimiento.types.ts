@@ -47,6 +47,7 @@ export interface CreateMovimientoRequest {
   idDepositoDestino?: number;
   referencia: string;
   observaciones?: string;
+  responsable?: string;
 }
 
 // DTO para actualizar estado

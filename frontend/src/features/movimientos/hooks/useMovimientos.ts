@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Movimiento, MovimientoFilters, MovimientosResumen } from '../types/movimiento.types';
-import { generateMockMovimientos } from '../utils/mockMovimientos';
+import { MovimientoService } from '../services/movimiento.service';
 
 export function useMovimientos(idDeposito?: number) {
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
@@ -10,49 +10,35 @@ export function useMovimientos(idDeposito?: number) {
     traslados: 0
   });
   const [loading, setLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadMockData = useCallback(() => {
+  const loadFromApi = useCallback(async (filters?: MovimientoFilters) => {
     setLoading(true);
-    
-    setTimeout(() => {
-      const mockMovimientos = generateMockMovimientos(idDeposito);
-      setMovimientos(mockMovimientos);
-      setResumen(calculateResumen(mockMovimientos));
+    setError(null);
+    try {
+      const finalFilters = { ...(filters || {}), ...(idDeposito ? { idDeposito } : {}) } as MovimientoFilters;
+      const data = await MovimientoService.getAllMovimientos(finalFilters);
+      setMovimientos(data || []);
+      setResumen(calculateResumen(data || []));
+    } catch (err: any) {
+      console.error('Error cargando movimientos desde API:', err);
+      setError(err?.message || 'Error cargando movimientos');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, [idDeposito]);
 
   useEffect(() => {
-    loadMockData();
-  }, [loadMockData]);
+    void loadFromApi();
+  }, [loadFromApi]);
 
-  const filtrarMovimientos = (filters: MovimientoFilters) => {
-    const mockMovimientos = generateMockMovimientos(idDeposito);
-    let filtered = [...mockMovimientos];
+  const filtrarMovimientos = useCallback(async (filters: MovimientoFilters) => {
+    await loadFromApi(filters);
+  }, [loadFromApi]);
 
-    if (filters.tipo) {
-      filtered = filtered.filter(m => m.tipo === filters.tipo);
-    }
-
-    if (filters.estado) {
-      filtered = filtered.filter(m => m.estado === filters.estado);
-    }
-
-    if (filters.search && filters.search.trim()) {
-      const search = filters.search.toLowerCase();
-      filtered = filtered.filter(m => 
-        m.producto?.nombreComercial.toLowerCase().includes(search)
-      );
-    }
-
-    setMovimientos(filtered);
-    setResumen(calculateResumen(filtered));
-  };
-
-  const recargar = () => {
-    loadMockData();
-  };
+  const recargar = useCallback(async () => {
+    await loadFromApi();
+  }, [loadFromApi]);
 
   return {
     movimientos,

@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
-import RegistroMovimientoModal from '../../movimientos/components/RegistroMovimientoModal';
+import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
 import DepositoFormModal from '../components/DepositoFormModal';
 import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';

@@ -18,13 +18,14 @@ type Props<T> = {
   emptyState?: React.ReactNode;
   footer?: React.ReactNode;
   tableClassName?: string;
+  noDividers?: boolean;
   // pagination (client-side)
   pagination?: boolean;
   pageSizeOptions?: number[];
   defaultPageSize?: number;
 };
 
-export default function DataTable<T>({ columns, data, rowKey, expandable, onRowClick, emptyState, footer, tableClassName = '', pagination = false, pageSizeOptions = [5,10,20], defaultPageSize = 10 }: Props<T>) {
+export default function DataTable<T>({ columns, data, rowKey, expandable, onRowClick, emptyState, footer, tableClassName = '', noDividers = false, pagination = false, pageSizeOptions = [5,10,20], defaultPageSize = 10 }: Props<T>) {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(defaultPageSize);
   React.useEffect(() => { setPage(1); }, [pageSize, data]);
@@ -49,7 +50,7 @@ export default function DataTable<T>({ columns, data, rowKey, expandable, onRowC
             </tr>
           </thead>
 
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className={`bg-white ${noDividers ? '' : 'divide-y divide-gray-200'}`}>
             {visibleData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">{emptyState ?? 'No hay datos'}</td>

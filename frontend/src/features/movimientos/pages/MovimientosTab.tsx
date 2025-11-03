@@ -4,7 +4,7 @@ import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
-import RegistroMovimientoModal from '../components/RegistroMovimientoModal';
+import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
 
 interface Props {
   idDeposito?: number; // ✅ Ahora es opcional
@@ -15,7 +15,8 @@ export default function MovimientosTab({ idDeposito }: Props) {
     movimientos, 
     resumen, 
     loading,
-    filtrarMovimientos 
+    filtrarMovimientos,
+    recargar
   } = useMovimientos(idDeposito);
 
   const [filters, setFilters] = useState<IMovimientoFilters>({
@@ -62,7 +63,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
           </svg>
           <span>Nuevo Movimiento</span>
         </button>
-        <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} />
+  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} />
       </div>
 
       <MovimientosCards resumen={resumen} loading={loading} />

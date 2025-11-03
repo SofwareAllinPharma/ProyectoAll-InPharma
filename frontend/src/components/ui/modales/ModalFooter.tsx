@@ -14,7 +14,8 @@ export default function ModalFooter({
   disabledSubmit = false,
 }: Props) {
   return (
-    <div className="flex gap-3 pt-4 px-4 py-4 justify-center sm:justify-end">
+    // Use no horizontal padding here so the parent container's padding controls alignment
+    <div className="flex gap-3 pt-4 px-0 py-4 justify-center sm:justify-end">
       <button
         type="button"
         onClick={onCancel}

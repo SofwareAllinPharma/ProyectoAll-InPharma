@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PageShell from '../../../components/PageShell';
 import DepositoFormModal from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
-import RegistroMovimientoModal from '../../movimientos/components/RegistroMovimientoModal';
+import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
 import DepositosToolbar from '../components/DepositosToolbar';
 import DepositoGridWithCapacidad from '../components/DepositoGridWithCapacidad';
 import useDepositosPage from '../hooks/useDepositosPage';

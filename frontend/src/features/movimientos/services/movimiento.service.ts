@@ -32,11 +32,78 @@ export class MovimientoService {
       const queryString = params.toString();
       const url = `${API_BASE_URL}/movimientos${queryString ? `?${queryString}` : ''}`;
 
-      const response = await axios.get<Movimiento[]>(url, {
+      const response = await axios.get(url, {
         headers: this.getHeaders(),
       });
 
-      return response.data;
+      // Normalizar distintos formatos que el backend puede devolver:
+      // - lista directa: []
+      // - paginado: { data: [], meta: { ... } }
+      const respData = response.data;
+      const rawList = Array.isArray(respData) ? respData : (respData && Array.isArray(respData.data) ? respData.data : null);
+      if (!rawList) {
+        console.warn('Formato inesperado en getAllMovimientos, devolviendo array vacío:', respData);
+        return [];
+      }
+
+      // Funciones utilitarias para normalizar
+      const normalizeEstado = (s?: string | null) => {
+        if (!s) return 'EN_CAMINO';
+        const norm = s.toString().toLowerCase().replace(/\s+/g, '');
+        if (norm.includes('encamino') || norm.includes('encam')) return 'EN_CAMINO';
+        if (norm.includes('entregado')) return 'ENTREGADO';
+        if (norm.includes('cancelado')) return 'CANCELADO';
+        return 'EN_CAMINO';
+      };
+
+      const normalizeTipo = (t?: string | null, item?: any) => {
+        if (t) {
+          const low = t.toString().toLowerCase();
+          if (low.includes('tras')) return 'TRASLADO';
+          if (low.includes('egre')) return 'EGRESO';
+          if (low.includes('ingr')) return 'INGRESO';
+        }
+        // intentar inferir: si existe depositoDestino -> traslado, si no -> egreso
+        if (item?.depositoDestino) return 'TRASLADO';
+        return 'EGRESO';
+      };
+
+      // Mapear cada elemento al tipo Movimiento esperado por el frontend
+      const mapped: Movimiento[] = (rawList as any[]).map((it) => {
+        const id = it.idMovimiento ?? it.id ?? 0;
+        const productoNombre = typeof it.producto === 'string' ? it.producto : (it.producto?.nombreComercial ?? it.producto?.nombre ?? undefined);
+        const depositoOrigenNombre = it.depositoOrigen ?? (it.depositoOrigen?.nombre ?? undefined) ?? null;
+        const depositoDestinoNombre = it.depositoDestino ?? (it.depositoDestino?.nombre ?? undefined) ?? null;
+
+        const estadoNorm = normalizeEstado(it.estado);
+        const tipoNorm = normalizeTipo(it.tipo ?? it.nombreTipoMovimiento ?? undefined, it);
+
+        const movimiento: Movimiento = {
+          id: id,
+          tipo: tipoNorm as any,
+          idProducto: it.idProducto ?? 0,
+          cantidad: it.cantidad ?? 0,
+          idDepositoOrigen: it.idDepositoOrigen ?? 0,
+          idDepositoDestino: it.idDepositoDestino ?? null,
+          referencia: it.referencia ?? '',
+          observaciones: it.observaciones ?? null,
+          estado: estadoNorm as any,
+          fechaCreacion: it.fechaCreacion ?? '',
+          fechaActualizacion: it.fechaHoraActualizacion ?? null,
+          idUsuario: it.idUsuario ?? 0,
+          producto: {
+            idProducto: it.idProducto ?? 0,
+            nombreComercial: productoNombre ?? 'N/A'
+          },
+          depositoOrigen: { id: it.idDepositoOrigen ?? 0, nombre: depositoOrigenNombre ?? 'N/A' },
+          depositoDestino: depositoDestinoNombre ? { id: it.idDepositoDestino ?? 0, nombre: depositoDestinoNombre } : null,
+          usuario: it.usuario ? { id: it.usuario.id ?? 0, nombre: it.usuario.nombre ?? 'N/A' } : undefined
+        };
+
+        return movimiento;
+      });
+
+      return mapped;
     } catch (error) {
       console.error('Error obteniendo movimientos:', error);
       throw error;
@@ -45,11 +112,8 @@ export class MovimientoService {
 
   static async getMovimientosByDeposito(idDeposito: number): Promise<Movimiento[]> {
     try {
-      const response = await axios.get<Movimiento[]>(
-        `${API_BASE_URL}/movimientos/deposito/${idDeposito}`,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      // Preferir el endpoint genérico que ya normaliza la respuesta
+      return await this.getAllMovimientos({ idDeposito } as any);
     } catch (error) {
       console.error('Error obteniendo movimientos del depósito:', error);
       throw error;
@@ -71,9 +135,27 @@ export class MovimientoService {
 
   static async createMovimiento(data: CreateMovimientoRequest): Promise<Movimiento> {
     try {
-      const response = await axios.post<Movimiento>(
+      // Backend expects PUT /movimientos and payload with either idTipoMovimiento or nombreTipoMovimiento
+      // Map frontend 'tipo' (EGRESO|TRASLADO|INGRESO) to the seed names (Egreso|Traslado|Ingreso)
+      const mapTipo = (t?: string) => {
+        if (!t) return undefined;
+        const lower = t.toString().toLowerCase();
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      };
+
+      const payload: any = {
+        nombreTipoMovimiento: mapTipo((data as any).tipo),
+        idProducto: data.idProducto,
+        cantidad: data.cantidad,
+        idDepositoOrigen: data.idDepositoOrigen,
+        idDepositoDestino: data.idDepositoDestino ?? null,
+        responsable: (data as any).responsable ?? undefined,
+        observaciones: data.observaciones ?? undefined,
+      };
+
+      const response = await axios.put<Movimiento>(
         `${API_BASE_URL}/movimientos`,
-        data,
+        payload,
         { headers: this.getHeaders() }
       );
       return response.data;

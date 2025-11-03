@@ -20,11 +20,11 @@ export default function MovimientosEstadoCell({ estado }: Props) {
     }
   };
 
-  const { color, label } = config[estado];
+  const cfg = (config as any)[estado] ?? { color: 'bg-gray-100 text-gray-800', label: typeof estado === 'string' ? estado : 'N/A' };
 
   return (
-    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${color}`}>
-      {label}
+    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${cfg.color}`}>
+      {cfg.label}
     </span>
   );
 }
