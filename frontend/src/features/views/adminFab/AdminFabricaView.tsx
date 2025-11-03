@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import { PedidosPage } from "../../../features/pedidos";
+import { PedidosPage } from "../../pedidos";
+import PedidoDetailPage from '../../pedidos/pages/PedidoDetailPage';
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 
@@ -24,7 +25,8 @@ export default function AdminFabDashboard() {
       {/* Home del módulo fábrica */}
       <Route index element={<Navigate to="pedidos" replace />} />
 
-      <Route path="pedidos" element={<PedidosPage />} />
+    <Route path="pedidos" element={<PedidosPage />} />
+    <Route path="pedidos/:id" element={<PedidoDetailPage />} />
       <Route path="stock" element={<StockComponent />} />
       <Route path="mostrador" element={<MostradorComponent />} />
 

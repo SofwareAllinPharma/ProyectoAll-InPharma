@@ -5,6 +5,8 @@ import type { Column } from "../../../components/ui/DataTable";
 import { PedidoService } from "../services/pedido.service";
 import type { Pedido, CreatePedidoRequest } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
+// link not required here; modal opens instead of navigating to a route
+import PedidoDetailModal from '../components/PedidoDetailModal';
 import PedidoFormModal from "../components/form/PedidoFormModal";
 import PedidoHistoryModal from "../components/PedidoHistoryModal";
 import PedidoStats from "../components/PedidoStats";
@@ -13,11 +15,12 @@ const PedidosPage: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Pedido | null>(null);
-  const [modals, setModals] = useState({ form: false, history: false });
+  const [modals, setModals] = useState({ form: false, history: false, detail: false });
   const [filter, setFilter] = useState<
     "todos" | "pendientes" | "asignados" | "finalizados"
   >("todos");
   const [search, setSearch] = useState("");
+  const [assignedFilter, setAssignedFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
   const { show } = useToast();
 
   // Obtener el perfil del usuario para determinar qué puede ver/hacer
@@ -57,6 +60,25 @@ const PedidosPage: React.FC = () => {
       (p.mailUsuarioCreador || "").toLowerCase().includes(q) ||
       (p.mailUsuarioCocinero || "").toLowerCase().includes(q)
     );
+  });
+
+  // Apply assigned filter
+  const filteredByAssigned = visiblePedidos.filter((p) => {
+    if (assignedFilter === 'all') return true;
+    if (assignedFilter === 'assigned') return !!p.estaAsignado;
+    return !p.estaAsignado;
+  });
+
+  // Sorting: unassigned older first, then unassigned newer, then assigned last
+  const sortedPedidos = filteredByAssigned.slice().sort((a, b) => {
+    const aAssigned = a.estaAsignado ? 1 : 0;
+    const bAssigned = b.estaAsignado ? 1 : 0;
+    if (aAssigned !== bAssigned) return aAssigned - bAssigned; // unassigned (0) before assigned (1)
+
+    // both same assigned state -> for unassigned, prioritize older creation date first
+    const aDate = new Date(a.cambioActual?.fechaHoraInicio ?? a.createdAt).getTime();
+    const bDate = new Date(b.cambioActual?.fechaHoraInicio ?? b.createdAt).getTime();
+    return aDate - bDate; // older first
   });
 
   const load = useCallback(async () => {
@@ -134,6 +156,12 @@ const PedidosPage: React.FC = () => {
       render: (r) => `PED-${r.numPedido}`,
     },
     {
+      key: "fechaCreacion",
+      title: "Fecha Creación",
+      width: "140px",
+      render: (r) => new Date(r.createdAt).toLocaleDateString(),
+    },
+    {
       key: "producto",
       title: "Producto",
       render: (r) => (
@@ -147,27 +175,23 @@ const PedidosPage: React.FC = () => {
       ),
     },
     {
-      key: "cant",
-        title: "Cantidad",
-        render: (r) => {
-          const paquetes = Math.round(Number(r.cantAProducir_paquetes) || 0);
-          const gramos = Math.round(Number(r.cantAProducir_gramos) || 0);
-          return `${paquetes} pqt / ${gramos} g`;
-        },
+      key: "cantidad",
+      title: "Cantidad a producir",
+      render: (r) => {
+        const paquetes = Number(r.cantAProducir_paquetes) || 0;
+        const porciones = Number(r.cantAProducir_porciones) || 0;
+        const gramos = Number(r.cantAProducir_gramos) || 0;
+        if (paquetes >= 1) return `${Math.round(paquetes)} pqt`;
+        if (porciones >= 1) return `${Math.round(porciones)} porciones`;
+        return `${Math.round(gramos)} g`;
+      },
     },
-    {
-      key: "fecha",
-      title: "Fecha",
-      width: "140px",
-      render: (r) => new Date(r.createdAt).toLocaleDateString(),
-    },
+    { key: "tecnico", title: "Usuario elaborador", render: (r) => r.mailUsuarioCocinero ?? "-" },
     {
       key: "estado",
       title: "Estado",
       render: (r) => getEstadoBadge(r.cambioActual?.estado?.nombre ?? ""),
     },
-  { key: "creador", title: "Creador", render: (r) => r.mailUsuarioCreador },
-  { key: "tecnico", title: "Técnico", render: (r) => r.mailUsuarioCocinero ?? "-" },
     {
       key: "acciones",
       title: "Acciones",
@@ -188,13 +212,19 @@ const PedidosPage: React.FC = () => {
             )}
             <button
               className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                setSelected(r);
-                setModals((s) => ({ ...s, history: true }));
+                // open modal and fetch full detail (to ensure producto.formula.insumos is present)
+                setModals((s) => ({ ...s, detail: true }));
+                try {
+                  const full = await PedidoService.detail(r.numPedido);
+                  setSelected(full);
+                } catch (err) {
+                  show({ message: (err as Error)?.message || 'Error cargando detalle', type: 'error' });
+                }
               }}
             >
-              Ver
+              Ver detalle
             </button>
           </div>
         );
@@ -247,6 +277,15 @@ const PedidosPage: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="px-3 py-2 border rounded-md"
           />
+          <select
+            value={assignedFilter}
+            onChange={(e) => setAssignedFilter(e.target.value as 'all' | 'assigned' | 'unassigned')}
+            className="ml-2 px-3 py-2 border rounded-md text-sm"
+          >
+            <option value="all">Todos</option>
+            <option value="unassigned">No asignados</option>
+            <option value="assigned">Asignados</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-2">
@@ -290,7 +329,7 @@ const PedidosPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-4">
         <DataTable
           columns={columns}
-          data={visiblePedidos}
+          data={sortedPedidos}
           rowKey={(r: Pedido) => r.numPedido}
           pagination
           pageSizeOptions={[10, 20, 50]}
@@ -304,6 +343,13 @@ const PedidosPage: React.FC = () => {
         pedido={selected ?? undefined}
         onClose={() => setModals((s) => ({ ...s, history: false }))}
         onRefresh={load}
+      />
+
+      {/* Modal detalle pedido */}
+      <PedidoDetailModal
+        isOpen={modals.detail}
+        pedido={selected}
+        onClose={() => setModals((s) => ({ ...s, detail: false }))}
       />
     </PageShell>
   );

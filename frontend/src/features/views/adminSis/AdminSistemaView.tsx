@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { InsumosPage } from "../../insumos";
 import { PedidosPage } from "../../pedidos";
+import PedidoDetailPage from "../../pedidos/pages/PedidoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
 
@@ -233,7 +234,8 @@ export default function AdminSisDashboard() {
       <Route path="insumos" element={<InsumosPage />} />
       <Route path="formulas" element={<FormulasPage />} />
       <Route path="productos" element={<ProductosPage />} />
-      <Route path="pedidos" element={<PedidosPage />} />
+  <Route path="pedidos" element={<PedidosPage />} />
+  <Route path="pedidos/:id" element={<PedidoDetailPage />} />
       <Route path="usuarios" element={<UsuariosComponent />} />
       <Route path="configuracion" element={<ConfiguracionComponent />} />
 
