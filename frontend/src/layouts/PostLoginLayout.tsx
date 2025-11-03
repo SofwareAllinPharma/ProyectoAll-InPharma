@@ -10,7 +10,6 @@ import {
   FaFlask,
   FaUsers,
   FaCog,
-  FaTruck,
   FaWarehouse,
 } from 'react-icons/fa';
 
@@ -19,13 +18,14 @@ export default function PostLoginLoyout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean | undefined>(undefined);
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
-    if (pathname.startsWith('/adminsis')) {
+      if (pathname.startsWith('/adminsis')) {
       return [
         { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
         { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
         { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
-        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
+        // Orden requerido: Productos antes de Depósitos
         { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaClipboardList /> },
+        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
         { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
         { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
       ];
