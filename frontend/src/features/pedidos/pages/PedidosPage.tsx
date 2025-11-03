@@ -3,7 +3,7 @@ import PageShell from "../../../components/PageShell";
 import DataTable from "../../../components/ui/DataTable";
 import type { Column } from "../../../components/ui/DataTable";
 import { PedidoService } from "../services/pedido.service";
-import type { Pedido } from "../types/pedido.types";
+import type { Pedido, CreatePedidoRequest } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
 import PedidoFormModal from "../components/form/PedidoFormModal";
 import PedidoHistoryModal from "../components/PedidoHistoryModal";
@@ -17,31 +17,46 @@ const PedidosPage: React.FC = () => {
   const [filter, setFilter] = useState<
     "todos" | "pendientes" | "asignados" | "finalizados"
   >("todos");
-  const { show } = useToast() as any;
+  const [search, setSearch] = useState("");
+  const { show } = useToast();
 
   // Obtener el perfil del usuario para determinar qué puede ver/hacer
   const userProfile = localStorage.getItem("userPerfil") || "";
   // Perfiles: 1=tecnico, 2=adminfab, 3=adminsis
-  const isAdmin = userProfile === "2" || userProfile === "3"; // adminfab o adminsis
-  const isTecnico = userProfile === "1";
+  const profileNum = Number(userProfile || 0);
+  // admin detection kept for reference if needed later
+  // const isAdmin = profileNum === 2 || profileNum === 3; // adminfab o adminsis
+  const isTecnico = profileNum === 1;
 
-  // Filtrar pedidos según el filtro seleccionado
+  // Filtrar pedidos según el filtro seleccionado (usamos los nombres de estados del backend)
   const filteredPedidos = pedidos.filter((pedido) => {
     const estado = pedido.cambioActual?.estado?.nombre || "";
     switch (filter) {
       case "pendientes":
-        return estado === "Pendiente";
+        // 'Creado' en backend
+        return estado === "Creado";
       case "asignados":
-        return estado === "Asignado" || estado === "En elaboracion";
+        // estados en elaboración o simplemente asignados
+        return estado === "EnElaboración" || pedido.estaAsignado === true || estado === "EnElaboración";
       case "finalizados":
+        // finalizado o cancelado (o depositado en fábrica)
         return (
-          estado === "Finalizado" ||
-          estado === "Aprobado" ||
-          estado === "Rechazado"
+          estado === "ElaboradoYDepositadoEnFábrica" || estado === "Cancelado"
         );
       default:
         return true;
     }
+  });
+
+  const visiblePedidos = filteredPedidos.filter((p) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      String(p.numPedido).toLowerCase().includes(q) ||
+      (p.producto?.nombreComercial || "").toLowerCase().includes(q) ||
+      (p.mailUsuarioCreador || "").toLowerCase().includes(q) ||
+      (p.mailUsuarioCocinero || "").toLowerCase().includes(q)
+    );
   });
 
   const load = useCallback(async () => {
@@ -71,7 +86,7 @@ const PedidosPage: React.FC = () => {
 
   const onCreate = () => setModals((s) => ({ ...s, form: true }));
 
-  const handleCreate = async (payload: any) => {
+  const handleCreate = async (payload: CreatePedidoRequest) => {
     try {
       await PedidoService.create(payload);
       show({ message: "Pedido creado", type: "success" });
@@ -93,29 +108,22 @@ const PedidosPage: React.FC = () => {
   };
 
   // Determinar qué acciones puede realizar el usuario según su rol
-  const canCreatePedidos = isAdmin;
-  const canTakePedidos = isTecnico || isAdmin;
+  // FORZAR visibilidad del botón de creación (temporal para QA/development).
+  // Cambio solicitado por el equipo: mostrar siempre el botón para poder ajustar el flujo.
+  const canCreatePedidos = true;
+  // Solo técnicos (1) y adminfab (2) pueden tomar pedidos para fabricar
+  const canTakePedidos = isTecnico || userProfile === "2";
 
   const getEstadoBadge = (estado: string) => {
-    const badgeClasses = {
-      Pendiente: "bg-yellow-100 text-yellow-800",
-      Asignado: "bg-blue-100 text-blue-800",
-      "En elaboracion": "bg-purple-100 text-purple-800",
-      Finalizado: "bg-orange-100 text-orange-800",
-      Aprobado: "bg-green-100 text-green-800",
-      Rechazado: "bg-red-100 text-red-800",
+    // Mapear los estados del backend a etiquetas y estilos más amigables
+    const map: Record<string, { label: string; cls: string }> = {
+      Creado: { label: "Pendiente", cls: "bg-yellow-100 text-yellow-800" },
+      EnElaboración: { label: "En Proceso", cls: "bg-blue-100 text-blue-800" },
+      ElaboradoYDepositadoEnFábrica: { label: "Completado", cls: "bg-green-100 text-green-800" },
+      Cancelado: { label: "Cancelado", cls: "bg-red-100 text-red-800" },
     };
-
-    return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          badgeClasses[estado as keyof typeof badgeClasses] ||
-          "bg-gray-100 text-gray-800"
-        }`}
-      >
-        {estado || "—"}
-      </span>
-    );
+    const info = map[estado] || { label: estado || "—", cls: "bg-gray-100 text-gray-800" };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.cls}`}>{info.label}</span>;
   };
 
   const columns: Column<Pedido>[] = [
@@ -123,25 +131,43 @@ const PedidosPage: React.FC = () => {
       key: "numPedido",
       title: "N°",
       width: "80px",
-      render: (r) => r.numPedido,
+      render: (r) => `PED-${r.numPedido}`,
     },
     {
       key: "producto",
       title: "Producto",
-      render: (r) => r.producto?.nombreComercial ?? `#${r.idProducto}`,
+      render: (r) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-gray-100 rounded-md flex items-center justify-center text-sm font-medium text-gray-600">📦</div>
+          <div className="text-sm">
+            <div className="font-medium">{r.producto?.nombreComercial ?? `#${r.idProducto}`}</div>
+            <div className="text-xs text-gray-500">ID: {r.idProducto}</div>
+          </div>
+        </div>
+      ),
     },
     {
       key: "cant",
-      title: "Cantidad",
-      render: (r) =>
-        `${r.cantAProducir_gramos} g / ${r.cantAProducir_paquetes} pqt / ${r.cantAProducir_porciones} por`,
+        title: "Cantidad",
+        render: (r) => {
+          const paquetes = Math.round(Number(r.cantAProducir_paquetes) || 0);
+          const gramos = Math.round(Number(r.cantAProducir_gramos) || 0);
+          return `${paquetes} pqt / ${gramos} g`;
+        },
+    },
+    {
+      key: "fecha",
+      title: "Fecha",
+      width: "140px",
+      render: (r) => new Date(r.createdAt).toLocaleDateString(),
     },
     {
       key: "estado",
       title: "Estado",
       render: (r) => getEstadoBadge(r.cambioActual?.estado?.nombre ?? ""),
     },
-    { key: "creador", title: "Creador", render: (r) => r.mailUsuarioCreador },
+  { key: "creador", title: "Creador", render: (r) => r.mailUsuarioCreador },
+  { key: "tecnico", title: "Técnico", render: (r) => r.mailUsuarioCocinero ?? "-" },
     {
       key: "acciones",
       title: "Acciones",
@@ -149,7 +175,7 @@ const PedidosPage: React.FC = () => {
         const estado = r.cambioActual?.estado?.nombre || "";
         return (
           <div className="flex gap-2">
-            {canTakePedidos && estado === "Pendiente" && (
+            {canTakePedidos && estado === "Creado" && (
               <button
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                 onClick={(e) => {
@@ -188,32 +214,67 @@ const PedidosPage: React.FC = () => {
       {/* Estadísticas */}
       <PedidoStats pedidos={pedidos} />
 
-      {/* Filtros */}
-      <div className="mb-4 flex gap-2 flex-wrap">
-        <span className="text-sm font-medium text-gray-700 py-2">
-          Filtrar por estado:
-        </span>
-        {(["todos", "pendientes", "asignados", "finalizados"] as const).map(
-          (f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                filter === f
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {f === "todos"
-                ? "Todos"
-                : f === "pendientes"
-                ? "Pendientes"
-                : f === "asignados"
-                ? "Asignados/En Proceso"
-                : "Finalizados"}
-            </button>
-          )
-        )}
+      {/* Botón Crear visible en la UI (además del de PageShell) */}
+      {canCreatePedidos ? (
+        <div className="mb-4">
+          <button
+            onClick={onCreate}
+            className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 focus:ring-2 focus:ring-[#5d5448]/50 focus:outline-none transition-all duration-200 flex items-center gap-2"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Crear Pedido</span>
+          </button>
+        </div>
+      ) : (
+        <div className="mb-4">
+          <div className="text-sm text-gray-500">
+            El botón <strong>Crear Pedido</strong> se muestra solo para administradores.
+            Perfil actual: <strong>{profileNum || 'no definido'}</strong>.
+            {/* Nota: el botón está forzado para QA en esta rama; desactivar después de pruebas. */}
+          </div>
+        </div>
+      )}
+
+      {/* Filtros + búsqueda */}
+      <div className="mb-4 flex gap-2 flex-wrap items-center justify-between">
+        <div className="flex items-center gap-2">
+          <input
+            type="search"
+            placeholder="Buscar pedido..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-3 py-2 border rounded-md"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 py-2">
+            Filtrar por estado:
+          </span>
+          {(["todos", "pendientes", "asignados", "finalizados"] as const).map(
+            (f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  filter === f
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {f === "todos"
+                  ? "Todos"
+                  : f === "pendientes"
+                  ? "Pendientes"
+                  : f === "asignados"
+                  ? "Asignados/En Proceso"
+                  : "Finalizados"}
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {/* Formulario modal */}
@@ -226,10 +287,10 @@ const PedidosPage: React.FC = () => {
       )}
 
       {/* Tabla de pedidos */}
-      <div>
+      <div className="bg-white rounded-lg shadow-sm p-4">
         <DataTable
           columns={columns}
-          data={filteredPedidos}
+          data={visiblePedidos}
           rowKey={(r: Pedido) => r.numPedido}
           pagination
           pageSizeOptions={[10, 20, 50]}
