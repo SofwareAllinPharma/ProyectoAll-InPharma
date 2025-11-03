@@ -4,6 +4,7 @@ import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
+import RegistroMovimientoModal from '../components/RegistroMovimientoModal';
 
 interface Props {
   idDeposito?: number; // ✅ Ahora es opcional
@@ -32,6 +33,8 @@ export default function MovimientosTab({ idDeposito }: Props) {
     // TODO: Abrir modal de detalle
   };
 
+  const [openRegistroModal, setOpenRegistroModal] = useState(false);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -51,7 +54,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
         </div>
         
         <button
-          onClick={() => console.log('TODO: Abrir modal de nuevo movimiento')}
+          onClick={() => setOpenRegistroModal(true)}
           className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-all flex items-center gap-2"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,6 +62,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
           </svg>
           <span>Nuevo Movimiento</span>
         </button>
+        <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} />
       </div>
 
       <MovimientosCards resumen={resumen} loading={loading} />

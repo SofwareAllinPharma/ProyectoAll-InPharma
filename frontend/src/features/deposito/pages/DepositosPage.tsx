@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PageShell from '../../../components/PageShell';
 import DepositoFormModal from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
-import NotImplementedModal from '../components/NotImplementedModal';
+import RegistroMovimientoModal from '../../movimientos/components/RegistroMovimientoModal';
 import DepositosToolbar from '../components/DepositosToolbar';
 import DepositoGridWithCapacidad from '../components/DepositoGridWithCapacidad';
 import useDepositosPage from '../hooks/useDepositosPage';
@@ -22,14 +22,11 @@ export default function DepositosPage() {
     setOpenCreate,
     deleteTarget,
     setDeleteTarget,
-    stockGlobal,
-    loadingGlobal,
-    showZeroModal,
-    setShowZeroModal,
-    showTrasladoModal,
-    setShowTrasladoModal,
-    showPedidoModal,
-    setShowPedidoModal,
+  stockGlobal,
+  loadingGlobal,
+  showTrasladoModal,
+  setShowTrasladoModal,
+  setShowPedidoModal,
     resumenGlobal,
     handleCreate,
     handleDelete,
@@ -52,24 +49,12 @@ export default function DepositosPage() {
         }
         modals={
           <>
-            <NotImplementedModal 
-              open={showTrasladoModal} 
-              onClose={() => setShowTrasladoModal(false)} 
-              title="Funcionalidad no implementada" 
-              message="La funcionalidad de Registrar Traslado aún no está implementada." 
+            <RegistroMovimientoModal
+              open={showTrasladoModal}
+              onClose={() => setShowTrasladoModal(false)}
             />
-            <NotImplementedModal 
-              open={showPedidoModal} 
-              onClose={() => setShowPedidoModal(false)} 
-              title="Funcionalidad no implementada" 
-              message="La funcionalidad de Registrar Pedido aún no está implementada." 
-            />
-            <NotImplementedModal 
-              open={showZeroModal} 
-              onClose={() => setShowZeroModal(false)} 
-              title="Productos sin stock" 
-              message="Listado de productos sin stock en ningún depósito" 
-            />
+            {/* NotImplementedModal removido: funcionalidades pendientes (Pedidos / Productos sin stock)
+                Si en el futuro se implementan, reemplazar por el modal correspondiente aquí. */}
             <DepositoFormModal 
               open={openCreate} 
               onCancel={() => setOpenCreate(false)} 

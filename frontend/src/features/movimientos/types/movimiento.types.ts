@@ -1,5 +1,5 @@
 // Tipos de movimiento según documento
-export type TipoMovimiento = 'EGRESO' | 'TRASLADO';
+export type TipoMovimiento = 'EGRESO' | 'TRASLADO' | 'INGRESO';
 
 // Estados según documento
 export type EstadoMovimiento = 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';

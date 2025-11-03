@@ -15,6 +15,8 @@ type SearchSelectProps<T> = {
   inputAutoFocus?: boolean;
   // opcional: callback cuando el input pierde foco
   onInputBlur?: () => void;
+  // optional: called when the input is cleared to signal the parent to clear selection
+  onClear?: () => void;
 };
 
 export default function SearchSelect<T>({
@@ -29,6 +31,7 @@ export default function SearchSelect<T>({
   noResultsText = 'No hay resultados',
   inputAutoFocus = false,
   onInputBlur,
+  onClear,
 }: SearchSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -133,7 +136,13 @@ export default function SearchSelect<T>({
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm"
         placeholder={placeholder}
         value={query}
-        onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlight(0); }}
+        onChange={(e) => {
+          const v = e.target.value;
+          setQuery(v);
+          setOpen(true);
+          setHighlight(0);
+          if (v === '') onClear?.();
+        }}
         onFocus={() => setOpen(true)}
         autoFocus={inputAutoFocus}
         onBlur={() => { onInputBlur?.(); }}
