@@ -138,10 +138,13 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
     }
     const cantidadNum = Number(cantidad ?? 0);
     const referencia = tipo?.value === 'EGRESO'
-      ? `Salida de ${depOrigen?.nombre ?? ''}`
+      ? `Venta desde ${depOrigen?.nombre ?? ''}`
       : tipo?.value === 'TRASLADO'
-        ? `Traslado ${depOrigen?.nombre ?? ''} → ${depDestino?.nombre ?? ''}`
-        : '';
+        ? `Traslado de ${depOrigen?.nombre ?? ''} a ${depDestino?.nombre ?? ''}`
+        : tipo?.value === 'INGRESO'
+          ? `Ingreso a ${depDestino?.nombre ?? depOrigen?.nombre ?? ''}`
+          : '';
+    const defaultObs = (observaciones && observaciones.trim() !== '') ? observaciones : 'No Aplica';
     const summary = {
       tipo: tipo?.label ?? tipo?.value ?? '',
       productoNombre: producto?.nombreComercial ?? producto?.nombre ?? 'N/A',
@@ -150,9 +153,9 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
       cantidad: cantidadNum,
       fecha: formatFecha(new Date().toISOString()),
       responsable: responsable || undefined,
-      observaciones: observaciones || undefined,
+      observaciones: defaultObs,
     };
-    setSummaryData({ payload: { tipo: tipo!.value, idProducto: (producto as NonNullable<ProductoInv>)!.idProducto, cantidad: cantidadNum, idDepositoOrigen: depOrigen?.id, idDepositoDestino: depDestino?.id ?? null, responsable: responsable || undefined, observaciones: observaciones || undefined, referencia }, summary });
+    setSummaryData({ payload: { tipo: tipo!.value, idProducto: (producto as NonNullable<ProductoInv>)!.idProducto, cantidad: cantidadNum, idDepositoOrigen: depOrigen?.id, idDepositoDestino: depDestino?.id ?? null, responsable: responsable || undefined, observaciones: defaultObs, referencia }, summary });
     setSummaryOpen(true);
   };
 

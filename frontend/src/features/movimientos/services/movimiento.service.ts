@@ -110,10 +110,10 @@ export class MovimientoService {
         };
         const depOri = getNombre(item.depositoOrigen);
         const depDes = getNombre(item.depositoDestino);
-        // Short, contextual reference
-        if (tipo === 'EGRESO') return `Salida de ${depOri ?? 'N/A'}`;
-        if (tipo === 'TRASLADO') return `Traslado ${depOri ?? 'N/A'} → ${depDes ?? 'N/A'}`;
-        if (tipo === 'INGRESO') return `Ingreso a ${depDes ?? 'N/A'}`;
+        // Casual y entendible para el usuario
+        if (tipo === 'EGRESO') return `Venta desde ${depOri ?? 'N/A'}`;
+        if (tipo === 'TRASLADO') return `Traslado de ${depOri ?? 'N/A'} a ${depDes ?? 'N/A'}`;
+        if (tipo === 'INGRESO') return `Ingreso a ${depDes ?? depOri ?? 'N/A'}`;
         return '';
       };
 

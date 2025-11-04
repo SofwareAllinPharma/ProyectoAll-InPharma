@@ -5,6 +5,7 @@ import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
 import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
+import MovimientoDetailModal from '../components/detalle/MovimientoDetailModal';
 
 interface Props {
   idDeposito?: number; // ✅ Ahora es opcional
@@ -36,9 +37,11 @@ export default function MovimientosTab({ idDeposito }: Props) {
     return () => clearTimeout(t);
   }, [filters, filtrarMovimientos]);
 
+  const [detalleOpen, setDetalleOpen] = useState(false);
+  const [movSel, setMovSel] = useState<Movimiento | null>(null);
   const handleVerDetalle = (movimiento: Movimiento) => {
-    console.log('Ver detalle de movimiento:', movimiento);
-    // TODO: Abrir modal de detalle
+    setMovSel(movimiento);
+    setDetalleOpen(true);
   };
 
 
@@ -74,7 +77,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
   <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} />
       </div>
 
-      <MovimientosCards resumen={resumen} loading={loading} />
+  <MovimientosCards resumen={resumen} loading={loading} />
       
       <MovimientoFilters
         filters={filters}
@@ -88,6 +91,8 @@ export default function MovimientosTab({ idDeposito }: Props) {
           onVerDetalle={handleVerDetalle}
         />
       </div>
+
+      <MovimientoDetailModal open={detalleOpen} onClose={() => setDetalleOpen(false)} movimiento={movSel} />
     </div>
   );
 }

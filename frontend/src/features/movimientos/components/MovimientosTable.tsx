@@ -7,7 +7,7 @@ import MovimientosProductoCell from './MovimientosProductoCell';
 import MovimientosCantidadCell from './MovimientosCantidadCell';
 import MovimientosDepositoCell from './MovimientosDepositoCell';
 import MovimientosEstadoCell from './MovimientosEstadoCell';
-import MovimientoAccionesCell, { type MovimientoAction } from './MovimientoAccionesCell';
+// Acciones columna eliminada: ver detalle ahora se hace con click en la fila
 
 interface Props {
   data: Movimiento[];
@@ -83,22 +83,7 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
         <span className="text-sm text-gray-700">{row.responsable || 'N/A'}</span>
       )
     },
-    {
-      key: 'acciones',
-      title: 'Acciones',
-      width: '8%',
-      align: 'center',
-      className: 'pr-4',
-      render: (row) => (
-        <MovimientoAccionesCell
-          movimiento={row}
-          onAction={(action: MovimientoAction) => {
-            if (action.type === 'view') return onVerDetalle(action.movimiento);
-          }}
-        />
-      )
-    }
-  ], [onVerDetalle]);
+  ], []);
 
   if (loading) {
     return (
