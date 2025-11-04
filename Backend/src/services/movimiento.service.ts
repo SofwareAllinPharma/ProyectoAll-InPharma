@@ -156,7 +156,8 @@ export class MovimientoService {
         if (idTipoMovimiento) {
             tipoMov = await prisma.tipos_Movimiento.findUnique({ where: { idTipoMovimiento } });
         } else if (nombreTipoMovimiento) {
-            tipoMov = await prisma.tipos_Movimiento.findUnique({ where: { nombre: nombreTipoMovimiento } });
+            // Buscar de forma case-insensitive para evitar problemas por diferencias de casing en la BD
+            tipoMov = await prisma.tipos_Movimiento.findFirst({ where: { nombre: { equals: nombreTipoMovimiento, mode: 'insensitive' } } });
         } else {
             throw new Error('Tipo de movimiento (idTipoMovimiento o nombreTipoMovimiento) es requerido');
         }
@@ -199,7 +200,8 @@ export class MovimientoService {
         const now = new Date();
 
         
-        const estadoCreado = await prisma.estado_Movimiento.findUnique({ where: { nombre: 'Creado' } });
+    // Buscar el estado 'Creado' de forma case-insensitive para mayor tolerancia con la BD
+    const estadoCreado = await prisma.estado_Movimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
         if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
 
         // Realizamos la transacción para crear el movimiento y actualizar inventarios
