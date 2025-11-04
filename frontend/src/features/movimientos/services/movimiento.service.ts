@@ -20,14 +20,47 @@ export class MovimientoService {
 
   static async getAllMovimientos(filters?: MovimientoFilters): Promise<Movimiento[]> {
     try {
+      type RawMovimiento = {
+        idMovimiento?: number;
+        id?: number;
+        producto?: string | { nombreComercial?: string; nombre?: string };
+        depositoOrigen?: string | { nombre?: string };
+        depositoDestino?: string | { nombre?: string } | null;
+        estado?: string | null;
+        tipo?: string | null;
+        nombreTipoMovimiento?: string | null;
+        idProducto?: number;
+        cantidad?: number;
+        idDepositoOrigen?: number;
+        idDepositoDestino?: number | null;
+        referencia?: string | null;
+        observaciones?: string | null;
+        fechaCreacion?: string;
+        fechaHoraActualizacion?: string | null;
+        idUsuario?: number;
+        usuario?: { id?: number; nombre?: string } | null;
+        responsable?: string | null;
+      };
       const params = new URLSearchParams();
       
-      if (filters?.tipo) params.append('tipo', filters.tipo);
-      if (filters?.estado) params.append('estado', filters.estado);
+      // Backend expects: producto, idEstado, idDeposito, fechaDesde/hasta, page, limit
       if (filters?.idDeposito) params.append('idDeposito', String(filters.idDeposito));
       if (filters?.fechaDesde) params.append('fechaDesde', filters.fechaDesde);
       if (filters?.fechaHasta) params.append('fechaHasta', filters.fechaHasta);
-      if (filters?.search) params.append('search', filters.search);
+      if (filters?.search) params.append('producto', filters.search);
+      if (filters?.estado) {
+        const mapEstadoId: Record<string, number> = {
+          CREADO: 1,
+          EN_CAMINO: 2,
+          ENTREGADO: 3,
+          CANCELADO: 4,
+        } as const;
+        const idEstado = mapEstadoId[filters.estado];
+        if (idEstado) params.append('idEstado', String(idEstado));
+      }
+      // Request a generous page size so client table pagination works smoothly
+      params.append('page', '1');
+      params.append('limit', '100');
 
       const queryString = params.toString();
       const url = `${API_BASE_URL}/movimientos${queryString ? `?${queryString}` : ''}`;
@@ -50,13 +83,14 @@ export class MovimientoService {
       const normalizeEstado = (s?: string | null) => {
         if (!s) return 'EN_CAMINO';
         const norm = s.toString().toLowerCase().replace(/\s+/g, '');
+        if (norm.includes('creado') || norm.includes('cread')) return 'CREADO';
         if (norm.includes('encamino') || norm.includes('encam')) return 'EN_CAMINO';
         if (norm.includes('entregado')) return 'ENTREGADO';
         if (norm.includes('cancelado')) return 'CANCELADO';
         return 'EN_CAMINO';
       };
 
-      const normalizeTipo = (t?: string | null, item?: any) => {
+      const normalizeTipo = (t?: string | null, item?: RawMovimiento) => {
         if (t) {
           const low = t.toString().toLowerCase();
           if (low.includes('tras')) return 'TRASLADO';
@@ -68,29 +102,49 @@ export class MovimientoService {
         return 'EGRESO';
       };
 
+      const buildReferencia = (item: RawMovimiento): string => {
+        const tipo = normalizeTipo(item.tipo ?? item.nombreTipoMovimiento ?? undefined, item);
+        const getNombre = (d?: string | { nombre?: string } | null): string | undefined => {
+          if (!d) return undefined;
+          return typeof d === 'string' ? d : d.nombre;
+        };
+        const depOri = getNombre(item.depositoOrigen);
+        const depDes = getNombre(item.depositoDestino);
+        // Short, contextual reference
+        if (tipo === 'EGRESO') return `Salida de ${depOri ?? 'N/A'}`;
+        if (tipo === 'TRASLADO') return `Traslado ${depOri ?? 'N/A'} → ${depDes ?? 'N/A'}`;
+        if (tipo === 'INGRESO') return `Ingreso a ${depDes ?? 'N/A'}`;
+        return '';
+      };
+
       // Mapear cada elemento al tipo Movimiento esperado por el frontend
-      const mapped: Movimiento[] = (rawList as any[]).map((it) => {
+      const mapped: Movimiento[] = (rawList as RawMovimiento[]).map((it) => {
         const id = it.idMovimiento ?? it.id ?? 0;
-        const productoNombre = typeof it.producto === 'string' ? it.producto : (it.producto?.nombreComercial ?? it.producto?.nombre ?? undefined);
-        const depositoOrigenNombre = it.depositoOrigen ?? (it.depositoOrigen?.nombre ?? undefined) ?? null;
-        const depositoDestinoNombre = it.depositoDestino ?? (it.depositoDestino?.nombre ?? undefined) ?? null;
+  const productoNombre = typeof it.producto === 'string' ? it.producto : (it.producto?.nombreComercial ?? it.producto?.nombre ?? undefined);
+        const getNombre = (d?: string | { nombre?: string } | null): string | null => {
+          if (!d) return null;
+          return (typeof d === 'string' ? d : (d?.nombre ?? null)) as string | null;
+        };
+        const depositoOrigenNombre = getNombre(it.depositoOrigen);
+        const depositoDestinoNombre = getNombre(it.depositoDestino);
 
         const estadoNorm = normalizeEstado(it.estado);
         const tipoNorm = normalizeTipo(it.tipo ?? it.nombreTipoMovimiento ?? undefined, it);
 
         const movimiento: Movimiento = {
           id: id,
-          tipo: tipoNorm as any,
+          tipo: tipoNorm as 'EGRESO' | 'TRASLADO' | 'INGRESO',
           idProducto: it.idProducto ?? 0,
           cantidad: it.cantidad ?? 0,
           idDepositoOrigen: it.idDepositoOrigen ?? 0,
           idDepositoDestino: it.idDepositoDestino ?? null,
-          referencia: it.referencia ?? '',
+          referencia: buildReferencia(it),
           observaciones: it.observaciones ?? null,
-          estado: estadoNorm as any,
+          estado: estadoNorm as 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO',
           fechaCreacion: it.fechaCreacion ?? '',
           fechaActualizacion: it.fechaHoraActualizacion ?? null,
           idUsuario: it.idUsuario ?? 0,
+          responsable: it.responsable ?? (it.usuario?.nombre ?? undefined),
           producto: {
             idProducto: it.idProducto ?? 0,
             nombreComercial: productoNombre ?? 'N/A'
@@ -113,7 +167,7 @@ export class MovimientoService {
   static async getMovimientosByDeposito(idDeposito: number): Promise<Movimiento[]> {
     try {
       // Preferir el endpoint genérico que ya normaliza la respuesta
-      return await this.getAllMovimientos({ idDeposito } as any);
+  return await this.getAllMovimientos({ idDeposito } as MovimientoFilters);
     } catch (error) {
       console.error('Error obteniendo movimientos del depósito:', error);
       throw error;
@@ -143,13 +197,13 @@ export class MovimientoService {
         return lower.charAt(0).toUpperCase() + lower.slice(1);
       };
 
-      const payload: any = {
-        nombreTipoMovimiento: mapTipo((data as any).tipo),
+      const payload: Record<string, unknown> = {
+        nombreTipoMovimiento: mapTipo(data.tipo),
         idProducto: data.idProducto,
         cantidad: data.cantidad,
         idDepositoOrigen: data.idDepositoOrigen,
         idDepositoDestino: data.idDepositoDestino ?? null,
-        responsable: (data as any).responsable ?? undefined,
+        responsable: data.responsable ?? undefined,
         observaciones: data.observaciones ?? undefined,
       };
 

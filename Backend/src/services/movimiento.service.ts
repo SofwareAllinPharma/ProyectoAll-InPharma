@@ -76,13 +76,10 @@ export class MovimientoService {
 	
         function formatDateArg(date?: Date | null): string | null {
             if (!date) return null;
-            // Use local time getters so the displayed time matches server/local timezone
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = String(date.getFullYear());
-            const hour = String(date.getHours()).padStart(2, '0');
-            const minute = String(date.getMinutes()).padStart(2, '0');
-            return `${day}-${month}-${year}-${hour}:${minute}`;
+            const year2 = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year2}`;
         }
 
         const dataFormateada = movimientos.map(mov => {
@@ -109,7 +106,9 @@ export class MovimientoService {
                 estado: estadoActual,
                 cantidad: cantidad,
                 depositoOrigen: depositoOrigen,
-                depositoDestino: depositoDestino
+                depositoDestino: depositoDestino,
+                responsable: mov.responsable || null,
+                nombreTipoMovimiento: tipo
             };
         });
 
@@ -280,10 +279,8 @@ export class MovimientoService {
             if (!date) return null;
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = String(date.getFullYear());
-            const hour = String(date.getHours()).padStart(2, '0');
-            const minute = String(date.getMinutes()).padStart(2, '0');
-            return `${day}-${month}-${year}-${hour}:${minute}`;
+            const year2 = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year2}`;
         }
 
         const CREATED_STATE_ID = 1;

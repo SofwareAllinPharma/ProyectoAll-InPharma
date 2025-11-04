@@ -8,6 +8,8 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  // mark prop as read to satisfy TS noUnusedParameters without altering behavior
+  void onMenuToggle;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

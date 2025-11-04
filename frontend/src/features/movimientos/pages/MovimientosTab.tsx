@@ -22,17 +22,25 @@ export default function MovimientosTab({ idDeposito }: Props) {
   const [filters, setFilters] = useState<IMovimientoFilters>({
     search: '',
     tipo: '',
-    estado: ''
+    estado: '',
+    idDeposito: '',
+    fechaDesde: '',
+    fechaHasta: ''
   });
 
   useEffect(() => {
-    filtrarMovimientos(filters);
+    // Debounce filter changes to avoid blocking typing and rapid re-requests
+    const t = setTimeout(() => {
+      void filtrarMovimientos(filters);
+    }, 300);
+    return () => clearTimeout(t);
   }, [filters, filtrarMovimientos]);
 
   const handleVerDetalle = (movimiento: Movimiento) => {
     console.log('Ver detalle de movimiento:', movimiento);
     // TODO: Abrir modal de detalle
   };
+
 
   const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
@@ -71,7 +79,6 @@ export default function MovimientosTab({ idDeposito }: Props) {
       <MovimientoFilters
         filters={filters}
         onFiltersChange={setFilters}
-        disabled={loading}
       />
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

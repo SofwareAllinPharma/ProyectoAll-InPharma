@@ -18,11 +18,14 @@ export function useMovimientos(idDeposito?: number) {
     try {
       const finalFilters = { ...(filters || {}), ...(idDeposito ? { idDeposito } : {}) } as MovimientoFilters;
       const data = await MovimientoService.getAllMovimientos(finalFilters);
-      setMovimientos(data || []);
-      setResumen(calculateResumen(data || []));
-    } catch (err: any) {
+      // Aplicar filtro por tipo en cliente (el backend no lo soporta aún)
+      const dataFiltrada = finalFilters.tipo ? (data || []).filter(m => m.tipo === finalFilters.tipo) : (data || []);
+      setMovimientos(dataFiltrada);
+      setResumen(calculateResumen(dataFiltrada));
+    } catch (err: unknown) {
       console.error('Error cargando movimientos desde API:', err);
-      setError(err?.message || 'Error cargando movimientos');
+      const msg = (err as { message?: string })?.message || 'Error cargando movimientos';
+      setError(msg);
     } finally {
       setLoading(false);
     }

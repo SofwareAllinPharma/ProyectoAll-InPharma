@@ -6,6 +6,10 @@ interface Props {
 
 export default function MovimientosEstadoCell({ estado }: Props) {
   const config = {
+    CREADO: {
+      color: 'bg-blue-100 text-blue-800',
+      label: 'Creado'
+    },
     EN_CAMINO: {
       color: 'bg-yellow-100 text-yellow-800',
       label: 'En Camino'

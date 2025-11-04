@@ -7,6 +7,7 @@ import MovimientosProductoCell from './MovimientosProductoCell';
 import MovimientosCantidadCell from './MovimientosCantidadCell';
 import MovimientosDepositoCell from './MovimientosDepositoCell';
 import MovimientosEstadoCell from './MovimientosEstadoCell';
+import MovimientoAccionesCell, { type MovimientoAction } from './MovimientoAccionesCell';
 
 interface Props {
   data: Movimiento[];
@@ -28,11 +29,10 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
     {
       key: 'producto',
       title: 'Producto',
-      width: '20%',
+      width: '16%',
       render: (row) => (
         <MovimientosProductoCell 
           nombreProducto={row.producto?.nombreComercial}
-          referencia={row.referencia}
         />
       )
     },
@@ -46,7 +46,7 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
     {
       key: 'cantidad',
       title: 'Cantidad',
-      width: '10%',
+      width: '8%',
       align: 'center',
       render: (row) => (
         <MovimientosCantidadCell 
@@ -58,7 +58,7 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
     {
       key: 'deposito',
       title: 'Depósito',
-      width: '20%',
+      width: '22%',
       render: (row) => (
         <MovimientosDepositoCell 
           tipo={row.tipo}
@@ -70,24 +70,35 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
     {
       key: 'referencia',
       title: 'Referencia',
-      width: '16%',
+      width: '18%',
       render: (row) => (
-        <span className="text-sm text-gray-600">
-          {row.referencia}
-        </span>
+        <span className="text-sm text-gray-500">{row.referencia}</span>
       )
     },
     {
-      key: 'usuario',
-      title: 'Usuario',
+      key: 'responsable',
+      title: 'Responsable',
       width: '10%',
       render: (row) => (
-        <span className="text-sm text-gray-700">
-          {row.usuario?.nombre || 'N/A'}
-        </span>
+        <span className="text-sm text-gray-700">{row.responsable || 'N/A'}</span>
+      )
+    },
+    {
+      key: 'acciones',
+      title: 'Acciones',
+      width: '8%',
+      align: 'center',
+      className: 'pr-4',
+      render: (row) => (
+        <MovimientoAccionesCell
+          movimiento={row}
+          onAction={(action: MovimientoAction) => {
+            if (action.type === 'view') return onVerDetalle(action.movimiento);
+          }}
+        />
       )
     }
-  ], []);
+  ], [onVerDetalle]);
 
   if (loading) {
     return (
