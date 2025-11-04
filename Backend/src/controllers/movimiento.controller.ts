@@ -55,10 +55,10 @@ export class MovimientoController {
             const id = parseInt(req.params.id as string);
             if (isNaN(id)) return res.status(400).json({ error: 'Id inválido' });
 
-            const { nombreEstado, usuario } = req.body as { nombreEstado?: string; usuario?: string;};
+            const { nombreEstado, usuario, observaciones } = req.body as { nombreEstado?: string; usuario?: string; observaciones?: string };
             if (!nombreEstado) return res.status(400).json({ error: 'nombreEstado es requerido' });
 
-            const updated = await service.CambiarEstado(id, nombreEstado, usuario);
+            const updated = await service.CambiarEstado(id, nombreEstado, usuario, observaciones);
             res.json(updated);
         } catch (err: any) {
             res.status(400).json({ error: err.message });

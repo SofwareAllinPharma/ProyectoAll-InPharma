@@ -331,7 +331,7 @@ export class MovimientoService {
     }
 
 
-    async CambiarEstado(idMovimiento: number, nombreEstadoDestino: string, usuario?: string) {
+    async CambiarEstado(idMovimiento: number, nombreEstadoDestino: string, usuario?: string, observaciones?: string) {
         const mov = await prisma.movimiento_Producto.findUnique({
             where: { idMovimiento },
             include: { cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } } }
@@ -383,6 +383,17 @@ export class MovimientoService {
                     idMovimiento: idMovimiento
                 }
             });
+
+            // actualizar responsable/observaciones del movimiento si se enviaron
+            const dataUpdate: Prisma.Movimiento_ProductoUpdateInput = {};
+            if (usuario && usuario.trim() !== '') dataUpdate.responsable = usuario;
+            if (typeof observaciones !== 'undefined') dataUpdate.observaciones = observaciones;
+            if (Object.keys(dataUpdate).length > 0) {
+                await tx.movimiento_Producto.update({
+                    where: { idMovimiento },
+                    data: dataUpdate
+                });
+            }
         });
 
         return this.getById(idMovimiento);

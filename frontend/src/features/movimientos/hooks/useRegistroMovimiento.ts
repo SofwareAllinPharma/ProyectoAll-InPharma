@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MovimientoService } from '../services/movimiento.service';
 import type { TipoMovimiento } from '../types/movimiento.types';
 import { formatFecha } from '../../inventario/utils/formatters';
+import { useToast } from '../../../components/ui/toast/ToastContext';
  
  type SelectOption<T extends string> = { key: string; label: string; value: T };
  type DepositoMin = { id: number; nombre: string } | null;
@@ -25,6 +26,7 @@ import { formatFecha } from '../../inventario/utils/formatters';
 
 export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?: () => void }) {
   const { onCreated, onClose } = args || {};
+  const { show } = useToast();
   const [errors, setErrors] = useState<RMErrors>({});
   const [touched, setTouched] = useState<RMTouched>({});
   const [submitted, setSubmitted] = useState(false);
@@ -170,13 +172,13 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
         idDepositoDestino: payload.idDepositoDestino ?? undefined,
         referencia: payload.referencia ?? ''
       });
-  alert('Movimiento registrado correctamente');
+      show({ type: 'success', title: 'Movimiento creado', message: 'El movimiento fue registrado correctamente.' });
       onCreated?.();
       setSummaryOpen(false);
       onClose?.();
     } catch (err) {
       console.error(err);
-      alert('Error creando movimiento');
+      show({ type: 'error', title: 'Error', message: 'No se pudo crear el movimiento. Intenta nuevamente.' });
     } finally {
       setSubmitting(false);
     }

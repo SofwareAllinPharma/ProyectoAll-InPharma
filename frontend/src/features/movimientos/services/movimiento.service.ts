@@ -2,10 +2,11 @@ import axios from 'axios';
 import type { 
   Movimiento, 
   CreateMovimientoRequest, 
-  UpdateEstadoMovimientoRequest,
+  // UpdateEstadoMovimientoRequest,
   MovimientoFilters,
   MovimientosResumen
 } from '../types/movimiento.types';
+import type { MovimientoDetalle, MovimientoHistorialEvent } from '../types/movimiento.detalle.types.ts';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -174,15 +175,39 @@ export class MovimientoService {
     }
   }
 
-  static async getMovimientoById(id: number): Promise<Movimiento> {
+  static async getMovimientoDetalle(id: number): Promise<MovimientoDetalle> {
     try {
-      const response = await axios.get<Movimiento>(
+      const response = await axios.get(
         `${API_BASE_URL}/movimientos/${id}`,
         { headers: this.getHeaders() }
       );
-      return response.data;
+      const d = response.data;
+      // Map backend detalle -> MovimientoDetalle (fechas ya vienen dd/mm/yy)
+      const historial: MovimientoHistorialEvent[] = Array.isArray(d.cambiosDeEstado) ? d.cambiosDeEstado.map((e: { idCambioEstadoMovimiento: number; nombreEstado?: string | null; fechaHoraInicio?: string | null; fechaHoraFin?: string | null; }) => ({
+        id: e.idCambioEstadoMovimiento,
+        estado: (e.nombreEstado || '').toString().toUpperCase().replace(/\s+/g, '_') as MovimientoHistorialEvent['estado'],
+        fechaInicio: e.fechaHoraInicio ?? '-',
+        fechaFin: e.fechaHoraFin ?? null,
+        responsable: d.responsable || undefined,
+        observaciones: d.observaciones || undefined,
+      })) : [];
+      const detalle: MovimientoDetalle = {
+        id: d.idMovimiento,
+        tipo: (d.tipoMovimiento?.nombre || '').toString().toUpperCase() as MovimientoDetalle['tipo'],
+        productoNombre: d.producto?.nombreComercial ?? 'N/A',
+        estado: (d.estado || '').toString().toUpperCase().replace(/\s+/g, '_') as MovimientoDetalle['estado'],
+        cantidad: d.cantidad ?? 0,
+        depositoOrigenNombre: d.depositoOrigen?.nombre ?? null,
+        depositoDestinoNombre: d.depositoDestino?.nombre ?? null,
+        fechaCreacion: d.fechaCreacion ?? '-',
+        responsable: d.responsable ?? undefined,
+        observaciones: d.observaciones ?? undefined,
+        referencia: undefined, // referencia no viene del backend detalle actual
+        historial,
+      };
+      return detalle;
     } catch (error) {
-      console.error('Error obteniendo movimiento:', error);
+      console.error('Error obteniendo detalle de movimiento:', error);
       throw error;
     }
   }
@@ -220,16 +245,23 @@ export class MovimientoService {
   }
 
   static async updateEstadoMovimiento(
-    id: number, 
-    data: UpdateEstadoMovimientoRequest
-  ): Promise<Movimiento> {
+    id: number,
+    data: { estado: 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO'; responsable: string; observaciones?: string }
+  ): Promise<MovimientoDetalle> {
     try {
-      const response = await axios.patch<Movimiento>(
+      const payload = {
+        nombreEstado: data.estado.replace(/_/g, ' ').replace(/EN CAMINO/, 'En Camino').replace(/ENTREGADO/, 'Entregado').replace(/CANCELADO/, 'Cancelado'),
+        usuario: data.responsable,
+        observaciones: data.observaciones
+      } as Record<string, unknown>;
+      await axios.post(
         `${API_BASE_URL}/movimientos/${id}/estado`,
-        data,
+        payload,
         { headers: this.getHeaders() }
       );
-      return response.data;
+      // backend devuelve el detalle del movimiento actualizado
+      const updated = await this.getMovimientoDetalle(id);
+      return updated;
     } catch (error) {
       console.error('Error actualizando estado:', error);
       throw error;

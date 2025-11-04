@@ -5,7 +5,7 @@ interface Props {
 }
 
 export default function MovimientosEstadoCell({ estado }: Props) {
-  const config = {
+  const config: Record<EstadoMovimiento, { color: string; label: string }> = {
     CREADO: {
       color: 'bg-blue-100 text-blue-800',
       label: 'Creado'
@@ -19,12 +19,12 @@ export default function MovimientosEstadoCell({ estado }: Props) {
       label: 'Entregado'
     },
     CANCELADO: {
-      color: 'bg-gray-100 text-gray-800',
+      color: 'bg-red-100 text-red-800',
       label: 'Cancelado'
     }
   };
 
-  const cfg = (config as any)[estado] ?? { color: 'bg-gray-100 text-gray-800', label: typeof estado === 'string' ? estado : 'N/A' };
+  const cfg = config[estado] ?? { color: 'bg-gray-100 text-gray-800', label: typeof estado === 'string' ? estado : 'N/A' };
 
   return (
     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${cfg.color}`}>
