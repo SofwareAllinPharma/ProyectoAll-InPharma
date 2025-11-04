@@ -5,6 +5,10 @@ import ModalHeader from "../../../../components/ui/modales/ModalHeader";
 import Button from "../../../../components/ui/Button";
 import { ProductoService } from "../../../productos/services/producto.service";
 import type { Producto } from "../../../productos/types/producto.types";
+import QuantityControl from "./QuantityControl";
+import ProductSelector from "./ProductSelector";
+import InsumosPreview from "./InsumosPreview";
+import CreatorInfo from "./CreatorInfo";
 import type { CreatePedidoRequest } from "../../types/pedido.types";
 
 interface Props {
@@ -93,18 +97,6 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   const creatorMail = localStorage.getItem("userMail") || "adminfab@aip.com";
   const creationDate = new Date().toLocaleString();
 
-  // Helper: user-friendly display name from email
-  const formatUserName = (email?: string | null) => {
-    if (!email) return '-';
-    const special: Record<string, string> = {
-      'tecnico@aip.com': 'Técnico',
-      'adminfab@aip.com': 'Admin Fábrica',
-      'adminsis@aip.com': 'Admin Sistema',
-    };
-    if (special[email]) return special[email];
-    const name = email.split('@')[0].replace(/[._-]/g, ' ');
-    return name.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
-  };
 
   function calcular() {
     if (!selected || typeof value !== "number" || value <= 0) return null;
@@ -226,30 +218,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
 
   const conv = calcular();
 
-  // Steps and increment/decrement controls for easier adjustments
-  const pesoPaquete = Number(selected?.pesoNeto) || 0;
-  const porcionVal = Number(selected?.formula?.porcion ?? 0) || 0;
-  const porcionesPorPaquete = porcionVal > 0 ? Math.round(pesoPaquete / porcionVal) : 0;
-  const getStep = () => {
-    if (mode === 'paquetes') return 1;
-    if (mode === 'porciones') return porcionesPorPaquete > 0 ? porcionesPorPaquete : 1;
-    if (mode === 'gramos') return pesoPaquete > 0 ? pesoPaquete : 1;
-    return 1;
-  };
-
-  const handleIncrement = () => {
-    const step = getStep();
-    let n = (typeof value === 'number') ? value : Number(value || 0);
-    n = Number((n + step));
-    setValue(mode === 'paquetes' || mode === 'porciones' ? Math.round(n) : Number(Number(n).toFixed(4)));
-  };
-
-  const handleDecrement = () => {
-    const step = getStep();
-    let n = (typeof value === 'number') ? value : Number(value || 0);
-    n = Number(Math.max(0, n - step));
-    setValue(mode === 'paquetes' || mode === 'porciones' ? Math.round(n) : Number(Number(n).toFixed(4)));
-  };
+  
 
   const formatQty = (v: number | undefined) => {
     if (v === undefined || v === null) return '-';
@@ -273,26 +242,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
           }}
           className="space-y-4 mt-4"
         >
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Producto
-            </label>
-            <select
-              className="mt-1 block w-full px-4 py-2 border rounded-md"
-              value={selectedId ?? ""}
-              onChange={(e) =>
-                setSelectedId(e.target.value ? Number(e.target.value) : null)
-              }
-            >
-              <option value="">-- Seleccione --</option>
-              {productos.map((p) => (
-                <option key={p.idProducto} value={p.idProducto}>
-                  {p.nombreComercial}
-                </option>
-              ))}
-            </select>
-            {errors.producto && <p className="mt-1 text-sm text-red-600">{errors.producto}</p>}
-          </div>
+          <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -327,36 +277,13 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
                 <span className="ml-1">Porciones</span>
               </div>
             </div>
-            <div className="mt-2 flex items-center">
-              <input
-                className="flex-1 px-4 py-3 border rounded-md text-lg text-center"
-                type="text"
-                inputMode="numeric"
-                readOnly
-                value={
-                  // show value formatted: if number show rounded for paquetes else show fixed
-                  typeof value === 'number' ? (mode === 'paquetes' || mode === 'porciones' ? String(Math.round(value)) : String(Number(value.toFixed(4)))) : String(value)
-                }
-                onKeyDown={(e) => {
-                  if (!selected) return;
-                  if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    handleIncrement();
-                  } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    handleDecrement();
-                  } else if (e.key === '+' || e.key === '=') {
-                    e.preventDefault(); handleIncrement();
-                  } else if (e.key === '-' || e.key === '_') {
-                    e.preventDefault(); handleDecrement();
-                  }
-                }}
-              />
-              <div className="ml-2 flex flex-col space-y-1">
-                <button type="button" onClick={handleIncrement} disabled={!selected} className={`px-2 py-1 rounded ${selected ? 'bg-gray-100 hover:bg-gray-200' : 'bg-gray-50 opacity-50 cursor-not-allowed'}`}>▲</button>
-                <button type="button" onClick={handleDecrement} disabled={!selected} className={`px-2 py-1 rounded ${selected ? 'bg-gray-100 hover:bg-gray-200' : 'bg-gray-50 opacity-50 cursor-not-allowed'}`}>▼</button>
-              </div>
-            </div>
+            <QuantityControl
+              mode={mode}
+              value={value}
+              setValue={setValue}
+              selected={selected}
+              disabled={!selected}
+            />
             {conv && (
               <div className="mt-2 text-sm text-gray-600 text-center">
                 Equivalencias: <span className="font-medium">{formatQty(conv.gramos)} g</span> — <span className="font-medium">{Math.round(conv.paquetes)} pqt</span> — <span className="font-medium">{formatQty(conv.porciones)} porciones</span>
@@ -382,46 +309,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
           </div>
           
           {/* Info: creador y fecha */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Creado por</label>
-              <div className="mt-1 text-sm text-gray-700">{formatUserName(creatorMail)}</div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Fecha</label>
-              <div className="mt-1 text-sm text-gray-700">{creationDate}</div>
-            </div>
-          </div>
+          <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
 
-          {/* Insumos requeridos calculados */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Insumos Requeridos</label>
-            <div className="mt-2 p-3 border rounded-md bg-gray-50 min-h-[80px]">
-              {!selected || !conv ? (
-                <div className="text-sm text-gray-500">Seleccione un producto y cantidad para ver los insumos requeridos.</div>
-              ) : selected.formula?.insumos && selected.formula.insumos.length > 0 ? (
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {(() => {
-                    const totalFormula = selected.formula.insumos.reduce((s, i) => s + (i.cantidadInsumo || 0), 0) || 0;
-                    const factor = totalFormula > 0 ? conv.gramos / totalFormula : 0;
-                    return selected.formula!.insumos!.map((fi) => {
-                      const nombre = fi.insumo?.nombre || `Insumo ${fi.idInsumo}`;
-                      const required = +( (fi.cantidadInsumo || 0) * factor ).toFixed(3);
-                      return (
-                        <li key={fi.idInsumo} className="flex justify-between">
-                          <span>{nombre}</span>
-                          <span className="font-medium">{required} g</span>
-                        </li>
-                      );
-                    });
-                  })()}
-                </ul>
-              ) : (
-                <div className="text-sm text-gray-500">No hay insumos en la fórmula del producto.</div>
-              )}
-            {errors.insumos && <p className="mt-1 text-sm text-red-600">{errors.insumos}</p>}
-            </div>
-          </div>
+          <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
         </form>
 
         <div className="mt-4 border-t pt-4">

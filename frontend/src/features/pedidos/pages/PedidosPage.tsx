@@ -56,6 +56,20 @@ const PedidosPage: React.FC = () => {
     }
   });
 
+
+
+  const formatUserName = (email?: string | null) => {
+    if (!email) return '-';
+    const special: Record<string, string> = {
+      'tecnico@aip.com': 'Técnico',
+      'adminfab@aip.com': 'Admin Fábrica',
+      'adminsis@aip.com': 'Admin Sistema',
+    };
+    if (special[email]) return special[email];
+    const name = email.split('@')[0].replace(/[._-]/g, ' ');
+    return name.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+  };
+
   const visiblePedidos = filteredPedidos.filter((p) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -141,17 +155,7 @@ const PedidosPage: React.FC = () => {
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.cls}`}>{info.label}</span>;
   };
 
-  const formatUserName = (email?: string | null) => {
-    if (!email) return '-';
-    const special: Record<string, string> = {
-      'tecnico@aip.com': 'Técnico',
-      'adminfab@aip.com': 'Admin Fábrica',
-      'adminsis@aip.com': 'Admin Sistema',
-    };
-    if (special[email]) return special[email];
-    const name = email.split('@')[0].replace(/[._-]/g, ' ');
-    return name.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
-  };
+ 
 
   const columns: Column<Pedido>[] = [
     {
