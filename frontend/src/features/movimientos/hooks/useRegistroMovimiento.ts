@@ -1,26 +1,68 @@
 import { useState } from 'react';
 import { MovimientoService } from '../services/movimiento.service';
 import type { TipoMovimiento } from '../types/movimiento.types';
+import { formatFecha } from '../../inventario/utils/formatters';
+ 
+ type SelectOption<T extends string> = { key: string; label: string; value: T };
+ type DepositoMin = { id: number; nombre: string } | null;
+ type ProductoInv = { idProducto: number; nombreComercial?: string; nombre?: string; cantidadProducto?: number } | null;
+ 
+ interface RMErrors {
+   tipo?: string;
+   deposito?: string;
+   producto?: string;
+   cantidad?: string;
+   responsable?: string;
+ }
+ 
+ interface RMTouched {
+   tipo?: boolean;
+   deposito?: boolean;
+   producto?: boolean;
+   cantidad?: boolean;
+   responsable?: boolean;
+ }
 
 export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?: () => void }) {
   const { onCreated, onClose } = args || {};
-  const [errors, setErrors] = useState<any>({});
-  const [touched, setTouched] = useState<any>({});
+  const [errors, setErrors] = useState<RMErrors>({});
+  const [touched, setTouched] = useState<RMTouched>({});
   const [submitted, setSubmitted] = useState(false);
-  const [tipo, setTipo] = useState<{ key: string; label: string; value: TipoMovimiento } | null>(null);
-  const [depOrigen, setDepOrigen] = useState<any>(null);
-  const [depDestino, setDepDestino] = useState<any>(null);
-  const [producto, setProducto] = useState<any>(null);
+  const [tipo, setTipo] = useState<SelectOption<TipoMovimiento> | null>(null);
+  const [depOrigen, setDepOrigen] = useState<DepositoMin>(null);
+  const [depDestino, setDepDestino] = useState<DepositoMin>(null);
+  const [producto, setProducto] = useState<ProductoInv>(null);
   const [cantidad, setCantidad] = useState<number | ''>(0);
   const [responsable, setResponsable] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const [summaryData, setSummaryData] = useState<any | null>(null);
+  const [summaryData, setSummaryData] = useState<{
+     payload: {
+       tipo: TipoMovimiento;
+       idProducto: number;
+       cantidad: number;
+      idDepositoOrigen: number | undefined;
+       idDepositoDestino: number | null;
+       responsable?: string;
+       observaciones?: string;
+      referencia?: string;
+     };
+     summary: {
+       tipo: string;
+       productoNombre: string;
+       depositoOrigenNombre?: string | null;
+       depositoDestinoNombre?: string | null;
+       cantidad: number;
+       fecha: string;
+       responsable?: string | null;
+       observaciones?: string | null;
+     };
+   } | null>(null);
 
   const validateAll = () => {
-    const next: any = {};
+    const next: RMErrors = {};
     let ok = true;
     if (!tipo) { next.tipo = 'Seleccione un tipo de movimiento'; ok = false; }
     if (tipo?.value === 'EGRESO') { if (!depOrigen) { next.deposito = 'Seleccione un depósito'; ok = false; } }
@@ -33,34 +75,84 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
     return ok;
   };
 
-  const handleTipoChange = (v: any) => { setTipo(v); setErrors((p:any) => ({ ...p, tipo: undefined, deposito: undefined })); };
-  const handleTipoBlur = () => { setTouched((t:any) => ({ ...t, tipo: true })); if (!tipo) setErrors((p:any) => ({ ...p, tipo: 'Seleccione un tipo de movimiento' })); };
-  const handleDepOrigen = (d: any) => { setDepOrigen(d); setErrors((p:any) => ({ ...p, deposito: undefined })); };
-  const handleDepDestino = (d: any) => { setDepDestino(d); setErrors((p:any) => ({ ...p, deposito: undefined })); };
-  const handleDepBlur = () => { setTouched((t:any) => ({ ...t, deposito: true })); if (tipo?.value === 'EGRESO' && !depOrigen) setErrors((p:any) => ({ ...p, deposito: 'Seleccione un depósito' })); if (tipo?.value === 'TRASLADO' && (!depOrigen || !depDestino)) setErrors((p:any) => ({ ...p, deposito: 'Seleccione depósito origen y destino' })); };
-  const handleProducto = (p: any) => { setProducto(p); setErrors((p2:any) => ({ ...p2, producto: undefined, cantidad: undefined, responsable: undefined })); };
-  const handleProductoBlur = () => { setTouched((t:any) => ({ ...t, producto: true })); if (!producto) setErrors((p:any) => ({ ...p, producto: 'Seleccione el producto a trasladar' })); };
-  const handleCantidadChange = (v: number | '') => { setCantidad(v); const n = Number(v ?? 0); if (!Number.isInteger(n) || n <= 0) setErrors((p:any) => ({ ...p, cantidad: 'La cantidad debe ser mayor a 0' })); else setErrors((p:any) => ({ ...p, cantidad: undefined })); };
-  const handleCantidadBlur = () => { setTouched((t:any) => ({ ...t, cantidad: true })); const n = Number(cantidad ?? 0); if (!Number.isInteger(n) || n <= 0) setErrors((p:any) => ({ ...p, cantidad: 'La cantidad debe ser mayor a 0' })); };
-  const handleResponsableChange = (s: string) => { setResponsable(s); if (s && s.trim() !== '') setErrors((p:any) => ({ ...p, responsable: undefined })); };
-  const handleResponsableBlur = () => { setTouched((t:any) => ({ ...t, responsable: true })); if (!responsable || responsable.trim() === '') setErrors((p:any) => ({ ...p, responsable: 'Ingrese el responsable' })); };
+  const handleTipoChange = (v: SelectOption<TipoMovimiento> | null) => { setTipo(v); setErrors((p) => ({ ...p, tipo: undefined, deposito: undefined })); };
+  const handleTipoBlur = () => { setTouched((t) => ({ ...t, tipo: true })); if (!tipo) setErrors((p) => ({ ...p, tipo: 'Seleccione un tipo de movimiento' })); };
+  const handleDepOrigen = (d: DepositoMin) => {
+    setDepOrigen(d);
+    // Al cambiar depósito origen, reseteamos producto/cantidad si no aplica
+    setProducto(null);
+    setCantidad(0);
+    setErrors((p) => ({ ...p, producto: undefined, cantidad: undefined, deposito: undefined }));
+    // Validación en tiempo real del campo depósito
+    if (tipo?.value === 'EGRESO' && !d) setErrors((p) => ({ ...p, deposito: 'Seleccione un depósito' }));
+    if (tipo?.value === 'TRASLADO' && (!d || !depDestino)) setErrors((p) => ({ ...p, deposito: 'Seleccione depósito origen y destino' }));
+  };
+  const handleDepDestino = (d: DepositoMin) => {
+    setDepDestino(d);
+    setErrors((p) => ({ ...p, deposito: undefined }));
+    if (tipo?.value === 'TRASLADO' && (!depOrigen || !d)) setErrors((p) => ({ ...p, deposito: 'Seleccione depósito origen y destino' }));
+  };
+  const handleDepBlur = () => { setTouched((t) => ({ ...t, deposito: true })); if (tipo?.value === 'EGRESO' && !depOrigen) setErrors((p) => ({ ...p, deposito: 'Seleccione un depósito' })); if (tipo?.value === 'TRASLADO' && (!depOrigen || !depDestino)) setErrors((p) => ({ ...p, deposito: 'Seleccione depósito origen y destino' })); };
+  const handleProducto = (p: ProductoInv) => {
+    setProducto(p);
+    // Validación en tiempo real del producto y cantidad vs stock
+    setErrors((p2) => ({ ...p2, producto: undefined, cantidad: undefined, responsable: undefined }));
+    const stock = Number(p?.cantidadProducto ?? 0);
+    const n = Number(cantidad ?? 0);
+    if (n > 0 && n > stock) {
+      setErrors((p2) => ({ ...p2, cantidad: `La cantidad no puede superar el stock disponible (${stock})` }));
+    }
+  };
+  const handleProductoBlur = () => { setTouched((t) => ({ ...t, producto: true })); if (!producto) setErrors((p) => ({ ...p, producto: 'Seleccione el producto a trasladar' })); };
+  const handleCantidadChange = (v: number | '') => {
+    setCantidad(v);
+    const n = Number(v ?? 0);
+    const stock = Number(producto?.cantidadProducto ?? 0);
+    if (!Number.isInteger(n) || n <= 0) {
+      setErrors((p) => ({ ...p, cantidad: 'La cantidad debe ser mayor a 0' }));
+    } else if (n > stock) {
+      setErrors((p) => ({ ...p, cantidad: `La cantidad no puede superar el stock disponible (${stock})` }));
+    } else {
+      setErrors((p) => ({ ...p, cantidad: undefined }));
+    }
+  };
+  const handleCantidadBlur = () => {
+    setTouched((t) => ({ ...t, cantidad: true }));
+    const n = Number(cantidad ?? 0);
+    const stock = Number(producto?.cantidadProducto ?? 0);
+    if (!Number.isInteger(n) || n <= 0) setErrors((p) => ({ ...p, cantidad: 'La cantidad debe ser mayor a 0' }));
+    else if (n > stock) setErrors((p) => ({ ...p, cantidad: `La cantidad no puede superar el stock disponible (${stock})` }));
+  };
+  const handleResponsableChange = (s: string) => { setResponsable(s); if (s && s.trim() !== '') setErrors((p) => ({ ...p, responsable: undefined })); };
+  const handleResponsableBlur = () => { setTouched((t) => ({ ...t, responsable: true })); if (!responsable || responsable.trim() === '') setErrors((p) => ({ ...p, responsable: 'Ingrese el responsable' })); };
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     setSubmitted(true);
     if (!validateAll()) return;
+    // Validación final de stock
+    const stock = Number(producto?.cantidadProducto ?? 0);
+    if (Number(cantidad ?? 0) > stock) {
+      setErrors((p) => ({ ...p, cantidad: `La cantidad no puede superar el stock disponible (${stock})` }));
+      return;
+    }
     const cantidadNum = Number(cantidad ?? 0);
+    const referencia = tipo?.value === 'EGRESO'
+      ? `Salida de ${depOrigen?.nombre ?? ''}`
+      : tipo?.value === 'TRASLADO'
+        ? `Traslado ${depOrigen?.nombre ?? ''} → ${depDestino?.nombre ?? ''}`
+        : '';
     const summary = {
       tipo: tipo?.label ?? tipo?.value ?? '',
       productoNombre: producto?.nombreComercial ?? producto?.nombre ?? 'N/A',
       depositoOrigenNombre: depOrigen?.nombre ?? null,
       depositoDestinoNombre: depDestino?.nombre ?? null,
       cantidad: cantidadNum,
-      fecha: new Date().toLocaleDateString(),
+      fecha: formatFecha(new Date().toISOString()),
       responsable: responsable || undefined,
       observaciones: observaciones || undefined,
     };
-    setSummaryData({ payload: { tipo: tipo!.value, idProducto: producto.idProducto, cantidad: cantidadNum, idDepositoOrigen: depOrigen?.id, idDepositoDestino: depDestino?.id ?? null, responsable: responsable || undefined, observaciones: observaciones || undefined }, summary });
+    setSummaryData({ payload: { tipo: tipo!.value, idProducto: (producto as NonNullable<ProductoInv>)!.idProducto, cantidad: cantidadNum, idDepositoOrigen: depOrigen?.id, idDepositoDestino: depDestino?.id ?? null, responsable: responsable || undefined, observaciones: observaciones || undefined, referencia }, summary });
     setSummaryOpen(true);
   };
 
@@ -69,14 +161,19 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
     const payload = summaryData.payload;
     try {
       setSubmitting(true);
-      const created = await MovimientoService.createMovimiento(payload as any);
-      alert('Movimiento registrado correctamente (id: ' + (created as any).idMovimiento + ')');
+      await MovimientoService.createMovimiento({
+        ...payload,
+        idDepositoOrigen: payload.idDepositoOrigen as number,
+        idDepositoDestino: payload.idDepositoDestino ?? undefined,
+        referencia: payload.referencia ?? ''
+      });
+  alert('Movimiento registrado correctamente');
       onCreated?.();
       setSummaryOpen(false);
       onClose?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      alert(err?.response?.data?.error || err?.message || 'Error creando movimiento');
+      alert('Error creando movimiento');
     } finally {
       setSubmitting(false);
     }

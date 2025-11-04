@@ -29,6 +29,7 @@ export default function CantidadResponsableRow({ stock, cantidad, onCantidadChan
             onBlur={() => onBlurCantidad?.()}
             placeholder="0"
             step={1}
+            max={Number(stock ?? 0)}
           />
           {errorCantidad ? <p className="text-red-600 text-sm mt-1">{errorCantidad}</p> : null}
         </div>
