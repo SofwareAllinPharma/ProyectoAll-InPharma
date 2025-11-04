@@ -4,6 +4,12 @@ import ConfirmLogoutModal from "./nav/ConfirmLogoutModal";
 import NavbarButtons from "./nav/NavbarButtons";
 
 export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
+  // read prop once to avoid unused-param typescript error — it's forwarded from layout when needed
+  // noop effect ensures the variable is considered used by the compiler
+  useEffect(() => {
+    // intentionally no-op; presence of prop allows parent to toggle sidebar
+    void onMenuToggle;
+  }, [onMenuToggle]);
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);

@@ -177,7 +177,7 @@ export class PedidosService {
     }
 
     // Asegurar depósito “Fábrica”
-    await prisma.deposito.upsert({
+    const dep = await prisma.deposito.upsert({
       where: { nombre: "Fábrica" },
       update: {},
       create: {
@@ -191,7 +191,21 @@ export class PedidosService {
     });
 
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
-    return this.repo.transition(numPedido, estadoElabFabId);
+
+    // Transition state first (this will update cambioActual) then add stock to inventario.
+    const updated = await this.repo.transition(numPedido, estadoElabFabId, { estaAsignado: false });
+
+    // Añadir stock al inventario del depósito Fábrica (cantidad en paquetes)
+    const qty = Math.round(pedido.cantAProducir_paquetes || 0);
+    if (qty > 0) {
+      await prisma.inventario.upsert({
+        where: { idDeposito_idProducto: { idDeposito: dep.id, idProducto: pedido.idProducto } },
+        update: { cantidadProducto: { increment: qty } as any },
+        create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: qty, umbralMin: 0 },
+      });
+    }
+
+    return updated;
   }
 
   async cancelar(numPedido: number) {

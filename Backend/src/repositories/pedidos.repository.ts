@@ -25,6 +25,10 @@ export class PedidosRepository {
   }
 
   async findById(numPedido: number) {
+    if (!Number.isInteger(numPedido) || numPedido <= 0) {
+      throw new Error('numPedido inválido');
+    }
+
     return prisma.pedido.findUnique({
       where: { numPedido },
       include: {

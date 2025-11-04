@@ -10,7 +10,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false, existingNa
   const [insumos, setInsumos] = useState<FormulaInsumo[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [nutrition, setNutrition] = useState<NutritionCalculation>(() => ({ kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0, otrosPorPorcion: 0 }));
+  const [nutrition, setNutrition] = useState<NutritionCalculation>(() => ({ kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0 }));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -26,7 +26,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false, existingNa
 
   useEffect(() => {
     const total = calculateTotalPeso(insumos);
-    setNutrition(total > 0 ? calculateNutrition(insumos, total) : { kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0, otrosPorPorcion: 0 });
+    setNutrition(total > 0 ? calculateNutrition(insumos, total) : { kcaloriasPorPorcion: 0, kjPorPorcion: 0, carbohidratosPorPorcion: 0, proteinasPorPorcion: 0, grasaTotalPorPorcion: 0, grasaSaturadaPorPorcion: 0, grasaTransPorPorcion: 0, fibraPorPorcion: 0, sodioPorPorcion: 0 });
   }, [insumos]);
 
   const handleInputChange = useCallback((k: keyof F, v: F[keyof F]) => {
@@ -65,7 +65,7 @@ export function useFormulaForm({ formula, isOpen, isCopyMode = false, existingNa
 
   const isValid = Object.values(errors).every(v => !v);
 
-  const buildPayload = useCallback((): CreateFormulaRequest => ({ nombre: formData.nombre, porcionMinima: calculateTotalPeso(insumos), esProtegida: formData.esProtegida, insumos: insumos.map(i => ({ idInsumo: i.idInsumo, cantidadInsumo: i.cantidadInsumo })) }), [formData, insumos]);
+  const buildPayload = useCallback((): CreateFormulaRequest => ({ nombre: formData.nombre, porcion: calculateTotalPeso(insumos), esProtegida: formData.esProtegida, insumos: insumos.map(i => ({ idInsumo: i.idInsumo, cantidadInsumo: i.cantidadInsumo })) }), [formData, insumos]);
 
   const handleSubmit = useCallback(async (onSubmit: (p: CreateFormulaRequest) => Promise<unknown> | void) => {
     if (!validateForm() || submitting) return false; setSubmitting(true);

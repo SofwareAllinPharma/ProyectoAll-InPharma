@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Insumo } from '../../../../insumos/types/insumo.types';
 import type { FormulaInsumo } from '../../../types/formula.types';
 import SearchSelect from '../../../../../components/ui/SearchSelect';

@@ -7,6 +7,7 @@ import type { Pedido, CreatePedidoRequest } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
 // link not required here; modal opens instead of navigating to a route
 import PedidoDetailModal from '../components/PedidoDetailModal';
+import PedidoAccionesCell from '../components/table/PedidoAccionesCell';
 import PedidoFormModal from "../components/form/PedidoFormModal";
 import PedidoHistoryModal from "../components/PedidoHistoryModal";
 import PedidoStats from "../components/PedidoStats";
@@ -16,11 +17,13 @@ const PedidosPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Pedido | null>(null);
   const [modals, setModals] = useState({ form: false, history: false, detail: false });
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filter, setFilter] = useState<
     "todos" | "pendientes" | "asignados" | "finalizados"
   >("todos");
   const [search, setSearch] = useState("");
-  const [assignedFilter, setAssignedFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
+  
   const { show } = useToast();
 
   // Obtener el perfil del usuario para determinar qué puede ver/hacer
@@ -29,9 +32,11 @@ const PedidosPage: React.FC = () => {
   const profileNum = Number(userProfile || 0);
   // admin detection kept for reference if needed later
   // const isAdmin = profileNum === 2 || profileNum === 3; // adminfab o adminsis
-  const isTecnico = profileNum === 1;
+  // profile helpers
 
   // Filtrar pedidos según el filtro seleccionado (usamos los nombres de estados del backend)
+  
+
   const filteredPedidos = pedidos.filter((pedido) => {
     const estado = pedido.cambioActual?.estado?.nombre || "";
     switch (filter) {
@@ -58,27 +63,17 @@ const PedidosPage: React.FC = () => {
       String(p.numPedido).toLowerCase().includes(q) ||
       (p.producto?.nombreComercial || "").toLowerCase().includes(q) ||
       (p.mailUsuarioCreador || "").toLowerCase().includes(q) ||
-      (p.mailUsuarioCocinero || "").toLowerCase().includes(q)
+      (p.mailUsuarioCocinero || "").toLowerCase().includes(q) ||
+      (formatUserName(p.mailUsuarioCreador) || "").toLowerCase().includes(q) ||
+      (formatUserName(p.mailUsuarioCocinero) || "").toLowerCase().includes(q)
     );
   });
 
-  // Apply assigned filter
-  const filteredByAssigned = visiblePedidos.filter((p) => {
-    if (assignedFilter === 'all') return true;
-    if (assignedFilter === 'assigned') return !!p.estaAsignado;
-    return !p.estaAsignado;
-  });
-
-  // Sorting: unassigned older first, then unassigned newer, then assigned last
-  const sortedPedidos = filteredByAssigned.slice().sort((a, b) => {
-    const aAssigned = a.estaAsignado ? 1 : 0;
-    const bAssigned = b.estaAsignado ? 1 : 0;
-    if (aAssigned !== bAssigned) return aAssigned - bAssigned; // unassigned (0) before assigned (1)
-
-    // both same assigned state -> for unassigned, prioritize older creation date first
-    const aDate = new Date(a.cambioActual?.fechaHoraInicio ?? a.createdAt).getTime();
-    const bDate = new Date(b.cambioActual?.fechaHoraInicio ?? b.createdAt).getTime();
-    return aDate - bDate; // older first
+  // Sort by creation date using the select control (asc/desc)
+  const sortedPedidos = visiblePedidos.slice().sort((a, b) => {
+    const aDate = new Date(a.createdAt).getTime();
+    const bDate = new Date(b.createdAt).getTime();
+    return sortOrder === 'asc' ? aDate - bDate : bDate - aDate;
   });
 
   const load = useCallback(async () => {
@@ -123,29 +118,39 @@ const PedidosPage: React.FC = () => {
     }
   };
 
-  const handleTomar = async (pedido: Pedido) => {
-    if (!pedido || pedido.estaAsignado) return;
-    setSelected(pedido);
-    setModals((s) => ({ ...s, history: true }));
-  };
-
   // Determinar qué acciones puede realizar el usuario según su rol
-  // FORZAR visibilidad del botón de creación (temporal para QA/development).
-  // Cambio solicitado por el equipo: mostrar siempre el botón para poder ajustar el flujo.
+  // FORZAR visibilidad del botón de creación (temporal for QA/development).
   const canCreatePedidos = true;
-  // Solo técnicos (1) y adminfab (2) pueden tomar pedidos para fabricar
-  const canTakePedidos = isTecnico || userProfile === "2";
 
   const getEstadoBadge = (estado: string) => {
-    // Mapear los estados del backend a etiquetas y estilos más amigables
+    // Mapear estados robustamente (normalizando texto) a etiquetas y estilos amigables
+    const normalize = (s: string) =>
+      s
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .replace(/\s+/g, '')
+        .toLowerCase();
     const map: Record<string, { label: string; cls: string }> = {
-      Creado: { label: "Pendiente", cls: "bg-yellow-100 text-yellow-800" },
-      EnElaboración: { label: "En Proceso", cls: "bg-blue-100 text-blue-800" },
-      ElaboradoYDepositadoEnFábrica: { label: "Completado", cls: "bg-green-100 text-green-800" },
-      Cancelado: { label: "Cancelado", cls: "bg-red-100 text-red-800" },
+      creado: { label: "Pendiente", cls: "bg-yellow-100 text-yellow-800" },
+      enelaboracion: { label: "En Proceso", cls: "bg-blue-100 text-blue-800" },
+      elaboradoydepositadoenfabrica: { label: "Completado", cls: "bg-green-100 text-green-800" },
+      cancelado: { label: "Cancelado", cls: "bg-red-100 text-red-800" },
     };
-    const info = map[estado] || { label: estado || "—", cls: "bg-gray-100 text-gray-800" };
+    const key = normalize(estado || '');
+    const info = map[key] || { label: estado || '—', cls: 'bg-gray-100 text-gray-800' };
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.cls}`}>{info.label}</span>;
+  };
+
+  const formatUserName = (email?: string | null) => {
+    if (!email) return '-';
+    const special: Record<string, string> = {
+      'tecnico@aip.com': 'Técnico',
+      'adminfab@aip.com': 'Admin Fábrica',
+      'adminsis@aip.com': 'Admin Sistema',
+    };
+    if (special[email]) return special[email];
+    const name = email.split('@')[0].replace(/[._-]/g, ' ');
+    return name.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
   };
 
   const columns: Column<Pedido>[] = [
@@ -165,15 +170,14 @@ const PedidosPage: React.FC = () => {
       key: "producto",
       title: "Producto",
       render: (r) => (
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 bg-gray-100 rounded-md flex items-center justify-center text-sm font-medium text-gray-600">📦</div>
-          <div className="text-sm">
-            <div className="font-medium">{r.producto?.nombreComercial ?? `#${r.idProducto}`}</div>
-            <div className="text-xs text-gray-500">ID: {r.idProducto}</div>
-          </div>
+        <div className="text-sm">
+          <div className="font-medium">{r.producto?.nombreComercial ?? `#${r.idProducto}`}</div>
+          <div className="text-xs text-gray-500">ID: {r.idProducto}</div>
         </div>
       ),
     },
+  { key: 'creador', title: 'Creador', render: (r) => formatUserName(r.mailUsuarioCreador) ?? '-' },
+  { key: 'elaborador', title: 'Elaborador', render: (r) => formatUserName(r.mailUsuarioCocinero) ?? '-' },
     {
       key: "cantidad",
       title: "Cantidad a producir",
@@ -186,7 +190,7 @@ const PedidosPage: React.FC = () => {
         return `${Math.round(gramos)} g`;
       },
     },
-    { key: "tecnico", title: "Usuario elaborador", render: (r) => r.mailUsuarioCocinero ?? "-" },
+  { key: "tecnico", title: "Usuario elaborador", render: (r) => formatUserName(r.mailUsuarioCocinero) ?? "-" },
     {
       key: "estado",
       title: "Estado",
@@ -196,36 +200,25 @@ const PedidosPage: React.FC = () => {
       key: "acciones",
       title: "Acciones",
       render: (r) => {
-        const estado = r.cambioActual?.estado?.nombre || "";
         return (
           <div className="flex gap-2">
-            {canTakePedidos && estado === "Creado" && (
-              <button
-                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  void handleTomar(r);
-                }}
-              >
-                Tomar
-              </button>
-            )}
-            <button
-              className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-              onClick={async (e) => {
-                e.stopPropagation();
-                // open modal and fetch full detail (to ensure producto.formula.insumos is present)
+            {/* Use the reusable ActionMenu as in Productos */}
+            <PedidoAccionesCell
+              pedido={r}
+              onAction={async () => {
+                // only 'view' action is provided by the menu; fetch full detail and open modal
                 setModals((s) => ({ ...s, detail: true }));
+                setDetailLoading(true);
                 try {
                   const full = await PedidoService.detail(r.numPedido);
                   setSelected(full);
                 } catch (err) {
                   show({ message: (err as Error)?.message || 'Error cargando detalle', type: 'error' });
+                } finally {
+                  setDetailLoading(false);
                 }
               }}
-            >
-              Ver detalle
-            </button>
+            />
           </div>
         );
       },
@@ -236,8 +229,6 @@ const PedidosPage: React.FC = () => {
     <PageShell
       title="Pedidos"
       subtitle="Gestión de pedidos de elaboración"
-      onCreate={canCreatePedidos ? onCreate : undefined}
-      createLabel="Crear Pedido"
       loading={loading}
       noContainer
     >
@@ -269,7 +260,7 @@ const PedidosPage: React.FC = () => {
 
       {/* Filtros + búsqueda */}
       <div className="mb-4 flex gap-2 flex-wrap items-center justify-between">
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
           <input
             type="search"
             placeholder="Buscar pedido..."
@@ -278,13 +269,12 @@ const PedidosPage: React.FC = () => {
             className="px-3 py-2 border rounded-md"
           />
           <select
-            value={assignedFilter}
-            onChange={(e) => setAssignedFilter(e.target.value as 'all' | 'assigned' | 'unassigned')}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
             className="ml-2 px-3 py-2 border rounded-md text-sm"
           >
-            <option value="all">Todos</option>
-            <option value="unassigned">No asignados</option>
-            <option value="assigned">Asignados</option>
+            <option value="asc">Fecha ↑ (más antiguo primero)</option>
+            <option value="desc">Fecha ↓ (más reciente primero)</option>
           </select>
         </div>
 
@@ -349,7 +339,18 @@ const PedidosPage: React.FC = () => {
       <PedidoDetailModal
         isOpen={modals.detail}
         pedido={selected}
+        loading={detailLoading}
         onClose={() => setModals((s) => ({ ...s, detail: false }))}
+        onRefresh={async () => {
+          if (!selected) return;
+          try {
+            const fresh = await PedidoService.detail(selected.numPedido);
+            setSelected(fresh);
+            await load();
+          } catch (err) {
+            show({ message: (err as Error)?.message || 'Error refrescando pedido', type: 'error' });
+          }
+        }}
       />
     </PageShell>
   );

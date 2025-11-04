@@ -19,7 +19,7 @@ const PedidoHistoryModal: React.FC<Props> = ({
   onRefresh,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { show } = useToast() as any;
+  const { show } = useToast();
 
   if (!isOpen || !pedido) return null;
 
@@ -163,7 +163,18 @@ const PedidoHistoryModal: React.FC<Props> = ({
             </div>
             <div>
               <span className="font-medium">Creado por:</span>{" "}
-              {pedido.mailUsuarioCreador}
+              {(() => {
+                const email = pedido.mailUsuarioCreador;
+                if (!email) return '-';
+                const special: Record<string, string> = {
+                  'tecnico@aip.com': 'Técnico',
+                  'adminfab@aip.com': 'Admin Fábrica',
+                  'adminsis@aip.com': 'Admin Sistema',
+                };
+                if (special[email]) return special[email];
+                const name = email.split('@')[0].replace(/[._-]/g, ' ');
+                return name.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+              })()}
             </div>
             <div className="col-span-2">
               <span className="font-medium">Observaciones:</span>{" "}

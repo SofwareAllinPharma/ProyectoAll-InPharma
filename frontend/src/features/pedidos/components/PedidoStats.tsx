@@ -8,29 +8,22 @@ interface Props {
 const PedidoStats: React.FC<Props> = ({ pedidos }) => {
   const stats = pedidos.reduce(
     (acc, pedido) => {
-      const estado = pedido.cambioActual?.estado?.nombre || "";
-      switch (estado) {
-        case "Pendiente":
-          acc.pendientes++;
-          break;
-        case "Asignado":
-          acc.asignados++;
-          break;
-        case "En elaboracion":
-          acc.enProceso++;
-          break;
-        case "Finalizado":
-          acc.finalizados++;
-          break;
-        case "Aprobado":
-          acc.aprobados++;
-          break;
-        case "Rechazado":
-          acc.rechazados++;
-          break;
-        default:
-          break;
-      }
+      const raw = pedido.cambioActual?.estado?.nombre || '';
+      // normalize state string to be tolerant to accents/case/spacing
+      const normalize = (s: string) =>
+        s
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '')
+          .replace(/\s+/g, '')
+          .toLowerCase();
+      const st = normalize(raw);
+      // Map possible backend state names to our counters
+      if (st === 'creado' || st === 'pendiente') acc.pendientes++;
+  else if (st === 'asignado' || pedido.estaAsignado === true) acc.asignados++;
+  else if (st === 'enelaboracion' || st === 'enproceso') acc.enProceso++;
+      else if (st === 'elaboradoydepositadoenfabrica' || st === 'finalizado' || st === 'completado') acc.finalizados++;
+      else if (st === 'aprobado') acc.aprobados++;
+      else if (st === 'cancelado' || st === 'rechazado') acc.rechazados++;
       acc.total++;
       return acc;
     },
@@ -73,7 +66,7 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
       color: "bg-green-100 text-green-800",
     },
     {
-      label: "Rechazados",
+      label: "Cancelados",
       value: stats.rechazados,
       color: "bg-red-100 text-red-800",
     },
