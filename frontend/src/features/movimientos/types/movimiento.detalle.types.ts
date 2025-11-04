@@ -3,9 +3,12 @@ import type { EstadoMovimiento, TipoMovimiento } from './movimiento.types';
 export type MovimientoHistorialEvent = {
   id: number;
   estado: EstadoMovimiento;
-  fechaInicio: string | null; // dd/mm/yy
-  fechaFin: string | null;    // dd/mm/yy or null if actual
+  fechaInicio: string | null; // dd/mm/yy HH:mm
+  fechaFin: string | null;    // dd/mm/yy HH:mm or null if actual
   responsable?: string;
+  // Sólo para estado ENTREGADO
+  responsableEntrega?: string;
+  responsableRecepcion?: string;
   observaciones?: string;
 };
 

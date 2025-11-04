@@ -19,7 +19,17 @@ export default function MovimientoTimeline({ events }: { events: MovimientoHisto
         <TimelineItem
           key={e.id}
           title={e.estado.replace(/_/g, ' ')}
-          subtitle={e.responsable ? `Responsable: ${e.responsable}` : undefined}
+          subtitle={
+            e.estado === 'ENTREGADO'
+              ? [
+                  e.responsableEntrega ? `Entrega: ${e.responsableEntrega}` : null,
+                  e.responsableRecepcion ? `Recepción: ${e.responsableRecepcion}` : null,
+                  e.responsable ? `Responsable: ${e.responsable}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              : (e.responsable ? `Responsable: ${e.responsable}` : undefined)
+          }
           note={e.observaciones ? `Observación: ${e.observaciones}` : undefined}
           date={e.fechaInicio}
           colorClass={colorMap[e.estado]}

@@ -181,15 +181,17 @@ export class MovimientoService {
         `${API_BASE_URL}/movimientos/${id}`,
         { headers: this.getHeaders() }
       );
-      const d = response.data;
+  const d = response.data;
       // Map backend detalle -> MovimientoDetalle (fechas ya vienen dd/mm/yy)
-      const historial: MovimientoHistorialEvent[] = Array.isArray(d.cambiosDeEstado) ? d.cambiosDeEstado.map((e: { idCambioEstadoMovimiento: number; nombreEstado?: string | null; fechaHoraInicio?: string | null; fechaHoraFin?: string | null; }) => ({
+      const historial: MovimientoHistorialEvent[] = Array.isArray(d.cambiosDeEstado) ? d.cambiosDeEstado.map((e: { idCambioEstadoMovimiento: number; nombreEstado?: string | null; fechaHoraInicio?: string | null; fechaHoraFin?: string | null; responsable?: string | null; responsableEntrega?: string | null; responsableRecepcion?: string | null; observaciones?: string | null; }) => ({
         id: e.idCambioEstadoMovimiento,
         estado: (e.nombreEstado || '').toString().toUpperCase().replace(/\s+/g, '_') as MovimientoHistorialEvent['estado'],
         fechaInicio: e.fechaHoraInicio ?? '-',
         fechaFin: e.fechaHoraFin ?? null,
-        responsable: d.responsable || undefined,
-        observaciones: d.observaciones || undefined,
+        responsable: e.responsable || undefined,
+        responsableEntrega: e.responsableEntrega || undefined,
+        responsableRecepcion: e.responsableRecepcion || undefined,
+        observaciones: e.observaciones || undefined,
       })) : [];
       const detalle: MovimientoDetalle = {
         id: d.idMovimiento,
@@ -246,14 +248,21 @@ export class MovimientoService {
 
   static async updateEstadoMovimiento(
     id: number,
-    data: { estado: 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO'; responsable: string; observaciones?: string }
+    data: (
+      { estado: 'EN_CAMINO' | 'CANCELADO'; responsable: string; observaciones?: string } |
+      { estado: 'ENTREGADO'; responsableEntrega: string; responsableRecepcion: string; observaciones?: string }
+    )
   ): Promise<MovimientoDetalle> {
     try {
-      const payload = {
-        nombreEstado: data.estado.replace(/_/g, ' ').replace(/EN CAMINO/, 'En Camino').replace(/ENTREGADO/, 'Entregado').replace(/CANCELADO/, 'Cancelado'),
-        usuario: data.responsable,
-        observaciones: data.observaciones
-      } as Record<string, unknown>;
+      const nombreEstado = (data as any).estado.replace(/_/g, ' ').replace(/EN CAMINO/, 'En Camino').replace(/ENTREGADO/, 'Entregado').replace(/CANCELADO/, 'Cancelado');
+      const isEntregado = nombreEstado.toLowerCase().includes('entregado');
+      const payload: Record<string, unknown> = { nombreEstado, observaciones: (data as any).observaciones };
+      if (isEntregado) {
+        payload.responsableEntrega = (data as any).responsableEntrega;
+        payload.responsableRecepcion = (data as any).responsableRecepcion;
+      } else {
+        payload.usuario = (data as any).responsable;
+      }
       await axios.post(
         `${API_BASE_URL}/movimientos/${id}/estado`,
         payload,
@@ -303,6 +312,16 @@ export class MovimientoService {
         valido: false, 
         mensaje: 'Error al validar stock' 
       };
+    }
+  }
+
+  static async deleteMovimiento(id: number): Promise<{ ok: boolean }> {
+    try {
+      await axios.delete(`${API_BASE_URL}/movimientos/${id}`, { headers: this.getHeaders() });
+      return { ok: true };
+    } catch (error) {
+      console.error('Error eliminando movimiento:', error);
+      throw error;
     }
   }
 }

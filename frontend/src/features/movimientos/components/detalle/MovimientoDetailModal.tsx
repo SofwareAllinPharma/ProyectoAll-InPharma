@@ -13,7 +13,7 @@ import Button from '../../../../components/ui/Button';
 import ToastContext from '../../../../components/ui/toast/ToastContext';
 import { useContext } from 'react';
 
-export default function MovimientoDetailModal({ open, onClose, movimiento }: { open: boolean; onClose: () => void; movimiento: Movimiento | null }) {
+export default function MovimientoDetailModal({ open, onClose, movimiento, onEstadoChanged }: { open: boolean; onClose: () => void; movimiento: Movimiento | null; onEstadoChanged?: () => void }) {
   const [detalle, setDetalle] = useState<MovimientoDetalle | null>(null);
   const [showConfirm, setShowConfirm] = useState<{to: 'EN_CAMINO'|'ENTREGADO'|'CANCELADO'}|null>(null);
   const toastCtx = useContext(ToastContext);
@@ -124,12 +124,16 @@ export default function MovimientoDetailModal({ open, onClose, movimiento }: { o
           onClose={() => setShowConfirm(null)}
           from={estado.replace(/_/g, ' ')}
           to={(showConfirm?.to || '').replace(/_/g, ' ')}
-          onConfirm={async ({ responsable, observaciones }) => {
+          onConfirm={async (args) => {
             try {
-              const updated = await MovimientoService.updateEstadoMovimiento(movimiento.id, { estado: showConfirm!.to, responsable, observaciones });
+              const payload = showConfirm!.to === 'ENTREGADO'
+                ? { estado: 'ENTREGADO' as const, responsableEntrega: args.responsableEntrega!, responsableRecepcion: args.responsableRecepcion!, observaciones: args.observaciones }
+                : { estado: showConfirm!.to as 'EN_CAMINO'|'CANCELADO', responsable: args.responsable!, observaciones: args.observaciones };
+              const updated = await MovimientoService.updateEstadoMovimiento(movimiento.id, payload);
               setDetalle(updated);
               const toLabel = (showConfirm!.to).replace('EN_CAMINO','En camino').replace('ENTREGADO','Entregado').replace('CANCELADO','Cancelado');
               showToast?.({ type: 'success', title: 'Estado actualizado', message: `Movimiento marcado como ${toLabel}.` });
+              onEstadoChanged?.();
             } catch {
               showToast?.({ type: 'error', title: 'Error', message: 'No se pudo actualizar el estado. Intenta nuevamente.' });
             }

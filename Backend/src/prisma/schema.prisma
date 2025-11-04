@@ -181,6 +181,11 @@ model Cambio_Estado_Movimiento {
   idEstadoMovimiento       Int
   fechaHoraInicio          DateTime
   fechaHoraFin             DateTime?
+  responsable              String?   @db.VarChar(255)
+  // Para estado ENTREGADO: permitir consignar dos responsables distintos
+  responsableEntrega       String?   @db.VarChar(255)
+  responsableRecepcion     String?   @db.VarChar(255)
+  observaciones            String?   @db.Text
 
   estadoMovimiento Estado_Movimiento @relation("estado_cambios", fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
 

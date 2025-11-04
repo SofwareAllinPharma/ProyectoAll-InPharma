@@ -9,13 +9,23 @@ import MovimientosDepositoCell from './MovimientosDepositoCell';
 import MovimientosEstadoCell from './MovimientosEstadoCell';
 // Acciones columna eliminada: ver detalle ahora se hace con click en la fila
 
+import { useState } from 'react';
+import ConfirmDialog from '../../../components/ui/modales/ConfirmDialog';
+import { MovimientoService } from '../services/movimiento.service';
+import { useToast } from '../../../components/ui/toast/ToastContext';
+
 interface Props {
   data: Movimiento[];
   loading?: boolean;
   onVerDetalle: (movimiento: Movimiento) => void;
+  onDeleted?: () => void;
 }
 
-export default function MovimientosTable({ data, loading, onVerDetalle }: Props) {
+export default function MovimientosTable({ data, loading, onVerDetalle, onDeleted }: Props) {
+  const { show } = useToast();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [sel, setSel] = useState<Movimiento | null>(null);
   
   // Definir columnas según orden del documento
   const columns: Column<Movimiento>[] = useMemo(() => [
@@ -83,6 +93,21 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
         <span className="text-sm text-gray-700">{row.responsable || 'N/A'}</span>
       )
     },
+    {
+      key: 'acciones',
+      title: 'Acciones',
+      width: '10%',
+      align: 'center',
+      render: (row) => (
+        <button
+          className="inline-flex items-center px-3 py-1.5 rounded-md border border-red-300 text-red-700 hover:bg-red-50 text-sm"
+          onClick={(e) => { e.stopPropagation(); setSel(row); setConfirmOpen(true); }}
+          title="Eliminar movimiento"
+        >
+          Eliminar
+        </button>
+      )
+    },
   ], []);
 
   if (loading) {
@@ -104,15 +129,42 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      rowKey={(row) => row.id}
-      onRowClick={onVerDetalle}
-      pagination
-      defaultPageSize={10}
-      pageSizeOptions={[5, 10, 20, 50]}
-      emptyState={emptyState}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        rowKey={(row) => row.id}
+        onRowClick={onVerDetalle}
+        pagination
+        defaultPageSize={10}
+        pageSizeOptions={[5, 10, 20, 50]}
+        emptyState={emptyState}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar movimiento"
+        description={<div className="text-sm text-gray-700">Esta acción revertirá los cambios de inventario y eliminará el historial del movimiento.<br/>¿Deseas continuar?</div>}
+        onCancel={() => { setConfirmOpen(false); setSel(null); }}
+        loading={deleting}
+        confirmLabel="Eliminar"
+        onConfirm={async () => {
+          if (!sel) return;
+          try {
+            setDeleting(true);
+            await MovimientoService.deleteMovimiento(sel.id);
+            show({ type: 'success', title: 'Movimiento eliminado', message: 'Se revirtió el inventario y se eliminó el movimiento.' });
+            setConfirmOpen(false);
+            setSel(null);
+            onDeleted?.();
+          } catch (err) {
+            console.error(err);
+            show({ type: 'error', title: 'Error', message: 'No se pudo eliminar el movimiento.' });
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
+    </>
   );
 }

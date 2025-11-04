@@ -89,10 +89,11 @@ export default function MovimientosTab({ idDeposito }: Props) {
           data={movimientos}
           loading={loading}
           onVerDetalle={handleVerDetalle}
+          onDeleted={() => { void recargar(); }}
         />
       </div>
 
-      <MovimientoDetailModal open={detalleOpen} onClose={() => setDetalleOpen(false)} movimiento={movSel} />
+      <MovimientoDetailModal open={detalleOpen} onClose={() => setDetalleOpen(false)} movimiento={movSel} onEstadoChanged={() => { void recargar(); }} />
     </div>
   );
 }
