@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "DEPOSITOS" ADD COLUMN     "esProtegido" BOOLEAN NOT NULL DEFAULT false;

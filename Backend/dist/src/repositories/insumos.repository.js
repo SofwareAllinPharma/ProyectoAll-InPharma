@@ -4,10 +4,10 @@ exports.InsumosRepository = void 0;
 const prisma_1 = require("../lib/prisma");
 class InsumosRepository {
     async findAll() {
-        return prisma_1.prisma.insumo.findMany({
-            where: { activo: true },
-            orderBy: { nombre: "asc" },
-        });
+        // Ordenar por nombre ignorando mayúsculas/minúsculas y usando el nombre real de la tabla
+        return prisma_1.prisma.$queryRaw `
+      SELECT * FROM "INSUMOS" ORDER BY LOWER(nombre) ASC
+    `;
     }
     async findById(id) {
         return prisma_1.prisma.insumo.findUnique({ where: { id } });
@@ -19,7 +19,7 @@ class InsumosRepository {
         return prisma_1.prisma.insumo.update({ where: { id }, data });
     }
     async delete(id) {
-        await prisma_1.prisma.insumo.update({ where: { id }, data: { activo: false } });
+        return prisma_1.prisma.insumo.delete({ where: { id } });
     }
 }
 exports.InsumosRepository = InsumosRepository;

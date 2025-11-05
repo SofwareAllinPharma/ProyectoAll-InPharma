@@ -26,6 +26,9 @@ class PedidosRepository {
         };
     }
     async findById(numPedido) {
+        if (!Number.isInteger(numPedido) || numPedido <= 0) {
+            throw new Error('numPedido inválido');
+        }
         return prisma_1.prisma.pedido.findUnique({
             where: { numPedido },
             include: {

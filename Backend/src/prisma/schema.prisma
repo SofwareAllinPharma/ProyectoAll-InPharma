@@ -193,6 +193,7 @@ model Deposito {
   capacidadTotal Int
   capacidadUsada Int          @default(0)
   estado         Boolean      @default(true)
+  esProtegido    Boolean      @default(false)
   inventario     Inventario[]
 
   @@map("DEPOSITOS")

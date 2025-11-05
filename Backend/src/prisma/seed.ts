@@ -112,53 +112,33 @@ async function main() {
 	})
 	console.log('✔ Seed de INSUMOS ejecutado OK');
     
-	const depositos = [
-		{
-			nombre: "Depósito Central",
-			direccion: "Av. Siempre Viva 123",
-			responsable: "Juan Pérez",
-			capacidadTotal: 5000,
-			capacidadUsada: 0,
-			estado: true,
-		},
-		{
-			nombre: "Depósito Secundario",
-			direccion: "Ruta 9 Km 25",
-			responsable: "María Gómez",
-			capacidadTotal: 2500,
-			capacidadUsada: 0,
-			estado: true,
-		},
-		{
-			nombre: "Fábrica Principal",
-			direccion: "Calle Falsa 456",
-			responsable: "Carlos López",
-			capacidadTotal: 10000,
-			capacidadUsada: 0,
-			estado: true,
-		}
-	];
-	for (const d of depositos) {
-		await prisma.deposito.upsert({
-			where: { nombre: d.nombre },
-			update: { ...d },
-			create: { ...d },
-		});
-	}
-
-    await prisma.deposito.upsert({
-        where: { nombre: "Fábrica" },
-        update: {},
-        create: {
+    const depositos = [
+        {
+            nombre: "Depósito Central",
+            direccion: "Av. Siempre Viva 123",
+            responsable: "Juan Pérez",
+            capacidadTotal: 5000,
+            capacidadUsada: 0,
+            estado: true,
+        },
+        {
             nombre: "Fábrica",
             direccion: "No especificada",
             responsable: "Sistema",
             capacidadTotal: 100000,
             capacidadUsada: 0,
             estado: true,
+            esProtegido: true,
         },
-    });
-	console.log("Seed de DEPOSITOS ejecutado OK (4 en total)");
+    ];
+    for (const d of depositos) {
+        await prisma.deposito.upsert({
+            where: { nombre: d.nombre },
+            update: { ...d },
+            create: { ...d },
+        });
+    }
+    console.log("Seed de DEPOSITOS ejecutado OK (2 en total)");
 
 
 	const insumosNecesariosGlobal = [
@@ -315,9 +295,9 @@ async function main() {
 
 	console.log(`Seed de FORMULAS (${productosParaInventario.length} en total) y PRODUCTOS ejecutado OK`);
 
-	const deps = await prisma.deposito.findMany({
-		where: { nombre: { in: ['Depósito Central', 'Depósito Secundario', 'Fábrica Principal'] } },
-	});
+    const deps = await prisma.deposito.findMany({
+        where: { nombre: { in: ['Depósito Central', 'Fábrica'] } },
+    });
 	const depId = Object.fromEntries(deps.map(d => [d.nombre, d.id]));
 
     const inventarioData = [];
@@ -328,34 +308,24 @@ async function main() {
     for (const prod of productosParaInventario) {
         const qtyCentral = Math.min(initialQtyBase * 3, umbralMaxLimite - 50);
         const umbralMaxCentral = umbralMaxLimite;
-        const qtySecundario = Math.min(initialQtyBase, umbralMaxLimite - 100);
-        const umbralMaxSecundario = umbralMaxLimite / 2;
-        const qtyFabrica = Math.min(initialQtyBase * 5, umbralMaxLimite);
+        const qtyFabrica = Math.min(initialQtyBase * 5, umbralMaxLimite);
         const umbralMaxFabrica = umbralMaxLimite;
 
         // Depósito Central
-        inventarioData.push({ 
-            idDeposito: depId['Depósito Central'], 	
-            idProducto: prod.idProducto, 
-            cantidadProducto: qtyCentral, 
-            umbralMin: umbralMinBase * 2, 
-            umbralMax: umbralMaxCentral 
-        });
-        inventarioData.push({ 
-            idDeposito: depId['Fábrica Principal'], 	
-            idProducto: prod.idProducto, 
-            cantidadProducto: qtyFabrica, 
-            umbralMin: umbralMinBase * 3, 
-            umbralMax: umbralMaxFabrica 
-        });
-        // Depósito Secundario
-        inventarioData.push({ 
-            idDeposito: depId['Depósito Secundario'], 
-            idProducto: prod.idProducto, 
-            cantidadProducto: qtySecundario, 
-            umbralMin: umbralMinBase, 
-            umbralMax: umbralMaxSecundario 
-        });
+        inventarioData.push({	
+            idDeposito: depId['Depósito Central'], 	
+            idProducto: prod.idProducto,	
+            cantidadProducto: qtyCentral,	
+            umbralMin: umbralMinBase * 2,	
+            umbralMax: umbralMaxCentral 
+        });
+        inventarioData.push({	
+            idDeposito: depId['Fábrica'], 	
+            idProducto: prod.idProducto,	
+            cantidadProducto: qtyFabrica,	
+            umbralMin: umbralMinBase * 3,	
+            umbralMax: umbralMaxFabrica 
+        });
 
         initialQtyBase = (initialQtyBase % 20) + 10;
         umbralMinBase = (umbralMinBase % 8) + 3;
@@ -365,7 +335,7 @@ async function main() {
 		data: inventarioData,
 		skipDuplicates: true,
 	});
-	console.log(`Seed de INVENTARIO (23 productos configurados en 3 depósitos con Umbral Max <= ${umbralMaxLimite}) ejecutado OK`);
+    console.log(`Seed de INVENTARIO (23 productos configurados en 2 depósitos con Umbral Max <= ${umbralMaxLimite}) ejecutado OK`);
 
 
 	const estadoCreado = await prisma.estado_Movimiento.upsert({
