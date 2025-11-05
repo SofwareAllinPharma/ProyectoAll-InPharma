@@ -8,22 +8,20 @@ datasource db {
 }
 
 model Usuario {
-  mail       String @id @db.VarChar(255)
-  contrasena String @map("contraseña") @db.VarChar(255)
-
-  persona       Persona?
-  sesiones      Sesion[]
-  perfiles      UsuarioPerfil[]
+  mail       String  @id @db.VarChar(255)
+  contrasena String  @map("contraseña") @db.VarChar(255)
+  persona    Persona?
+  sesiones   Sesion[]
+  perfiles   UsuarioPerfil[]
   passwordReset PasswordReset?
 
   @@map("USUARIO")
 }
 
 model Persona {
-  dni     String  @id @db.VarChar(32)
-  mail    String  @unique @db.VarChar(255)
-  usuario Usuario @relation(fields: [mail], references: [mail])
-
+  dni      String  @id @db.VarChar(32)
+  mail     String  @unique @db.VarChar(255)
+  usuario  Usuario @relation(fields: [mail], references: [mail])
   nombre   String? @db.VarChar(120)
   apellido String? @db.VarChar(120)
   telefono String? @db.VarChar(40)
@@ -32,9 +30,8 @@ model Persona {
 }
 
 model Sesion {
-  email   String  @db.VarChar(255)
-  usuario Usuario @relation(fields: [email], references: [mail])
-
+  email           String    @db.VarChar(255)
+  usuario         Usuario   @relation(fields: [email], references: [mail])
   fechaHoraInicio DateTime
   fechaHoraFin    DateTime?
 
@@ -44,11 +41,10 @@ model Sesion {
 }
 
 model Perfil {
-  id          Int     @id @default(autoincrement())
-  nombre      String  @db.VarChar(120)
-  descripcion String? @db.VarChar(255)
-
-  usuarios UsuarioPerfil[]
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(120)
+  descripcion String?  @db.VarChar(255)
+  usuarios    UsuarioPerfil[]
 
   @@map("PERFIL")
 }
@@ -56,11 +52,10 @@ model Perfil {
 model UsuarioPerfil {
   mail     String
   idPerfil Int
+  usuario  Usuario @relation(fields: [mail], references: [mail])
+  perfil   Perfil  @relation(fields: [idPerfil], references: [id])
 
-  usuario Usuario @relation(fields: [mail], references: [mail])
-  perfil  Perfil  @relation(fields: [idPerfil], references: [id])
-
-  // Back-relations para pedidos: creados y como cocinero
+  // Relaciones de Pedidos (Archivo 2)
   pedidosCreados  Pedido[] @relation("Pedido_Creador")
   pedidosCocinero Pedido[] @relation("Pedido_Cocinero")
 
@@ -101,8 +96,7 @@ model Insumo {
 
 model Formula {
   id             Int             @id @default(autoincrement())
-  // Quitar @unique para permitir nombres repetidos cuando haya inactivos
-  nombre         String
+  nombre         String          
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -119,10 +113,8 @@ model Formula {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   formulaInsumos FormulaInsumo[]
+  Producto       Producto[]
 
-  Producto Producto[]
-
-  // Índice no único para búsquedas por nombre y estado
   @@index([nombre, activo])
   @@map("FORMULA")
 }
@@ -138,33 +130,84 @@ model FormulaInsumo {
   @@map("FORMULAINSUMO")
 }
 
+model Tipos_Movimiento {
+  idTipoMovimiento Int                   @id @default(autoincrement())
+  nombre           String                @db.VarChar(120) @unique
+  movimientos      Movimiento_Producto[]
+
+  @@map("TIPOS_MOVIMIENTO")
+}
+
+model Movimiento_Producto {
+  idMovimiento           Int       @id @default(autoincrement())
+  fechaHoraActualizacion DateTime  @default(now())
+  idDepositoOrigen       Int
+  idProducto             Int
+  idDepositoDestino      Int?
+  cantidad               Int
+  responsable            String    @db.VarChar(255)
+  observaciones          String?   @db.Text
+  idTipoMovimiento       Int
+  inventarioOrigen       Inventario @relation("MovimientosOrigen", fields: [idDepositoOrigen, idProducto], references: [idDeposito, idProducto])
+  inventarioDestino      Inventario? @relation("MovimientosDestino", fields: [idDepositoDestino, idProducto], references: [idDeposito, idProducto])
+  tipoMovimiento         Tipos_Movimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+  cambiosDeEstado        Cambio_Estado_Movimiento[]
+
+  @@index([idDepositoOrigen, idProducto])
+  @@index([idDepositoDestino, idProducto])
+  @@index([idTipoMovimiento])
+  @@map("MOVIMIENTO_PRODUCTO")
+}
+
+model Estado_Movimiento {
+  idEstadoMovimiento Int                          @id @default(autoincrement())
+  nombre             String                       @db.VarChar(120) @unique
+  cambios            Cambio_Estado_Movimiento[] @relation("estado_cambios")
+
+  @@map("ESTADO_MOVIMIENTO")
+}
+
+model Cambio_Estado_Movimiento {
+  idCambioEstadoMovimiento Int               @id @default(autoincrement())
+  idEstadoMovimiento       Int
+  fechaHoraInicio          DateTime
+  fechaHoraFin             DateTime?
+  responsable              String?           @db.VarChar(255)
+  responsableEntrega       String?           @db.VarChar(255)
+  responsableRecepcion     String?           @db.VarChar(255)
+  observaciones            String?           @db.Text
+  estadoMovimiento         Estado_Movimiento @relation("estado_cambios", fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
+  idMovimiento             Int
+  movimiento               Movimiento_Producto @relation(fields: [idMovimiento], references: [idMovimiento])
+
+  @@index([idEstadoMovimiento])
+  @@index([idMovimiento])
+  @@map("CAMBIO_ESTADO_MOVIMIENTO")
+}
+
 model Deposito {
-  id             Int     @id @default(autoincrement())
-  nombre         String  @unique
+  id             Int          @id @default(autoincrement())
+  nombre         String       @unique
   direccion      String
   responsable    String
   capacidadTotal Int
-  capacidadUsada Int     @default(0)
-  estado         Boolean @default(true)
-
-  inventario Inventario[]
+  capacidadUsada Int          @default(0)
+  estado         Boolean      @default(true)
+  inventario     Inventario[]
 
   @@map("DEPOSITOS")
 }
 
 model Producto {
-  idProducto             Int     @id @default(autoincrement())
+  idProducto             Int          @id @default(autoincrement())
   idFormula              Int
-  // Quitar @unique (si permites mismo nombre para inactivos)
-  nombreComercial        String
+  nombreComercial        String       
   pesoNeto               Float
   cantPorcionesAportadas Int
-  estaActivo             Boolean @default(true)
-  formula                Formula @relation(fields: [idFormula], references: [id])
-
-  inventario Inventario[]
-  // Back-relation requerida para la relación 1:N con Pedido
-  pedidos    Pedido[]
+  estaActivo             Boolean      @default(true)
+  formula                Formula      @relation(fields: [idFormula], references: [id])
+  inventario             Inventario[]
+  pedidos                Pedido[]     
 
   @@index([nombreComercial, estaActivo])
   @@map("PRODUCTOS")
@@ -173,13 +216,15 @@ model Producto {
 model Inventario {
   idDeposito Int
   idProducto Int
+  deposito   Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  producto   Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
+  cantidadProducto     Int      @default(0)
+  umbralMin            Int      @default(0)
+  umbralMax            Int?
 
-  deposito Deposito @relation(fields: [idDeposito], references: [id], onUpdate: Cascade, onDelete: Restrict)
-  producto Producto @relation(fields: [idProducto], references: [idProducto], onUpdate: Cascade, onDelete: Restrict)
-
-  cantidadProducto Int  @default(0)
-  umbralMin        Int  @default(0)
-  umbralMax        Int?
+  // Relaciones de Movimientos (Archivo 1)
+  movimientosComoOrigen  Movimiento_Producto[] @relation("MovimientosOrigen")
+  movimientosComoDestino Movimiento_Producto[] @relation("MovimientosDestino")
 
   @@id([idDeposito, idProducto])
   @@index([idDeposito])
@@ -197,19 +242,14 @@ model EstadoPedido {
 }
 
 model CambioEstadoPedido {
-  idCambioEstado  Int       @id @default(autoincrement())
-  idPedido        Int
-  idEstadoPedido  Int
-  fechaHoraInicio DateTime
-  fechaHoraFin    DateTime?
-
-  // Historial (N:1) hacia Pedido
-  pedido Pedido @relation("Pedido_Historial", fields: [idPedido], references: [numPedido])
-
-  // Back-relation del puntero al cambio actual (1:1)
-  pedidoActualDe Pedido? @relation("Pedido_CambioActual")
-
-  estado EstadoPedido @relation(fields: [idEstadoPedido], references: [id])
+  idCambioEstado   Int          @id @default(autoincrement())
+  idPedido         Int
+  idEstadoPedido   Int
+  fechaHoraInicio  DateTime
+  fechaHoraFin     DateTime?
+  pedido           Pedido       @relation("Pedido_Historial", fields: [idPedido], references: [numPedido])
+  pedidoActualDe   Pedido?      @relation("Pedido_CambioActual")
+  estado           EstadoPedido @relation(fields: [idEstadoPedido], references: [id])
 
   @@index([idPedido])
   @@index([idEstadoPedido])
@@ -217,33 +257,25 @@ model CambioEstadoPedido {
 }
 
 model Pedido {
-  numPedido               Int      @id @default(autoincrement())
-  idProducto              Int
-  cantAProducir_gramos    Float
-  cantAProducir_paquetes  Float
-  cantAProducir_porciones Float
-  observacion             String?
-  idCambioEstadoPedido    Int?     @unique // ← debe ser único para relación 1:1
-  mailUsuarioCreador      String
-  idPerfilCreador         Int
-  mailUsuarioCocinero     String?
-  idPerfilCocinero        Int?
-  estaAsignado            Boolean  @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-  // Producto (1:N)
-  producto Producto @relation(fields: [idProducto], references: [idProducto])
-
-  // Cambio actual (1:1) usando el campo único
-  cambioActual CambioEstadoPedido? @relation("Pedido_CambioActual", fields: [idCambioEstadoPedido], references: [idCambioEstado])
-
-  // Historial (1:N)
-  cambios CambioEstadoPedido[] @relation("Pedido_Historial")
-
-  // Relaciones compuestas a USUARIOxPERFIL (creador y cocinero)
-  creador  UsuarioPerfil  @relation("Pedido_Creador", fields: [mailUsuarioCreador, idPerfilCreador], references: [mail, idPerfil])
-  cocinero UsuarioPerfil? @relation("Pedido_Cocinero", fields: [mailUsuarioCocinero, idPerfilCocinero], references: [mail, idPerfil])
+  numPedido                Int                   @id @default(autoincrement())
+  idProducto               Int
+  cantAProducir_gramos     Float
+  cantAProducir_paquetes   Float
+  cantAProducir_porciones  Float
+  observacion              String?
+  idCambioEstadoPedido     Int?                  @unique
+  mailUsuarioCreador       String
+  idPerfilCreador          Int
+  mailUsuarioCocinero      String?
+  idPerfilCocinero         Int?
+  estaAsignado             Boolean               @default(false)
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  producto                 Producto              @relation(fields: [idProducto], references: [idProducto])
+  cambioActual             CambioEstadoPedido?   @relation("Pedido_CambioActual", fields: [idCambioEstadoPedido], references: [idCambioEstado])
+  cambios                  CambioEstadoPedido[]  @relation("Pedido_Historial")
+  creador                  UsuarioPerfil         @relation("Pedido_Creador", fields: [mailUsuarioCreador, idPerfilCreador], references: [mail, idPerfil])
+  cocinero                 UsuarioPerfil?        @relation("Pedido_Cocinero", fields: [mailUsuarioCocinero, idPerfilCocinero], references: [mail, idPerfil])
 
   @@index([estaAsignado, createdAt])
   @@index([idProducto])

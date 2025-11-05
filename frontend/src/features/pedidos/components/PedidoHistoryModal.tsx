@@ -24,7 +24,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
   if (!isOpen || !pedido) return null;
 
   const cambios: CambioEstado[] = pedido.cambios ?? [];
-  // Order by fechaHoraInicio asc
   cambios.sort(
     (a, b) =>
       new Date(a.fechaHoraInicio).getTime() -
@@ -34,7 +33,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
   const currentState = pedido.cambioActual?.estado?.nombre || "";
   const userProfile = localStorage.getItem("userPerfil") || "";
 
-  // Determinar acciones disponibles según el estado actual
   const getAvailableActions = () => {
     const actions: Array<{ label: string; action: string; variant?: string }> =
       [];
@@ -42,25 +40,21 @@ const PedidoHistoryModal: React.FC<Props> = ({
     switch (currentState) {
       case "Pendiente":
         if (userProfile === "3" || userProfile === "2") {
-          // tecnico o adminfab
           actions.push({ label: "Tomar Pedido", action: "tomar" });
         }
         break;
       case "Asignado":
         if (userProfile === "3") {
-          // tecnico
           actions.push({ label: "Iniciar Elaboración", action: "iniciar" });
         }
         break;
       case "En elaboracion":
         if (userProfile === "3") {
-          // tecnico
           actions.push({ label: "Finalizar Elaboración", action: "finalizar" });
         }
         break;
       case "Finalizado":
         if (userProfile === "2") {
-          // adminfab
           actions.push({ label: "Aprobar", action: "aprobar" });
           actions.push({
             label: "Rechazar",
@@ -133,7 +127,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
           Pedido #{pedido.numPedido} - {pedido.producto?.nombreComercial}
         </ModalHeader>
 
-        {/* Información del pedido */}
         <div className="mt-4 bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -183,7 +176,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Historial de cambios */}
         <div className="mt-6">
           <h4 className="font-medium text-gray-900 mb-3">
             Historial de Estados
@@ -221,7 +213,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Acciones disponibles */}
         {availableActions.length > 0 && (
           <div className="mt-6 pt-4 border-t">
             <h4 className="font-medium text-gray-900 mb-3">
@@ -246,7 +237,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Footer */}
         <div className="mt-6 pt-4 border-t flex justify-end">
           <button
             className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"

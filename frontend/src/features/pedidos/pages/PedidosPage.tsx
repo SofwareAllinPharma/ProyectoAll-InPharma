@@ -5,7 +5,6 @@ import type { Column } from "../../../components/ui/DataTable";
 import { PedidoService } from "../services/pedido.service";
 import type { Pedido, CreatePedidoRequest } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
-// link not required here; modal opens instead of navigating to a route
 import PedidoDetailModal from '../components/PedidoDetailModal';
 import PedidoAccionesCell from '../components/table/PedidoAccionesCell';
 import PedidoFormModal from "../components/form/PedidoFormModal";
@@ -26,28 +25,18 @@ const PedidosPage: React.FC = () => {
   
   const { show } = useToast();
 
-  // Obtener el perfil del usuario para determinar qué puede ver/hacer
   const userProfile = localStorage.getItem("userPerfil") || "";
-  // Perfiles: 1=tecnico, 2=adminfab, 3=adminsis
   const profileNum = Number(userProfile || 0);
-  // admin detection kept for reference if needed later
-  // const isAdmin = profileNum === 2 || profileNum === 3; // adminfab o adminsis
-  // profile helpers
-
-  // Filtrar pedidos según el filtro seleccionado (usamos los nombres de estados del backend)
   
 
   const filteredPedidos = pedidos.filter((pedido) => {
     const estado = pedido.cambioActual?.estado?.nombre || "";
     switch (filter) {
       case "pendientes":
-        // 'Creado' en backend
         return estado === "Creado";
       case "asignados":
-        // estados en elaboración o simplemente asignados
         return estado === "EnElaboración" || pedido.estaAsignado === true || estado === "EnElaboración";
       case "finalizados":
-        // finalizado o cancelado (o depositado en fábrica)
         return (
           estado === "ElaboradoYDepositadoEnFábrica" || estado === "Cancelado"
         );
@@ -83,7 +72,6 @@ const PedidosPage: React.FC = () => {
     );
   });
 
-  // Sort by creation date using the select control (asc/desc)
   const sortedPedidos = visiblePedidos.slice().sort((a, b) => {
     const aDate = new Date(a.createdAt).getTime();
     const bDate = new Date(b.createdAt).getTime();
@@ -94,7 +82,6 @@ const PedidosPage: React.FC = () => {
     setLoading(true);
     try {
       const data = await PedidoService.list(1, 200);
-      // ordenar por createdAt (más viejos arriba)
       data.sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -132,12 +119,9 @@ const PedidosPage: React.FC = () => {
     }
   };
 
-  // Determinar qué acciones puede realizar el usuario según su rol
-  // FORZAR visibilidad del botón de creación (temporal for QA/development).
   const canCreatePedidos = true;
 
   const getEstadoBadge = (estado: string) => {
-    // Mapear estados robustamente (normalizando texto) a etiquetas y estilos amigables
     const normalize = (s: string) =>
       s
         .normalize('NFD')
@@ -236,10 +220,8 @@ const PedidosPage: React.FC = () => {
       loading={loading}
       noContainer
     >
-      {/* Estadísticas */}
       <PedidoStats pedidos={pedidos} />
 
-      {/* Botón Crear visible en la UI (además del de PageShell) */}
       {canCreatePedidos ? (
         <div className="mb-4">
           <button
@@ -257,12 +239,10 @@ const PedidosPage: React.FC = () => {
           <div className="text-sm text-gray-500">
             El botón <strong>Crear Pedido</strong> se muestra solo para administradores.
             Perfil actual: <strong>{profileNum || 'no definido'}</strong>.
-            {/* Nota: el botón está forzado para QA en esta rama; desactivar después de pruebas. */}
           </div>
         </div>
       )}
 
-      {/* Filtros + búsqueda */}
       <div className="mb-4 flex gap-2 flex-wrap items-center justify-between">
           <div className="flex items-center gap-2">
           <input
@@ -310,7 +290,6 @@ const PedidosPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Formulario modal */}
       {canCreatePedidos && (
         <PedidoFormModal
           isOpen={modals.form}
@@ -319,7 +298,6 @@ const PedidosPage: React.FC = () => {
         />
       )}
 
-      {/* Tabla de pedidos */}
       <div className="bg-white rounded-lg shadow-sm p-4">
         <DataTable
           columns={columns}
@@ -331,7 +309,6 @@ const PedidosPage: React.FC = () => {
         />
       </div>
 
-      {/* Modal de historial */}
       <PedidoHistoryModal
         isOpen={modals.history}
         pedido={selected ?? undefined}
@@ -339,7 +316,6 @@ const PedidosPage: React.FC = () => {
         onRefresh={load}
       />
 
-      {/* Modal detalle pedido */}
       <PedidoDetailModal
         isOpen={modals.detail}
         pedido={selected}

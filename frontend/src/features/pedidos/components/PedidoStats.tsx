@@ -9,7 +9,6 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
   const stats = pedidos.reduce(
     (acc, pedido) => {
       const raw = pedido.cambioActual?.estado?.nombre || '';
-      // normalize state string to be tolerant to accents/case/spacing
       const normalize = (s: string) =>
         s
           .normalize('NFD')
@@ -17,7 +16,6 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
           .replace(/\s+/g, '')
           .toLowerCase();
       const st = normalize(raw);
-      // Map possible backend state names to our counters
       if (st === 'creado' || st === 'pendiente') acc.pendientes++;
   else if (st === 'asignado' || pedido.estaAsignado === true) acc.asignados++;
   else if (st === 'enelaboracion' || st === 'enproceso') acc.enProceso++;

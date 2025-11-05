@@ -31,7 +31,6 @@ class PedidoServiceClass {
   async list(pagina = 1, pageSize = 50): Promise<Pedido[]> {
     const q = `?pagina=${pagina}&pageSize=${pageSize}`;
     const res = await this.request<any>(`/pedidos${q}`);
-    // Backend returns { items, total, pagina, pageSize, paginas }
     if (res && Array.isArray(res.items)) return res.items as Pedido[];
     if (Array.isArray(res)) return res as Pedido[];
     return [] as Pedido[];
@@ -55,12 +54,10 @@ class PedidoServiceClass {
     });
   }
 
-  // Métodos simplificados para las acciones del workflow
   async tomarPedido(numPedido: number): Promise<Pedido> {
     const userMail = localStorage.getItem("userMail") || "tecnico@aip.com";
     const userPerfil = Number(localStorage.getItem("userPerfil")) || 1;
 
-    // Backend espera { mailUsuarioCocinero, idPerfilCocinero }
     return this.request<Pedido>(`/pedidos/${numPedido}/tomar`, {
       method: "POST",
       body: JSON.stringify({

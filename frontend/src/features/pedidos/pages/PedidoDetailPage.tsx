@@ -89,7 +89,6 @@ export default function PedidoDetailPage() {
     }
   };
 
-  // Helpers
   const estadoActual = pedido?.cambioActual?.estado?.nombre ?? '';
 
   type FormulaInsumo = { idInsumo: number; cantidadInsumo: number; insumo?: { nombre?: string } };
@@ -111,7 +110,6 @@ export default function PedidoDetailPage() {
         preTitle={<div><button className="text-[#7C6A55] hover:underline text-sm" onClick={() => navigate(-1)}>← Volver a la lista</button></div>}
         extraActions={
           <div className="flex items-center gap-2">
-            {/* Print omitted per request */}
             {pedido && estadoActual === 'Creado' && !pedido.estaAsignado && isTecnico && (
               <Button onClick={busy ? undefined : onTomar} className={`px-4 ${busy ? 'opacity-60 pointer-events-none' : ''}`} ariaLabel="Tomar pedido">Tomar pedido</Button>
             )}

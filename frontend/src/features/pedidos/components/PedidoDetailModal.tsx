@@ -24,19 +24,16 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
   const [productoDetalle, setProductoDetalle] = useState<Producto | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // If pedido.producto.formula.insumos is empty, try fetching full producto to get the formula/insumos
   useEffect(() => {
     if (!pedido) return;
     const prod = pedido.producto as unknown as { formula?: { insumos?: unknown[] } };
     const hasInsumos = Array.isArray(prod?.formula?.insumos) && prod?.formula?.insumos.length > 0;
     if (!hasInsumos) {
-      // fetch product detail
       (async () => {
         try {
           const p = await ProductoService.getProductoById(pedido.idProducto);
           setProductoDetalle(p);
         } catch {
-          // silently ignore; computeInsumos will show empty
         }
       })();
     }
@@ -44,7 +41,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
 
   if (!isOpen || !pedido) return null;
 
-  // user profile: 1=tecnico,2=adminfab,3=adminsis
   const userProfile = Number(localStorage.getItem('userPerfil') || 0);
   const isTecnico = userProfile === 1;
   const isAdminFab = userProfile === 2;
@@ -65,7 +61,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
     const n = Number(v);
     if (Number.isNaN(n)) return String(v);
     if (Number.isInteger(n)) return String(n);
-    // show up to 4 decimals, trim trailing zeros
     return Number(n.toFixed(4)).toString();
   };
 
@@ -105,7 +100,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
         <span className="text-2xl">Pedido PED-{pedido.numPedido}</span>
       </ModalHeader>
 
-      {/* If parent passes loading, show a simple placeholder */}
       {loading ? (
         <div className="p-8 flex flex-col items-center justify-center flex-1">
           <div className="mb-4 text-lg">Cargando pedido…</div>
@@ -115,7 +109,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            {/* Reuse ProductInfoCard used in Productos for consistent look */}
             {pedido.producto && (() => {
               const grams = Number(pedido.cantAProducir_gramos) || 0;
               const portions = Number(pedido.cantAProducir_porciones) || 0;
@@ -160,7 +153,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
             <div className="bg-gray-50 border rounded p-4">
               <h3 className="font-semibold mb-2">Estado del Pedido</h3>
               <div className="mt-2">
-                {/* prominent estado */}
                 {(() => {
                   const info = estadoInfo(pedido.cambioActual?.estado?.nombre);
                   return <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${info.cls}`}>{info.label}</div>;
@@ -171,8 +163,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
               <div className="mt-2 text-sm">Técnico asignado</div>
               <div className="mt-1">{formatUserName(pedido.mailUsuarioCocinero ?? undefined)}</div>
 
-              {/* Debug logs removed */}
-              {/* Actions: show inside the consult modal according to roles and estado */}
               <div className="mt-4 flex flex-col gap-2">
                 {pedido.cambioActual?.estado?.nombre === 'Creado' && !pedido.estaAsignado && (isTecnico || isAdminFab || isAdminSis) && (
                   <button
@@ -183,7 +173,6 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
                         await PedidoService.tomarPedido(pedido.numPedido);
                         if (typeof onRefresh === 'function') await onRefresh();
                       } catch {
-                        // show a toast via parent if desired; we have no show here
                       } finally {
                         setBusy(false);
                       }

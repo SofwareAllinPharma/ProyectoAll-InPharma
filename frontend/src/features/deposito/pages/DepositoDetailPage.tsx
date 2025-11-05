@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
+import RegistroMovimientoModal from '../../movimientos/components/RegistroMovimientoModal.tsx';
 import NotImplementedModal from '../components/NotImplementedModal';
 import DepositoFormModal from '../components/DepositoFormModal';
 import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
@@ -24,7 +25,7 @@ export default function DepositoDetailPage() {
     setShowDeleteConfirm,
     showTrasladoModal,
     setShowTrasladoModal,
-    showPedidoModal,
+    showPedidoModal, 
     setShowPedidoModal,
     inventario,
     loadingInventario,
@@ -78,11 +79,9 @@ export default function DepositoDetailPage() {
               onClose={() => setShowUmbrales(false)}
               onSuccess={async () => {
                 setShowUmbrales(false);
-                // refresh table and resumen, then show toast
                 try {
                   await Promise.all([refreshInventario?.(), refreshResumen?.()]);
                 } catch {
-                  // ignore refresh errors
                 }
                 show({ message: 'Umbrales actualizados correctamente', type: 'success' });
               }}
@@ -92,12 +91,14 @@ export default function DepositoDetailPage() {
 
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
-            <NotImplementedModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} title="Funcionalidad no implementada" message={`La funcionalidad de "Registrar Traslado" aún no está implementada.`} />
+            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} />
+            
             <NotImplementedModal open={showPedidoModal} onClose={() => setShowPedidoModal(false)} title="Funcionalidad no implementada" message={`La funcionalidad de "Registrar Pedido" aún no está implementada.`} />
+            
           </>
         }
       >
-  <DepositoDetailHeader dep={dep} capacidadUsada={capacidadUsada} onEdit={() => setOpenForm(true)} onShowUmbrales={() => setShowUmbrales(true)} onShowDelete={() => setShowDeleteConfirm(true)} />
+        <DepositoDetailHeader dep={dep} capacidadUsada={capacidadUsada} onEdit={() => setOpenForm(true)} onShowUmbrales={() => setShowUmbrales(true)} onShowDelete={() => setShowDeleteConfirm(true)} />
 
         <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => setShowPedidoModal(true)} onMovimientoStock={() => setShowTrasladoModal(true)} />
       </PageShell>
