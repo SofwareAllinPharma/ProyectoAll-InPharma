@@ -24,7 +24,7 @@ export default function StockGlobalTab({
           Stock Global de Productos
         </h2>
         <p className="text-sm text-gray-600 mt-1">
-          Vista consolidada del inventario en todos los depósitos
+          Vista consolidada del stock en todos los depósitos
         </p>
       </div>
 

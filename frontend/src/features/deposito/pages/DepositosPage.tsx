@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import DepositoFormModal from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -12,6 +13,7 @@ import StockGlobalTab from './StockGlobalTab';
 import MovimientosTab from '../../movimientos/pages/MovimientosTab';
 
 export default function DepositosPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
 
   const {
@@ -36,7 +38,7 @@ export default function DepositosPage() {
     <div className="space-y-6">
       <PageShell
         title="Depósitos"
-        subtitle="Gestión de depósitos y su inventario"
+  subtitle="Gestión de depósitos y su stock"
         loading={loading}
         noContainer={true}
         onCreate={() => setOpenCreate(true)}
@@ -84,7 +86,7 @@ export default function DepositosPage() {
               ) : (
                 <DepositoGridWithCapacidad
                   items={items}
-                  onOpenDetail={(id: number) => window.location.href = `/adminsis/depositos/${id}`}
+                  onOpenDetail={(id: number) => navigate(`/adminsis/depositos/${id}`)}
                   onDelete={(deposito: Deposito) => setDeleteTarget(deposito)}
                 />
               )}

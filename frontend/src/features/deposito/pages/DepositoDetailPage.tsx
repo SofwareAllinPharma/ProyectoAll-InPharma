@@ -93,7 +93,16 @@ export default function DepositoDetailPage() {
           </>
         }
       >
-        <DepositoDetailHeader dep={dep} capacidadUsada={capacidadUsada} onEdit={() => setOpenForm(true)} onShowUmbrales={() => setShowUmbrales(true)} onShowDelete={() => setShowDeleteConfirm(true)} />
+        <DepositoDetailHeader
+          dep={dep}
+          capacidadUsada={capacidadUsada}
+          onEdit={() => setOpenForm(true)}
+          onShowUmbrales={() => setShowUmbrales(true)}
+          onShowDelete={() => {
+            if (dep.esProtegido || dep.nombre === 'Fábrica') return;
+            setShowDeleteConfirm(true);
+          }}
+        />
 
         <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => setShowPedidoModal(true)} onMovimientoStock={() => setShowTrasladoModal(true)} />
       </PageShell>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Movimiento, MovimientoFilters, MovimientosResumen } from '../types/movimiento.types';
 import { MovimientoService } from '../services/movimiento.service';
 
@@ -38,7 +38,11 @@ export function useMovimientos(idDeposito?: number) {
     }
   }, [idDeposito]);
 
+  // Evita doble llamada inicial en modo desarrollo con React.StrictMode
+  const didInit = useRef(false);
   useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
     void loadFromApi();
   }, [loadFromApi]);
 

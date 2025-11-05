@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MovimientosCards from '../components/MovimientosCards';
 import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
@@ -29,7 +29,15 @@ export default function MovimientosTab({ idDeposito }: Props) {
     fechaHasta: ''
   });
 
+  // Evitar doble llamada al cargar la pestaña (mount):
+  // useMovimientos ya hace una carga inicial; este debounce para filtros
+  // se saltea la primera vez para no duplicar requests
+  const firstFiltersEffect = useRef(true);
   useEffect(() => {
+    if (firstFiltersEffect.current) {
+      firstFiltersEffect.current = false;
+      return;
+    }
     // Debounce filter changes to avoid blocking typing and rapid re-requests
     const t = setTimeout(() => {
       void filtrarMovimientos(filters);
@@ -53,8 +61,8 @@ export default function MovimientosTab({ idDeposito }: Props) {
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             {idDeposito 
-              ? 'Movimientos de Inventario' 
-              : 'Movimientos Globales de Inventario'
+              ? 'Movimientos de Stock' 
+              : 'Movimientos Globales de Stock'
             }
           </h2>
           <p className="text-sm text-gray-600 mt-1">

@@ -90,7 +90,7 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
                 onEstadoChange={v => setEstadoFilter(v)}
             />
             {loading ? (
-                <div className="p-6 text-center text-gray-600">Cargando inventario...</div>
+                <div className="p-6 text-center text-gray-600">Cargando stock...</div>
             ) : (
                 <DataTable
                     data={filtered}

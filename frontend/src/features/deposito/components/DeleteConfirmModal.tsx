@@ -11,6 +11,7 @@ interface DeleteConfirmModalProps {
 
 export default function DeleteConfirmModal({ open, deposito, onConfirm, onCancel, loading = false }: DeleteConfirmModalProps) {
   if (!open || !deposito) return null;
+  if (deposito.esProtegido || deposito.nombre === 'Fábrica') return null;
 
   const handleConfirm = () => {
     if (deposito) onConfirm(deposito);
