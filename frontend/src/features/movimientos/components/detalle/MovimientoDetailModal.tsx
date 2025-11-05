@@ -7,7 +7,7 @@ import type { Movimiento } from '../../types/movimiento.types';
 import { useEffect, useState } from 'react';
 import { MovimientoService } from '../../services/movimiento.service';
 import type { MovimientoDetalle } from '../../types/movimiento.detalle.types.ts';
-import MovimientoTimeline from './MovimientoTimeline';
+import MovimientoHistory from './MovimientoHistory';
 import ConfirmarCambioEstadoModal from './ConfirmarCambioEstadoModal';
 import Button from '../../../../components/ui/Button';
 import ToastContext from '../../../../components/ui/toast/ToastContext';
@@ -107,7 +107,7 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
           <section className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
             <div className="text-sm font-medium text-gray-700 mb-1">Historial de estados</div>
             {detalle ? (
-              <MovimientoTimeline events={detalle.historial} />
+              <MovimientoHistory events={detalle.historial} />
             ) : (
               <div className="text-sm text-gray-500">Cargando historial…</div>
             )}

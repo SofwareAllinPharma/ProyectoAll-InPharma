@@ -474,7 +474,8 @@ export class MovimientoService {
                 // Actualizar marca de tiempo global de stock para el producto
                 await tx.producto.update({
                     where: { idProducto },
-                    data: { lastStockUpdatedAt: now }
+                    // Nota: casteo para evitar error de tipos cuando Prisma Client no está regenerado en Windows (EPERM)
+                    data: ({ lastStockUpdatedAt: now } as any)
                 });
             }
 
