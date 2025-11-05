@@ -89,7 +89,7 @@ export default function DepositoDetailPage() {
 
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
-            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} />
+            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} defaultDepOrigen={{ id: dep.id, nombre: dep.nombre }} />
           </>
         }
       >

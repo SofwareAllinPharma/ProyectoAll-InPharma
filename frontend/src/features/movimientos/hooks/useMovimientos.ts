@@ -16,16 +16,31 @@ export function useMovimientos(idDeposito?: number) {
     setLoading(true);
     setError(null);
     try {
+      // Validación de rango de fechas en el cliente
+      if (filters?.fechaDesde && filters?.fechaHasta) {
+        const from = new Date(filters.fechaDesde);
+        const to = new Date(filters.fechaHasta);
+        if (!isNaN(from.getTime()) && !isNaN(to.getTime()) && from > to) {
+          setMovimientos([]);
+          setResumen(calculateResumen([]));
+          setError('La fecha Desde no puede ser posterior a la fecha Hasta');
+          return;
+        }
+      }
       const finalFilters = { ...(filters || {}), ...(idDeposito ? { idDeposito } : {}) } as MovimientoFilters;
       const data = await MovimientoService.getAllMovimientos(finalFilters);
       // Aplicar filtro por tipo en cliente (el backend no lo soporta aún)
       const dataFiltrada = finalFilters.tipo ? (data || []).filter(m => m.tipo === finalFilters.tipo) : (data || []);
-      // Ordenar: todos menos CANCELADO primero, CANCELADO al final (manteniendo orden original entre iguales)
+      // Ordenar por fecha de actualización (desc). Si no hay, usar fecha de creación como fallback.
+      const toTs = (s?: string | null) => {
+        if (!s) return 0;
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      };
       const sorted = (dataFiltrada || []).slice().sort((a, b) => {
-        const aC = a.estado === 'CANCELADO' ? 1 : 0;
-        const bC = b.estado === 'CANCELADO' ? 1 : 0;
-        if (aC !== bC) return aC - bC; // 0 before 1 -> cancelados al final
-        return 0;
+        const tb = toTs(b.fechaActualizacion ?? b.fechaCreacion);
+        const ta = toTs(a.fechaActualizacion ?? a.fechaCreacion);
+        return tb - ta;
       });
       setMovimientos(sorted);
       setResumen(calculateResumen(sorted));

@@ -1,10 +1,11 @@
 import SearchSelect from '../../../../components/ui/SearchSelect';
-import type { Deposito } from '../../../deposito/types/deposito.types';
+
+type DepositoOption = { id: number; nombre: string };
 
 type Props = {
-  items: Deposito[];
-  value: Deposito | null;
-  onSelect: (d: Deposito | null) => void;
+  items: DepositoOption[];
+  value: DepositoOption | null;
+  onSelect: (d: DepositoOption | null) => void;
   excludeId?: number | null;
   placeholder?: string;
 };
@@ -22,6 +23,7 @@ export default function DepositoSelect({ items, value, onSelect, excludeId, plac
         onClear={() => onSelect(null)}
         placeholder={placeholder ?? 'Seleccionar depósito...'}
         noResultsText="Sin resultados"
+        disableTyping
       />
     </div>
   );

@@ -29,11 +29,36 @@ export class MovimientoService {
         }
 
         const cambiosDeEstadoSome: any = {};
-        if (fechaDesde) {
-            cambiosDeEstadoSome.fechaHoraInicio = { gte: new Date(fechaDesde) };
-            if (fechaHasta) {
-                cambiosDeEstadoSome.fechaHoraInicio.lte = new Date(fechaHasta);
+        // Normalizar y validar rango de fechas (usar fecha de actualización del movimiento)
+        const parseStartOfDay = (s?: string): Date | undefined => {
+            if (!s) return undefined;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+                const [y, m, d] = s.split('-').map(Number);
+                return new Date(y, (m as number) - 1, d as number, 0, 0, 0, 0);
             }
+            const d = new Date(s);
+            return isNaN(d.getTime()) ? undefined : d;
+        };
+        const parseEndOfDay = (s?: string): Date | undefined => {
+            if (!s) return undefined;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+                const [y, m, d] = s.split('-').map(Number);
+                return new Date(y, (m as number) - 1, d as number, 23, 59, 59, 999);
+            }
+            const d = new Date(s);
+            return isNaN(d.getTime()) ? undefined : d;
+        };
+        const fromDate = parseStartOfDay(fechaDesde);
+        const toDate = parseEndOfDay(fechaHasta);
+        if (fromDate && toDate && fromDate > toDate) {
+            throw new Error('La fecha desde no puede ser posterior a la fecha hasta');
+        }
+        // Aplicar filtro por rango sobre fecha de actualización del movimiento
+        if (fromDate || toDate) {
+            const rango: any = {};
+            if (fromDate) rango.gte = fromDate;
+            if (toDate) rango.lte = toDate;
+            and.push({ fechaHoraActualizacion: rango });
         }
         if (idEstado) {
             cambiosDeEstadoSome.idEstadoMovimiento = idEstado;
@@ -68,7 +93,8 @@ export class MovimientoService {
                         include: { deposito: true, producto: true },
                     },
                 },
-                orderBy: { idMovimiento: 'desc' }, 
+                // Mostrar primero lo más actualizado
+                orderBy: { fechaHoraActualizacion: 'desc' }, 
             }),
             prisma.movimiento_Producto.count({ where: where })
         ]);
@@ -102,6 +128,7 @@ export class MovimientoService {
             return {
                 idMovimiento: mov.idMovimiento,
                 fechaCreacion: fechaCreacion,
+                fechaHoraActualizacion: formatDateArg(mov.fechaHoraActualizacion),
                 producto: productoNombre,
                 estado: estadoActual,
                 cantidad: cantidad,
@@ -204,7 +231,7 @@ export class MovimientoService {
     const estadoCreado = await prisma.estado_Movimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
         if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
 
-        // Realizamos la transacción para crear el movimiento y actualizar inventarios
+        // Realizamos la transacción para crear el movimiento
         const result = await prisma.$transaction(async (tx) => {
             const mov = await tx.movimiento_Producto.create({
                 data: {
@@ -226,33 +253,6 @@ export class MovimientoService {
                     idMovimiento: mov.idMovimiento
                 }
             });
-
-            
-            await tx.inventario.update({
-                where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
-                data: { cantidadProducto: { decrement: cantidad } }
-            });
-
-            
-            await tx.deposito.update({ where: { id: idDepositoOrigen }, data: { capacidadUsada: Math.max(0, (depositoOrigen.capacidadUsada || 0) - cantidad) } });
-
-            if (isTraslado && depositoDestino) {
-                
-                const invDestino = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino as number, idProducto } });
-                if (invDestino) {
-                    await tx.inventario.update({
-                        where: { idDeposito_idProducto: { idDeposito: idDepositoDestino as number, idProducto } },
-                        data: { cantidadProducto: { increment: cantidad } }
-                    });
-                } else {
-                    await tx.inventario.create({
-                        data: { idDeposito: idDepositoDestino as number, idProducto, cantidadProducto: cantidad }
-                    });
-                }
-
-                
-                await tx.deposito.update({ where: { id: idDepositoDestino as number }, data: { capacidadUsada: (depositoDestino.capacidadUsada || 0) + cantidad } });
-            }
 
             return mov;
         });
@@ -356,7 +356,10 @@ export class MovimientoService {
     ) {
         const mov = await prisma.movimiento_Producto.findUnique({
             where: { idMovimiento },
-            include: { cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } } }
+            include: {
+                cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } },
+                tipoMovimiento: true,
+            }
         });
 
         if (!mov) throw new Error('Movimiento no encontrado');
@@ -410,6 +413,70 @@ export class MovimientoService {
                 createData.responsableRecepcion = responsableRecepcion ?? null;
             }
             await tx.cambio_Estado_Movimiento.create({ data: createData });
+
+            // Si pasa a ENTREGADO, aplicar impacto en stock y capacidades
+            if (destinoNorm === 'entregado') {
+                const cantidad = mov.cantidad;
+                const idProducto = mov.idProducto;
+                const idDepositoOrigen = mov.idDepositoOrigen;
+                const idDepositoDestino = mov.idDepositoDestino ?? null;
+                const tipoNombreNorm = (mov.tipoMovimiento?.nombre || '').toString().trim().toLowerCase();
+                const isTraslado = tipoNombreNorm === 'traslado';
+                const isEgreso = tipoNombreNorm === 'egreso';
+
+                // Validar stock disponible en origen al momento de entrega
+                const invOrigen = await tx.inventario.findFirst({ where: { idDeposito: idDepositoOrigen, idProducto } });
+                if (!invOrigen) throw new Error('El producto no existe en el depósito origen');
+                if ((invOrigen.cantidadProducto || 0) < cantidad) {
+                    throw new Error('El depósito origen no tiene suficiente stock para entregar este movimiento');
+                }
+
+                // Para traslados, validar capacidad destino al momento de entrega
+                let depDestino: any = null;
+                if (isTraslado && idDepositoDestino) {
+                    depDestino = await tx.deposito.findUnique({ where: { id: idDepositoDestino } });
+                    if (!depDestino) throw new Error('Depósito destino no encontrado');
+                    const espacioDisponible = (depDestino.capacidadTotal || 0) - (depDestino.capacidadUsada || 0);
+                    if (espacioDisponible < cantidad) {
+                        throw new Error('El depósito destino no tiene capacidad disponible para completar la entrega');
+                    }
+                }
+
+                // Ajustar inventarios
+                await tx.inventario.update({
+                    where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
+                    data: { cantidadProducto: { decrement: cantidad } }
+                });
+
+                if (isTraslado && idDepositoDestino) {
+                    const invDest = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino, idProducto } });
+                    if (invDest) {
+                        await tx.inventario.update({
+                            where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
+                            data: { cantidadProducto: { increment: cantidad } }
+                        });
+                    } else {
+                        await tx.inventario.create({ data: { idDeposito: idDepositoDestino, idProducto, cantidadProducto: cantidad } });
+                    }
+                }
+
+                // Ajustar capacidades (no negativas en origen)
+                const depOri = await tx.deposito.findUnique({ where: { id: idDepositoOrigen } });
+                if (depOri) {
+                    const nuevaUsadaOri = Math.max(0, (depOri.capacidadUsada || 0) - cantidad);
+                    await tx.deposito.update({ where: { id: idDepositoOrigen }, data: { capacidadUsada: nuevaUsadaOri } });
+                }
+                if (isTraslado && depDestino) {
+                    const nuevaUsadaDes = (depDestino.capacidadUsada || 0) + cantidad;
+                    await tx.deposito.update({ where: { id: depDestino.id }, data: { capacidadUsada: nuevaUsadaDes } });
+                }
+            }
+
+            // Actualizar la fecha de última actualización del movimiento
+            await tx.movimiento_Producto.update({
+                where: { idMovimiento },
+                data: { fechaHoraActualizacion: now }
+            });
         });
 
         return this.getById(idMovimiento);
@@ -422,45 +489,52 @@ export class MovimientoService {
                 inventarioOrigen: { include: { deposito: true } },
                 inventarioDestino: { include: { deposito: true } },
                 tipoMovimiento: true,
-                cambiosDeEstado: true,
+                cambiosDeEstado: { include: { estadoMovimiento: true } },
             }
         });
         if (!mov) throw new Error('Movimiento no encontrado');
 
+        // Determinar estado actual
+        const cambioActual = (mov.cambiosDeEstado || []).find(c => c.fechaHoraFin === null) ?? (mov.cambiosDeEstado || [])[mov.cambiosDeEstado.length - 1];
+        const nombreActual = cambioActual?.estadoMovimiento?.nombre ?? null;
+        const actualNorm = (nombreActual || '').toString().trim().toLowerCase().replace(/\s+/g, '');
+
         await prisma.$transaction(async (tx) => {
-            // revertir inventarios y capacidades
-            const cantidad = mov.cantidad;
-            const idProducto = mov.idProducto;
-            const idDepositoOrigen = mov.idDepositoOrigen;
-            const idDepositoDestino = mov.idDepositoDestino ?? null;
+            if (actualNorm === 'entregado') {
+                // revertir inventarios y capacidades sólo si ya impactó stock
+                const cantidad = mov.cantidad;
+                const idProducto = mov.idProducto;
+                const idDepositoOrigen = mov.idDepositoOrigen;
+                const idDepositoDestino = mov.idDepositoDestino ?? null;
 
-            // Origen: devolver stock y capacidad usada
-            await tx.inventario.update({
-                where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
-                data: { cantidadProducto: { increment: cantidad } }
-            });
-            const depOri = await tx.deposito.findUnique({ where: { id: idDepositoOrigen } });
-            if (depOri) {
-                await tx.deposito.update({
-                    where: { id: idDepositoOrigen },
-                    data: { capacidadUsada: (depOri.capacidadUsada || 0) + cantidad }
+                // Origen: devolver stock y capacidad usada
+                await tx.inventario.update({
+                    where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
+                    data: { cantidadProducto: { increment: cantidad } }
                 });
-            }
-
-            if (idDepositoDestino) {
-                // Destino: quitar stock y reducir capacidad usada (no negativo)
-                const invDestino = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino, idProducto } });
-                if (invDestino) {
-                    const nuevaCant = Math.max(0, (invDestino.cantidadProducto || 0) - cantidad);
-                    await tx.inventario.update({
-                        where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
-                        data: { cantidadProducto: nuevaCant }
+                const depOri = await tx.deposito.findUnique({ where: { id: idDepositoOrigen } });
+                if (depOri) {
+                    await tx.deposito.update({
+                        where: { id: idDepositoOrigen },
+                        data: { capacidadUsada: (depOri.capacidadUsada || 0) + cantidad }
                     });
                 }
-                const depDes = await tx.deposito.findUnique({ where: { id: idDepositoDestino } });
-                if (depDes) {
-                    const nuevaCap = Math.max(0, (depDes.capacidadUsada || 0) - cantidad);
-                    await tx.deposito.update({ where: { id: idDepositoDestino }, data: { capacidadUsada: nuevaCap } });
+
+                if (idDepositoDestino) {
+                    // Destino: quitar stock y reducir capacidad usada (no negativo)
+                    const invDestino = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino, idProducto } });
+                    if (invDestino) {
+                        const nuevaCant = Math.max(0, (invDestino.cantidadProducto || 0) - cantidad);
+                        await tx.inventario.update({
+                            where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
+                            data: { cantidadProducto: nuevaCant }
+                        });
+                    }
+                    const depDes = await tx.deposito.findUnique({ where: { id: idDepositoDestino } });
+                    if (depDes) {
+                        const nuevaCap = Math.max(0, (depDes.capacidadUsada || 0) - cantidad);
+                        await tx.deposito.update({ where: { id: idDepositoDestino }, data: { capacidadUsada: nuevaCap } });
+                    }
                 }
             }
 

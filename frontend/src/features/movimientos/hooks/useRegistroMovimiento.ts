@@ -6,7 +6,7 @@ import { useToast } from '../../../components/ui/toast/ToastContext';
  
  type SelectOption<T extends string> = { key: string; label: string; value: T };
  type DepositoMin = { id: number; nombre: string } | null;
- type ProductoInv = { idProducto: number; nombreComercial?: string; nombre?: string; cantidadProducto?: number } | null;
+ type ProductoInv = { idProducto: number; nombreComercial?: string; nombre?: string; cantidadProducto?: number | null } | null;
  
  interface RMErrors {
    tipo?: string;

@@ -5,14 +5,8 @@ import type { Movimiento } from '../types/movimiento.types';
 import { formatFecha } from '../../inventario/utils/formatters';
 import MovimientosProductoCell from './MovimientosProductoCell';
 import MovimientosCantidadCell from './MovimientosCantidadCell';
-import MovimientosDepositoCell from './MovimientosDepositoCell';
 import MovimientosEstadoCell from './MovimientosEstadoCell';
-// Acciones columna eliminada: ver detalle ahora se hace con click en la fila
-
-import { useState } from 'react';
-import ConfirmDialog from '../../../components/ui/modales/ConfirmDialog';
-import { MovimientoService } from '../services/movimiento.service';
-import { useToast } from '../../../components/ui/toast/ToastContext';
+// Acciones: ícono de ojo que navega al detalle
 
 interface Props {
   data: Movimiento[];
@@ -21,20 +15,16 @@ interface Props {
   onDeleted?: () => void;
 }
 
-export default function MovimientosTable({ data, loading, onVerDetalle, onDeleted }: Props) {
-  const { show } = useToast();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [sel, setSel] = useState<Movimiento | null>(null);
+export default function MovimientosTable({ data, loading, onVerDetalle }: Props) {
   
   // Definir columnas según orden del documento
   const columns: Column<Movimiento>[] = useMemo(() => [
     {
-      key: 'fechaCreacion',
-      title: 'Fecha de Creación',
+      key: 'fechaActualizacion',
+      title: 'Fecha de Actualización',
       width: '12%',
       align: 'center',
-      render: (row) => formatFecha(row.fechaCreacion)
+      render: (row) => formatFecha(row.fechaActualizacion)
     },
     {
       key: 'producto',
@@ -66,23 +56,19 @@ export default function MovimientosTable({ data, loading, onVerDetalle, onDelete
       )
     },
     {
-      key: 'deposito',
-      title: 'Depósito',
-      width: '22%',
+      key: 'depositoOrigen',
+      title: 'Depósito Origen',
+      width: '14%',
       render: (row) => (
-        <MovimientosDepositoCell 
-          tipo={row.tipo}
-          depositoOrigen={row.depositoOrigen}
-          depositoDestino={row.depositoDestino}
-        />
+        <span className="text-sm font-medium text-gray-700">{row.depositoOrigen?.nombre}</span>
       )
     },
     {
-      key: 'referencia',
-      title: 'Referencia',
-      width: '18%',
+      key: 'depositoDestino',
+      title: 'Depósito Destino',
+      width: '14%',
       render: (row) => (
-        <span className="text-sm text-gray-500">{row.referencia}</span>
+        <span className="text-sm font-medium text-gray-700">{row.depositoDestino?.nombre ?? '—'}</span>
       )
     },
     {
@@ -96,16 +82,24 @@ export default function MovimientosTable({ data, loading, onVerDetalle, onDelete
     {
       key: 'acciones',
       title: 'Acciones',
-      width: '10%',
+      width: '8%',
       align: 'center',
       render: (row) => (
-        <button
-          className="inline-flex items-center px-3 py-1.5 rounded-md border border-red-300 text-red-700 hover:bg-red-50 text-sm"
-          onClick={(e) => { e.stopPropagation(); setSel(row); setConfirmOpen(true); }}
-          title="Eliminar movimiento"
-        >
-          Eliminar
-        </button>
+        <div className="relative inline-flex group">
+          <button
+            className="inline-flex items-center justify-center h-8 w-8 text-gray-700 hover:text-[#5d5448]"
+            onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
+            aria-label="Ver detalle"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="12" r="3" strokeWidth="2"/>
+            </svg>
+          </button>
+          <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            Ver detalle
+          </span>
+        </div>
       )
     },
   ], []);
@@ -134,36 +128,10 @@ export default function MovimientosTable({ data, loading, onVerDetalle, onDelete
         columns={columns}
         data={data}
         rowKey={(row) => row.id}
-        onRowClick={onVerDetalle}
         pagination
         defaultPageSize={10}
         pageSizeOptions={[5, 10, 20, 50]}
         emptyState={emptyState}
-      />
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title="Eliminar movimiento"
-        description={<div className="text-sm text-gray-700">Esta acción revertirá los cambios de inventario y eliminará el historial del movimiento.<br/>¿Deseas continuar?</div>}
-        onCancel={() => { setConfirmOpen(false); setSel(null); }}
-        loading={deleting}
-        confirmLabel="Eliminar"
-        onConfirm={async () => {
-          if (!sel) return;
-          try {
-            setDeleting(true);
-            await MovimientoService.deleteMovimiento(sel.id);
-            show({ type: 'success', title: 'Movimiento eliminado', message: 'Se revirtió el inventario y se eliminó el movimiento.' });
-            setConfirmOpen(false);
-            setSel(null);
-            onDeleted?.();
-          } catch (err) {
-            console.error(err);
-            show({ type: 'error', title: 'Error', message: 'No se pudo eliminar el movimiento.' });
-          } finally {
-            setDeleting(false);
-          }
-        }}
       />
     </>
   );

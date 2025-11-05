@@ -17,6 +17,8 @@ type SearchSelectProps<T> = {
   onInputBlur?: () => void;
   // optional: called when the input is cleared to signal the parent to clear selection
   onClear?: () => void;
+  // optional: disable typing in the input; dropdown is selection-only
+  disableTyping?: boolean;
 };
 
 export default function SearchSelect<T>({
@@ -32,6 +34,7 @@ export default function SearchSelect<T>({
   inputAutoFocus = false,
   onInputBlur,
   onClear,
+  disableTyping = false,
 }: SearchSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -65,9 +68,11 @@ export default function SearchSelect<T>({
     };
   }, []);
 
-  const filtered = query.trim()
-    ? items.filter(i => getLabel(i).toLowerCase().includes(query.toLowerCase()))
-    : items;
+  const filtered = disableTyping
+    ? items
+    : (query.trim()
+      ? items.filter(i => getLabel(i).toLowerCase().includes(query.toLowerCase()))
+      : items);
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!open) setOpen(true);
@@ -86,6 +91,9 @@ export default function SearchSelect<T>({
       }
     } else if (e.key === 'Escape') {
       setOpen(false);
+    } else if (disableTyping) {
+      // Ignore other keys when typing is disabled
+      e.preventDefault();
     }
   };
 
@@ -137,6 +145,7 @@ export default function SearchSelect<T>({
         placeholder={placeholder}
         value={query}
         onChange={(e) => {
+          if (disableTyping) return; // ignore typing when disabled
           const v = e.target.value;
           setQuery(v);
           setOpen(true);
@@ -148,6 +157,7 @@ export default function SearchSelect<T>({
         onBlur={() => { onInputBlur?.(); }}
         onKeyDown={handleKey}
         disabled={disabled}
+        readOnly={disableTyping}
         aria-autocomplete="list"
       />
 

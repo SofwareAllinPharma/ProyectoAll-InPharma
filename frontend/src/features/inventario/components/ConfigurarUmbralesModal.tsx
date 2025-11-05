@@ -18,7 +18,20 @@ function UmbralRow({ p, value, onChange, disabled }: { p: InventarioProducto; va
       <td className="px-4 py-3"><span className="font-medium text-[#3E3529]">{p.nombreComercial}</span></td>
       <td className="px-4 py-3 text-sm">{p.cantidadProducto == null ? '-' : p.cantidadProducto}</td>
       <td className="px-4 py-3">
-        <input type="number" min={0} step={1} value={value ?? ''} onChange={e=>onChange(p.idProducto, e.target.value)} className="w-28 px-2 py-1 border rounded-md text-sm border-gray-300 focus:ring-[#5d5448] focus:border-[#5d5448]" placeholder="-" disabled={disabled} />
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={value ?? ''}
+            onChange={e=>onChange(p.idProducto, e.target.value)}
+            className="w-28 px-2 py-1 border rounded-md text-sm border-gray-300 focus:ring-[#5d5448] focus:border-[#5d5448]"
+            placeholder="-"
+            disabled={disabled}
+            aria-label={`Umbral mínimo para ${p.nombreComercial} (unidades)`}
+          />
+          <span className="text-sm text-gray-500">unidades</span>
+        </div>
       </td>
     </tr>
   );

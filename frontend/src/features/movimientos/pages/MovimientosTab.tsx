@@ -16,6 +16,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
     movimientos, 
     resumen, 
     loading,
+    error,
     filtrarMovimientos,
     recargar
   } = useMovimientos(idDeposito);
@@ -37,6 +38,15 @@ export default function MovimientosTab({ idDeposito }: Props) {
     if (firstFiltersEffect.current) {
       firstFiltersEffect.current = false;
       return;
+    }
+    // Validación: fecha desde no puede ser posterior a fecha hasta
+    if (filters.fechaDesde && filters.fechaHasta) {
+      const from = new Date(filters.fechaDesde);
+      const to = new Date(filters.fechaHasta);
+      if (!isNaN(from.getTime()) && !isNaN(to.getTime()) && from > to) {
+        // Evitamos llamar a la API con un rango inválido
+        return;
+      }
     }
     // Debounce filter changes to avoid blocking typing and rapid re-requests
     const t = setTimeout(() => {
@@ -82,7 +92,7 @@ export default function MovimientosTab({ idDeposito }: Props) {
           </svg>
           <span>Nuevo Movimiento</span>
         </button>
-  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} />
+  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
       </div>
 
   <MovimientosCards resumen={resumen} loading={loading} />
@@ -92,12 +102,17 @@ export default function MovimientosTab({ idDeposito }: Props) {
         onFiltersChange={setFilters}
       />
 
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <MovimientosTable
           data={movimientos}
           loading={loading}
           onVerDetalle={handleVerDetalle}
-          onDeleted={() => { void recargar(); }}
         />
       </div>
 
