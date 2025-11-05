@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
-import RegistroMovimientoModal from '../../movimientos/components/RegistroMovimientoModal.tsx';
-import NotImplementedModal from '../components/NotImplementedModal';
+import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
 import DepositoFormModal from '../components/DepositoFormModal';
 import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -25,7 +24,6 @@ export default function DepositoDetailPage() {
     setShowDeleteConfirm,
     showTrasladoModal,
     setShowTrasladoModal,
-    showPedidoModal, 
     setShowPedidoModal,
     inventario,
     loadingInventario,
@@ -39,7 +37,7 @@ export default function DepositoDetailPage() {
   } = useDepositoDetail(id);
 
   const { show } = useToast();
-  
+
 
   if (error) return (
     <div className="space-y-2">
@@ -92,9 +90,6 @@ export default function DepositoDetailPage() {
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
             <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} />
-            
-            <NotImplementedModal open={showPedidoModal} onClose={() => setShowPedidoModal(false)} title="Funcionalidad no implementada" message={`La funcionalidad de "Registrar Pedido" aún no está implementada.`} />
-            
           </>
         }
       >

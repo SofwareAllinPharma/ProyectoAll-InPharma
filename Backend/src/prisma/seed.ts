@@ -213,7 +213,7 @@ async function main() {
                     create: insumos.map(i => ({
                         idInsumo: insumoId[i.nombre], 
                         cantidadInsumo: i.cantidad
-        _           })),
+                   })),
                 },
             },
         });
@@ -341,9 +341,8 @@ async function main() {
             umbralMin: umbralMinBase * 2, 
             umbralMax: umbralMaxCentral 
         });
-        // Fábrica
         inventarioData.push({ 
-            idDeposito: depId['Fábrica'], 	
+            idDeposito: depId['Fábrica Principal'], 	
             idProducto: prod.idProducto, 
             cantidadProducto: qtyFabrica, 
             umbralMin: umbralMinBase * 3, 
@@ -693,4 +692,4 @@ main()
 		console.error(e)
 		await prisma.$disconnect()
 		process.exit(1)
-	})
+	}) 

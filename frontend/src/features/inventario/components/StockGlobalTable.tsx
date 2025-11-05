@@ -30,6 +30,10 @@ const StockGlobalTable: React.FC<Props> = ({ data, loading, onCrearPedido, onMov
       defaultPageSize={10}
       pageSizeOptions={[5, 10, 20]}
       emptyState={<InventarioEmptyState estadoFilter={''} />}
+      // Remove the table's own border/rounding and stretch it to the card edges
+      // keep outer rounded container but remove inner border/shadow and stretch to card edges
+      tableClassName="border-0 shadow-none -mx-6 -my-6"
+      noDividers
     />
   );
 };

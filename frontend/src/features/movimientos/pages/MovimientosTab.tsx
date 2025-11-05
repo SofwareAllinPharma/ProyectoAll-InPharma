@@ -4,9 +4,11 @@ import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
+import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
+import MovimientoDetailModal from '../components/detalle/MovimientoDetailModal';
 
 interface Props {
-  idDeposito: number;
+  idDeposito?: number; 
 }
 
 export default function MovimientosTab({ idDeposito }: Props) {
@@ -14,37 +16,57 @@ export default function MovimientosTab({ idDeposito }: Props) {
     movimientos, 
     resumen, 
     loading,
-    filtrarMovimientos 
+    filtrarMovimientos,
+    recargar
   } = useMovimientos(idDeposito);
 
   const [filters, setFilters] = useState<IMovimientoFilters>({
     search: '',
     tipo: '',
-    estado: ''
+    estado: '',
+    idDeposito: '',
+    fechaDesde: '',
+    fechaHasta: ''
   });
 
   useEffect(() => {
-    filtrarMovimientos(filters);
+    // Debounce filter changes to avoid blocking typing and rapid re-requests
+    const t = setTimeout(() => {
+      void filtrarMovimientos(filters);
+    }, 300);
+    return () => clearTimeout(t);
   }, [filters, filtrarMovimientos]);
 
+  const [detalleOpen, setDetalleOpen] = useState(false);
+  const [movSel, setMovSel] = useState<Movimiento | null>(null);
   const handleVerDetalle = (movimiento: Movimiento) => {
-    console.log('Ver detalle de movimiento:', movimiento);
+    setMovSel(movimiento);
+    setDetalleOpen(true);
   };
+
+
+  const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            Movimientos de Inventario
+            {idDeposito 
+              ? 'Movimientos de Inventario' 
+              : 'Movimientos Globales de Inventario'
+            }
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Historial de salidas y traslados del depósito
+            {idDeposito
+              ? 'Historial de salidas y traslados del depósito'
+              : 'Historial de todos los movimientos en todos los depósitos'
+            }
           </p>
         </div>
         
         <button
-          onClick={() => console.log('TODO: Abrir modal de nuevo movimiento')}
+          onClick={() => setOpenRegistroModal(true)}
           className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-all flex items-center gap-2"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,14 +74,14 @@ export default function MovimientosTab({ idDeposito }: Props) {
           </svg>
           <span>Nuevo Movimiento</span>
         </button>
+  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} />
       </div>
 
-      <MovimientosCards resumen={resumen} loading={loading} />
+  <MovimientosCards resumen={resumen} loading={loading} />
       
       <MovimientoFilters
         filters={filters}
         onFiltersChange={setFilters}
-        disabled={loading}
       />
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -67,8 +89,11 @@ export default function MovimientosTab({ idDeposito }: Props) {
           data={movimientos}
           loading={loading}
           onVerDetalle={handleVerDetalle}
+          onDeleted={() => { void recargar(); }}
         />
       </div>
+
+      <MovimientoDetailModal open={detalleOpen} onClose={() => setDetalleOpen(false)} movimiento={movSel} onEstadoChanged={() => { void recargar(); }} />
     </div>
   );
 }

@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "public"."DEPOSITOS" ADD COLUMN     "capacidadUsada" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "estado" BOOLEAN NOT NULL DEFAULT true;

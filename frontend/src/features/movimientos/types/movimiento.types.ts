@@ -1,8 +1,8 @@
 // Tipos de movimiento según documento
-export type TipoMovimiento = 'EGRESO' | 'TRASLADO';
+export type TipoMovimiento = 'EGRESO' | 'TRASLADO' | 'INGRESO';
 
 // Estados según documento
-export type EstadoMovimiento = 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';
+export type EstadoMovimiento = 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';
 
 // Interface principal del movimiento
 export interface Movimiento {
@@ -18,6 +18,8 @@ export interface Movimiento {
   fechaCreacion: string;
   fechaActualizacion?: string | null;
   idUsuario: number;
+  // Responsable del movimiento (nombre plano desde BD)
+  responsable?: string;
   
   // Relaciones
   producto?: {
@@ -47,6 +49,7 @@ export interface CreateMovimientoRequest {
   idDepositoDestino?: number;
   referencia: string;
   observaciones?: string;
+  responsable?: string;
 }
 
 // DTO para actualizar estado

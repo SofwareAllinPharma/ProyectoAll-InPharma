@@ -1,14 +1,31 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+// Global lock to handle nested/overlapping modals safely
+let __modalLockCount = 0;
+let __modalOriginalOverflow: string | null = null;
+
+function lockBodyScroll() {
+  if (__modalLockCount === 0) {
+    __modalOriginalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  __modalLockCount += 1;
+}
+
+function unlockBodyScroll() {
+  __modalLockCount = Math.max(0, __modalLockCount - 1);
+  if (__modalLockCount === 0) {
+    document.body.style.overflow = __modalOriginalOverflow || '';
+    __modalOriginalOverflow = null;
+  }
+}
+
 export default function Modal({
   open,
   onClose,
   children,
-  // clases que se aplican al backdrop (fondo)
-  // reducir ligeramente la opacidad y el blur para que no opaque tanto el contenido
   backdropClassName = 'bg-black/40 backdrop-blur-[2px]',
-  // clases extra para el backdrop si se pasan (mantener compatibilidad)
   className = '',
   containerClass = 'bg-white rounded-xl p-8 shadow-lg max-w-md w-full mx-4 min-h-[180px] transform -translate-y-6',
 }: {
@@ -26,6 +43,7 @@ export default function Modal({
     const el = elRef.current!;
     document.body.appendChild(el);
     return () => {
+      // eslint-disable-next-line no-empty
       try { document.body.removeChild(el); } catch {}
     };
   }, []);
@@ -34,11 +52,10 @@ export default function Modal({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     return () => {
       window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev || '';
+      unlockBodyScroll();
     };
   }, [open, onClose]);
 

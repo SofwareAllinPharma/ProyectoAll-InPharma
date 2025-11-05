@@ -7,9 +7,12 @@ interface Props {
   className?: string;
   step?: number;
   label?: string;
+  onBlur?: () => void;
+  max?: number;
+  min?: number;
 }
 
-export default function NumberField({ value, onChange, placeholder, disabled = false, className = '', step = 1, label }: Props) {
+export default function NumberField({ value, onChange, placeholder, disabled = false, className = '', step = 1, label, onBlur, max, min = 0 }: Props) {
   return (
     <div>
       {label && (
@@ -27,11 +30,21 @@ export default function NumberField({ value, onChange, placeholder, disabled = f
             return;
           }
           const parsed = parseFloat(v);
-          onChange(Number.isNaN(parsed) ? NaN : parsed);
+          if (Number.isNaN(parsed)) {
+            onChange(NaN);
+            return;
+          }
+          // clamp to [min, max] when provided
+          let next = parsed;
+          if (typeof min === 'number') next = Math.max(min, next);
+          if (typeof max === 'number') next = Math.min(max, next);
+          onChange(next);
         }}
+  onBlur={() => onBlur && onBlur()}
         disabled={disabled}
         placeholder={placeholder}
-        min="0"
+        min={min}
+        {...(typeof max === 'number' ? { max } : {})}
         step={step}
         inputMode="numeric"
         pattern="[0-9]*"

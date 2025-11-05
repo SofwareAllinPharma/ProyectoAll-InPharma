@@ -55,10 +55,24 @@ export class MovimientoController {
             const id = parseInt(req.params.id as string);
             if (isNaN(id)) return res.status(400).json({ error: 'Id inválido' });
 
-            const { nombreEstado, usuario } = req.body as { nombreEstado?: string; usuario?: string;};
+            const { nombreEstado, usuario, observaciones, responsableEntrega, responsableRecepcion } = req.body as {
+                nombreEstado?: string;
+                usuario?: string;
+                observaciones?: string;
+                responsableEntrega?: string;
+                responsableRecepcion?: string;
+            };
             if (!nombreEstado) return res.status(400).json({ error: 'nombreEstado es requerido' });
 
-            const updated = await service.CambiarEstado(id, nombreEstado, usuario);
+            // Si es Entregado, validar ambos responsables
+            const norm = (nombreEstado || '').toString().trim().toLowerCase().replace(/\s+/g, '');
+            if (norm === 'entregado') {
+                if (!responsableEntrega || !responsableEntrega.trim() || !responsableRecepcion || !responsableRecepcion.trim()) {
+                    return res.status(400).json({ error: 'Para marcar como Entregado, responsableEntrega y responsableRecepcion son requeridos' });
+                }
+            }
+
+            const updated = await service.CambiarEstado(id, nombreEstado, usuario, observaciones, responsableEntrega, responsableRecepcion);
             res.json(updated);
         } catch (err: any) {
             res.status(400).json({ error: err.message });
@@ -80,6 +94,17 @@ export class MovimientoController {
 
             const created = await service.registrarMovimiento(payload);
             res.status(201).json(created);
+        } catch (err: any) {
+            res.status(400).json({ error: err.message });
+        }
+    }
+
+    async eliminarMovimiento(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id as string);
+            if (isNaN(id)) return res.status(400).json({ error: 'Id inválido' });
+            const result = await service.deleteMovimiento(id);
+            res.json(result);
         } catch (err: any) {
             res.status(400).json({ error: err.message });
         }

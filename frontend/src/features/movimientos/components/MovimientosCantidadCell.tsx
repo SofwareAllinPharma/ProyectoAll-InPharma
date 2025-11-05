@@ -6,21 +6,11 @@ interface Props {
 }
 
 export default function MovimientosCantidadCell({ cantidad, tipo }: Props) {
-  const config = {
-    EGRESO: {
-      signo: '-',
-      color: 'text-red-600'
-    },
-    TRASLADO: {
-      signo: '',
-      color: 'text-blue-600'
-    }
-  };
-
-  const { signo, color } = config[tipo];
+  // Solo variar por signo, sin colores
+  const signo = tipo === 'EGRESO' ? '-' : (tipo === 'INGRESO' ? '+' : '');
 
   return (
-    <span className={`font-semibold text-sm ${color}`}>
+    <span className={"font-semibold text-sm text-gray-900"}>
       {signo}{cantidad}
     </span>
   );

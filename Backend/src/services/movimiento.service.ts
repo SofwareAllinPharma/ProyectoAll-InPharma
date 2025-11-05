@@ -76,13 +76,10 @@ export class MovimientoService {
 	
         function formatDateArg(date?: Date | null): string | null {
             if (!date) return null;
-            // Use local time getters so the displayed time matches server/local timezone
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = String(date.getFullYear());
-            const hour = String(date.getHours()).padStart(2, '0');
-            const minute = String(date.getMinutes()).padStart(2, '0');
-            return `${day}-${month}-${year}-${hour}:${minute}`;
+            const year2 = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year2}`;
         }
 
         const dataFormateada = movimientos.map(mov => {
@@ -109,7 +106,9 @@ export class MovimientoService {
                 estado: estadoActual,
                 cantidad: cantidad,
                 depositoOrigen: depositoOrigen,
-                depositoDestino: depositoDestino
+                depositoDestino: depositoDestino,
+                responsable: mov.responsable || null,
+                nombreTipoMovimiento: tipo
             };
         });
 
@@ -157,7 +156,8 @@ export class MovimientoService {
         if (idTipoMovimiento) {
             tipoMov = await prisma.tipos_Movimiento.findUnique({ where: { idTipoMovimiento } });
         } else if (nombreTipoMovimiento) {
-            tipoMov = await prisma.tipos_Movimiento.findUnique({ where: { nombre: nombreTipoMovimiento } });
+            // Buscar de forma case-insensitive para evitar problemas por diferencias de casing en la BD
+            tipoMov = await prisma.tipos_Movimiento.findFirst({ where: { nombre: { equals: nombreTipoMovimiento, mode: 'insensitive' } } });
         } else {
             throw new Error('Tipo de movimiento (idTipoMovimiento o nombreTipoMovimiento) es requerido');
         }
@@ -200,7 +200,8 @@ export class MovimientoService {
         const now = new Date();
 
         
-        const estadoCreado = await prisma.estado_Movimiento.findUnique({ where: { nombre: 'Creado' } });
+    // Buscar el estado 'Creado' de forma case-insensitive para mayor tolerancia con la BD
+    const estadoCreado = await prisma.estado_Movimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
         if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
 
         // Realizamos la transacción para crear el movimiento y actualizar inventarios
@@ -280,10 +281,17 @@ export class MovimientoService {
             if (!date) return null;
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = String(date.getFullYear());
-            const hour = String(date.getHours()).padStart(2, '0');
-            const minute = String(date.getMinutes()).padStart(2, '0');
-            return `${day}-${month}-${year}-${hour}:${minute}`;
+            const year2 = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year2}`;
+        }
+        function formatDateTimeArg(date?: Date | null): string | null {
+            if (!date) return null;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year2 = String(date.getFullYear()).slice(-2);
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year2} ${hours}:${minutes}`;
         }
 
         const CREATED_STATE_ID = 1;
@@ -325,8 +333,12 @@ export class MovimientoService {
                 idCambioEstadoMovimiento: c.idCambioEstadoMovimiento,
                 idEstadoMovimiento: c.idEstadoMovimiento,
                 nombreEstado: c.estadoMovimiento?.nombre || null,
-                fechaHoraInicio: formatDateArg(c.fechaHoraInicio),
-                fechaHoraFin: formatDateArg(c.fechaHoraFin)
+                fechaHoraInicio: formatDateTimeArg(c.fechaHoraInicio),
+                fechaHoraFin: formatDateTimeArg(c.fechaHoraFin),
+                responsable: c.responsable ?? null,
+                responsableEntrega: (c as any).responsableEntrega ?? null,
+                responsableRecepcion: (c as any).responsableRecepcion ?? null,
+                observaciones: c.observaciones ?? null
             }))
         };
 
@@ -334,7 +346,14 @@ export class MovimientoService {
     }
 
 
-    async CambiarEstado(idMovimiento: number, nombreEstadoDestino: string, usuario?: string) {
+    async CambiarEstado(
+        idMovimiento: number,
+        nombreEstadoDestino: string,
+        usuario?: string,
+        observaciones?: string,
+        responsableEntrega?: string,
+        responsableRecepcion?: string
+    ) {
         const mov = await prisma.movimiento_Producto.findUnique({
             where: { idMovimiento },
             include: { cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } } }
@@ -378,16 +397,78 @@ export class MovimientoService {
             }
 
             // create new cambio (fechaHoraFin stays null)
-            await tx.cambio_Estado_Movimiento.create({
-                data: {
-                    idEstadoMovimiento: estadoDestino.idEstadoMovimiento,
-                    fechaHoraInicio: now,
-                    fechaHoraFin: null,
-                    idMovimiento: idMovimiento
-                }
-            });
+            const createData: any = {
+                idEstadoMovimiento: estadoDestino.idEstadoMovimiento,
+                fechaHoraInicio: now,
+                fechaHoraFin: null,
+                idMovimiento: idMovimiento,
+                responsable: usuario ?? null,
+                observaciones: typeof observaciones !== 'undefined' ? observaciones : null
+            };
+            if (destinoNorm === 'entregado') {
+                createData.responsableEntrega = responsableEntrega ?? null;
+                createData.responsableRecepcion = responsableRecepcion ?? null;
+            }
+            await tx.cambio_Estado_Movimiento.create({ data: createData });
         });
 
         return this.getById(idMovimiento);
+    }
+
+    async deleteMovimiento(idMovimiento: number) {
+        const mov = await prisma.movimiento_Producto.findUnique({
+            where: { idMovimiento },
+            include: {
+                inventarioOrigen: { include: { deposito: true } },
+                inventarioDestino: { include: { deposito: true } },
+                tipoMovimiento: true,
+                cambiosDeEstado: true,
+            }
+        });
+        if (!mov) throw new Error('Movimiento no encontrado');
+
+        await prisma.$transaction(async (tx) => {
+            // revertir inventarios y capacidades
+            const cantidad = mov.cantidad;
+            const idProducto = mov.idProducto;
+            const idDepositoOrigen = mov.idDepositoOrigen;
+            const idDepositoDestino = mov.idDepositoDestino ?? null;
+
+            // Origen: devolver stock y capacidad usada
+            await tx.inventario.update({
+                where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
+                data: { cantidadProducto: { increment: cantidad } }
+            });
+            const depOri = await tx.deposito.findUnique({ where: { id: idDepositoOrigen } });
+            if (depOri) {
+                await tx.deposito.update({
+                    where: { id: idDepositoOrigen },
+                    data: { capacidadUsada: (depOri.capacidadUsada || 0) + cantidad }
+                });
+            }
+
+            if (idDepositoDestino) {
+                // Destino: quitar stock y reducir capacidad usada (no negativo)
+                const invDestino = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino, idProducto } });
+                if (invDestino) {
+                    const nuevaCant = Math.max(0, (invDestino.cantidadProducto || 0) - cantidad);
+                    await tx.inventario.update({
+                        where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
+                        data: { cantidadProducto: nuevaCant }
+                    });
+                }
+                const depDes = await tx.deposito.findUnique({ where: { id: idDepositoDestino } });
+                if (depDes) {
+                    const nuevaCap = Math.max(0, (depDes.capacidadUsada || 0) - cantidad);
+                    await tx.deposito.update({ where: { id: idDepositoDestino }, data: { capacidadUsada: nuevaCap } });
+                }
+            }
+
+            // eliminar cambios y luego el movimiento
+            await tx.cambio_Estado_Movimiento.deleteMany({ where: { idMovimiento } });
+            await tx.movimiento_Producto.delete({ where: { idMovimiento } });
+        });
+
+        return { ok: true };
     }
 }
