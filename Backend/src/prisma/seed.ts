@@ -124,7 +124,7 @@ async function main() {
         {
             nombre: "Fábrica",
             direccion: "No especificada",
-            responsable: "Sistema",
+            responsable: "Alberto Gómez",
             capacidadTotal: 5000,
             capacidadUsada: 0,
             estado: true,
@@ -426,7 +426,7 @@ async function main() {
                 idProducto,
                 idDepositoDestino: tipo === 'Traslado' ? (idDepositoDestino ?? null) : null,
                 cantidad,
-                responsable: responsable ?? 'seed',
+                responsable: responsable ?? 'Alberto Gómez',
                 observaciones: observaciones ?? null,
                 idTipoMovimiento: tipo === 'Traslado' ? tiposMov.traslado : tiposMov.egreso,
                 fechaHoraActualizacion: fechas.final,
