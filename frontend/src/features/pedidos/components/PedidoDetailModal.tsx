@@ -5,7 +5,7 @@ import type { Pedido } from '../types/pedido.types';
 import ProductInfoCard from '../../productos/components/ProductInfoCard';
 import type { Producto } from '../../productos/types/producto.types';
 import { ProductoService } from '../../productos/services/producto.service';
-import { PedidoService } from '../services/pedido.service';
+import PedidoActions from './PedidoActions';
 
 interface Props {
   isOpen: boolean;
@@ -22,18 +22,20 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
   }, [isOpen]);
 
   const [productoDetalle, setProductoDetalle] = useState<Producto | null>(null);
-  const [busy, setBusy] = useState(false);
 
+  // If pedido.producto.formula.insumos is empty, try fetching full producto to get the formula/insumos
   useEffect(() => {
     if (!pedido) return;
     const prod = pedido.producto as unknown as { formula?: { insumos?: unknown[] } };
     const hasInsumos = Array.isArray(prod?.formula?.insumos) && prod?.formula?.insumos.length > 0;
     if (!hasInsumos) {
+      // fetch product detail
       (async () => {
         try {
           const p = await ProductoService.getProductoById(pedido.idProducto);
           setProductoDetalle(p);
         } catch {
+          // silently ignore; computeInsumos will show empty
         }
       })();
     }
@@ -41,10 +43,8 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
 
   if (!isOpen || !pedido) return null;
 
-  const userProfile = Number(localStorage.getItem('userPerfil') || 0);
-  const isTecnico = userProfile === 1;
-  const isAdminFab = userProfile === 2;
-  const isAdminSis = userProfile === 3;
+  // Note: action/state logic lives in the dedicated <PedidoActions /> component.
+  // This modal focuses on displaying pedido details only.
 
   type FormulaInsumo = { idInsumo: number; cantidadInsumo: number; insumo?: { nombre?: string } };
   const computeInsumos = (): { nombre: string; cantidad: number }[] => {
@@ -61,6 +61,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
     const n = Number(v);
     if (Number.isNaN(n)) return String(v);
     if (Number.isInteger(n)) return String(n);
+    // show up to 4 decimals, trim trailing zeros
     return Number(n.toFixed(4)).toString();
   };
 
@@ -100,6 +101,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
         <span className="text-2xl">Pedido PED-{pedido.numPedido}</span>
       </ModalHeader>
 
+      {/* If parent passes loading, show a simple placeholder */}
       {loading ? (
         <div className="p-8 flex flex-col items-center justify-center flex-1">
           <div className="mb-4 text-lg">Cargando pedido…</div>
@@ -109,6 +111,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
+            {/* Reuse ProductInfoCard used in Productos for consistent look */}
             {pedido.producto && (() => {
               const grams = Number(pedido.cantAProducir_gramos) || 0;
               const portions = Number(pedido.cantAProducir_porciones) || 0;
@@ -153,6 +156,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
             <div className="bg-gray-50 border rounded p-4">
               <h3 className="font-semibold mb-2">Estado del Pedido</h3>
               <div className="mt-2">
+                {/* prominent estado */}
                 {(() => {
                   const info = estadoInfo(pedido.cambioActual?.estado?.nombre);
                   return <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${info.cls}`}>{info.label}</div>;
@@ -163,50 +167,9 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
               <div className="mt-2 text-sm">Técnico asignado</div>
               <div className="mt-1">{formatUserName(pedido.mailUsuarioCocinero ?? undefined)}</div>
 
-              <div className="mt-4 flex flex-col gap-2">
-                {pedido.cambioActual?.estado?.nombre === 'Creado' && !pedido.estaAsignado && (isTecnico || isAdminFab || isAdminSis) && (
-                  <button
-                    onClick={async () => {
-                      if (busy) return;
-                      setBusy(true);
-                      try {
-                        await PedidoService.tomarPedido(pedido.numPedido);
-                        if (typeof onRefresh === 'function') await onRefresh();
-                      } catch {
-                      } finally {
-                        setBusy(false);
-                      }
-                    }}
-                    className={`px-4 py-2 rounded ${busy ? 'opacity-60 pointer-events-none' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                  >Tomar pedido</button>
-                )}
-
-                {pedido.cambioActual?.estado?.nombre === 'EnElaboración' && (isTecnico || isAdminFab || isAdminSis) && (
-                  <>
-                    <button
-                      onClick={async () => {
-                        if (busy) return;
-                        setBusy(true);
-                        try {
-                          await PedidoService.finalizarElaboracion(pedido.numPedido);
-                          if (typeof onRefresh === 'function') await onRefresh();
-                        } finally { setBusy(false); }
-                      }}
-                      className={`px-4 py-2 rounded ${busy ? 'opacity-60 pointer-events-none' : 'bg-green-600 text-white hover:bg-green-700'}`}
-                    >Finalizar elaboración</button>
-                    <button
-                      onClick={async () => {
-                        if (busy) return;
-                        setBusy(true);
-                        try {
-                          await PedidoService.cancelar(pedido.numPedido);
-                          if (typeof onRefresh === 'function') await onRefresh();
-                        } finally { setBusy(false); }
-                      }}
-                      className={`px-4 py-2 rounded ${busy ? 'opacity-60 pointer-events-none' : 'bg-red-600 text-white hover:bg-red-700'}`}
-                    >Cancelar pedido</button>
-                  </>
-                )}
+              {/* Actions handled by a dedicated component to keep this file small */}
+              <div className="mt-4">
+                <PedidoActions pedido={pedido} onRefresh={onRefresh} />
               </div>
             </div>
           </div>
