@@ -12,12 +12,20 @@ import ConfirmarCambioEstadoModal from './ConfirmarCambioEstadoModal';
 import Button from '../../../../components/ui/Button';
 import ToastContext from '../../../../components/ui/toast/ToastContext';
 import { useContext } from 'react';
+import { useGlobalSnack } from '../../../../components/ui/overlay/GlobalSnackContext';
 
 export default function MovimientoDetailModal({ open, onClose, movimiento, onEstadoChanged }: { open: boolean; onClose: () => void; movimiento: Movimiento | null; onEstadoChanged?: () => void }) {
   const [detalle, setDetalle] = useState<MovimientoDetalle | null>(null);
   const [showConfirm, setShowConfirm] = useState<{to: 'EN_CAMINO'|'ENTREGADO'|'CANCELADO'}|null>(null);
   const toastCtx = useContext(ToastContext);
   const showToast = toastCtx?.show;
+  const { show: showGlobalSnack } = (() => {
+    try {
+      return useGlobalSnack();
+    } catch {
+      return { show: (_: any) => 0 } as any;
+    }
+  })();
 
   useEffect(() => {
     let mounted = true;
@@ -38,10 +46,10 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
   const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO';
 
   return (
-    <Modal open={open} onClose={onClose} containerClass="bg-white rounded-xl shadow-2xl w-full max-w-xl mx-4">
+    <Modal open={open} onClose={onClose} containerClass="bg-white rounded-xl shadow-2xl w-full max-w-xl mx-4 max-h-[85vh] overflow-y-auto">
       <div className="flex flex-col h-full">
         <ModalHeader>Detalle de Movimiento</ModalHeader>
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
           {/* Encabezado centrado con estado en esquina derecha */}
           <section className="relative rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
             <div className="absolute right-3 sm:right-4 top-3 sm:top-4">
@@ -83,15 +91,15 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
 
           {/* Cuerpo / Descripción */}
           <section className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
-            <div className="grid grid-cols-2 gap-y-2 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
               <div className="text-gray-700">Cantidad:</div>
-              <div className="text-right text-gray-800">{(detalle?.cantidad ?? movimiento.cantidad)} {(detalle?.cantidad ?? movimiento.cantidad) === 1 ? 'unidad' : 'unidades'}</div>
+              <div className="sm:text-right text-gray-800 break-words">{(detalle?.cantidad ?? movimiento.cantidad)} {(detalle?.cantidad ?? movimiento.cantidad) === 1 ? 'unidad' : 'unidades'}</div>
               <div className="text-gray-700">Referencia:</div>
-              <div className="text-right text-gray-800">{(detalle?.referencia ?? movimiento.referencia) || '-'}</div>
+              <div className="sm:text-right text-gray-800 break-words">{(detalle?.referencia ?? movimiento.referencia) || '-'}</div>
               <div className="text-gray-700">Responsable:</div>
-              <div className="text-right text-gray-800">{(detalle?.responsable ?? movimiento.responsable) || '-'}</div>
+              <div className="sm:text-right text-gray-800 break-words">{(detalle?.responsable ?? movimiento.responsable) || '-'}</div>
               <div className="text-gray-700">Observaciones:</div>
-              <div className="text-right text-gray-800">{(detalle?.observaciones ?? movimiento.observaciones)?.trim() ? (detalle?.observaciones ?? movimiento.observaciones) : 'No Aplica'}</div>
+              <div className="sm:text-right text-gray-800 break-words">{(detalle?.observaciones ?? movimiento.observaciones)?.trim() ? (detalle?.observaciones ?? movimiento.observaciones) : 'No Aplica'}</div>
             </div>
           </section>
 
@@ -106,17 +114,17 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
           </section>
         </div>
 
-        <div className="px-5 pb-5 flex gap-2 justify-end">
+        <div className="px-4 sm:px-5 pb-5 flex gap-2 justify-end flex-col sm:flex-row">
           {estado === 'CREADO' && (
-            <Button onClick={() => setShowConfirm({ to: 'EN_CAMINO' })}>Marcar como En camino</Button>
+            <Button className="w-full sm:w-auto" onClick={() => setShowConfirm({ to: 'EN_CAMINO' })}>Marcar como En camino</Button>
           )}
           {puedeEntregar && (
-            <Button onClick={() => setShowConfirm({ to: 'ENTREGADO' })}>Marcar como Entregado</Button>
+            <Button className="w-full sm:w-auto" onClick={() => setShowConfirm({ to: 'ENTREGADO' })}>Marcar como Entregado</Button>
           )}
           {puedeCancelar && (
-            <Button variant="outline" onClick={() => setShowConfirm({ to: 'CANCELADO' })}>Cancelar movimiento</Button>
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setShowConfirm({ to: 'CANCELADO' })}>Cancelar movimiento</Button>
           )}
-          <Button variant="outline" onClick={onClose}>Cerrar</Button>
+          <Button className="w-full sm:w-auto" variant="outline" onClick={onClose}>Cerrar</Button>
         </div>
 
         <ConfirmarCambioEstadoModal
@@ -133,6 +141,21 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
               setDetalle(updated);
               const toLabel = (showConfirm!.to).replace('EN_CAMINO','En camino').replace('ENTREGADO','Entregado').replace('CANCELADO','Cancelado');
               showToast?.({ type: 'success', title: 'Estado actualizado', message: `Movimiento marcado como ${toLabel}.` });
+              // Global full-screen success confirmation specifically for ENTREGADO
+              if (showConfirm!.to === 'ENTREGADO') {
+                const cant = updated?.cantidad ?? movimiento.cantidad;
+                const depDestino = updated?.depositoDestinoNombre ?? movimiento.depositoDestino?.nombre ?? null;
+                const tipo = (updated as any)?.tipo ?? movimiento.tipo;
+                let msg = '';
+                if (tipo === 'TRASLADO' && depDestino) {
+                  msg = `✅ Entrega Exitosa.\nEl movimiento ha llegado al depósito con éxito.\nSe han incrementado ${cant} productos en el ${depDestino}.`;
+                } else {
+                  // Asunción: para Egreso, se comunica egreso del origen para claridad
+                  const depOrigen = updated?.depositoOrigenNombre ?? movimiento.depositoOrigen?.nombre ?? 'depósito origen';
+                  msg = `✅ Entrega Exitosa.\nEl movimiento se completó correctamente.\nSe han egresado ${cant} productos del ${depOrigen}.`;
+                }
+                showGlobalSnack({ title: 'Movimiento Entregado', message: msg, duration: 4500 });
+              }
               onEstadoChanged?.();
             } catch {
               showToast?.({ type: 'error', title: 'Error', message: 'No se pudo actualizar el estado. Intenta nuevamente.' });

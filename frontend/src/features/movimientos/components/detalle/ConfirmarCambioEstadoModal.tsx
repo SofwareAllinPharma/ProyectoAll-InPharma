@@ -47,10 +47,10 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
   };
 
   return (
-  <Modal open={open} onClose={onClose} className="z-[11000]" containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4">
+  <Modal open={open} onClose={onClose} className="z-[11000]" containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] overflow-y-auto">
       <div className="flex flex-col h-full">
         <ModalHeader>Confirmar cambio de estado</ModalHeader>
-        <div className="p-5 space-y-3 text-sm">
+        <div className="p-4 sm:p-5 space-y-3 text-sm">
           <div className="text-gray-700">Cambiar de <span className="font-semibold">{from}</span> a <span className="font-semibold">{to}</span></div>
           <div className="text-gray-600">Fecha y hora: {fechaHora}</div>
           <div className="space-y-2">
@@ -77,9 +77,9 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
             </div>
           </div>
         </div>
-        <div className="px-5 pb-5 flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
+        <div className="px-4 sm:px-5 pb-5 flex gap-2 justify-end flex-col sm:flex-row">
+          <Button className="w-full sm:w-auto" variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button className="w-full sm:w-auto" onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
         </div>
       </div>
     </Modal>

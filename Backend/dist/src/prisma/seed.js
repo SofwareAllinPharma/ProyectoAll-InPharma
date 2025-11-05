@@ -113,7 +113,7 @@ async function main() {
         {
             nombre: "Fábrica",
             direccion: "No especificada",
-            responsable: "Sistema",
+            responsable: "Alberto Gómez",
             capacidadTotal: 5000,
             capacidadUsada: 0,
             estado: true,
@@ -293,6 +293,172 @@ async function main() {
     else {
         console.log('No se encontraron movimientos de ejemplo, omitiendo eliminación.');
     }
+    /*
+    // ======================
+    // MOVIMIENTOS HISTÓRICOS
+    // ======================
+    const centralId = depId['Depósito Central'];
+    const fabricaId = depId['Fábrica'];
+    const tiposMov = { traslado: tipoTraslado.idTipoMovimiento, egreso: tipoEgreso.idTipoMovimiento };
+
+    function daysAgo(n: number) {
+        const d = new Date();
+        d.setDate(d.getDate() - n);
+        d.setHours(12, 0, 0, 0); // mediodía para evitar problemas de timezone
+        return d;
+    }
+
+    async function crearMovimientoHistorico(opts: {
+        tipo: 'Traslado' | 'Egreso';
+        idProducto: number;
+        cantidad: number;
+        idDepositoOrigen: number;
+        idDepositoDestino?: number | null;
+        responsable?: string;
+        observaciones?: string | null;
+        fechas: { creado: Date; enCamino: Date; final: Date };
+        finalEstado: 'Entregado' | 'Cancelado';
+    }) {
+        const {
+            tipo,
+            idProducto,
+            cantidad,
+            idDepositoOrigen,
+            idDepositoDestino,
+            responsable,
+            observaciones,
+            fechas,
+            finalEstado,
+        } = opts;
+
+        // Crear movimiento con fechaHoraActualizacion en la fecha final
+        const mov = await prisma.movimiento_Producto.create({
+            data: {
+                idDepositoOrigen,
+                idProducto,
+                idDepositoDestino: tipo === 'Traslado' ? (idDepositoDestino ?? null) : null,
+                cantidad,
+                responsable: responsable ?? 'Alberto Gómez',
+                observaciones: observaciones ?? null,
+                idTipoMovimiento: tipo === 'Traslado' ? tiposMov.traslado : tiposMov.egreso,
+                fechaHoraActualizacion: fechas.final,
+            },
+        });
+
+        // Historial de estados: Creado -> En Camino -> (Entregado|Cancelado)
+        await prisma.cambio_Estado_Movimiento.create({
+            data: {
+                idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+                fechaHoraInicio: fechas.creado,
+                fechaHoraFin: fechas.enCamino,
+                idMovimiento: mov.idMovimiento,
+            },
+        });
+        await prisma.cambio_Estado_Movimiento.create({
+            data: {
+                idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
+                fechaHoraInicio: fechas.enCamino,
+                fechaHoraFin: fechas.final,
+                idMovimiento: mov.idMovimiento,
+            },
+        });
+        await prisma.cambio_Estado_Movimiento.create({
+            data: {
+                idEstadoMovimiento:
+                    finalEstado === 'Entregado'
+                        ? estadoEntregado.idEstadoMovimiento
+                        : estadoCancelado.idEstadoMovimiento,
+                fechaHoraInicio: fechas.final,
+                fechaHoraFin: null,
+                idMovimiento: mov.idMovimiento,
+            },
+        });
+
+        // Ajustar inventarios para entregados (consistencia mínima con la regla de negocio)
+        if (finalEstado === 'Entregado') {
+            // Origen: restar
+            await prisma.inventario.update({
+                where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
+                data: { cantidadProducto: { decrement: cantidad } },
+            });
+            // Traslado: sumar en destino
+            if (tipo === 'Traslado' && idDepositoDestino) {
+                const invDest = await prisma.inventario.findFirst({
+                    where: { idDeposito: idDepositoDestino, idProducto },
+                });
+                if (invDest) {
+                    await prisma.inventario.update({
+                        where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
+                        data: { cantidadProducto: { increment: cantidad } },
+                    });
+                } else {
+                    await prisma.inventario.create({
+                        data: { idDeposito: idDepositoDestino, idProducto, cantidadProducto: cantidad },
+                    });
+                }
+            }
+        }
+
+        return mov.idMovimiento;
+    }
+
+    // Elegir algunos productos para los movimientos de ejemplo
+    const productosLista = productosParaInventario.slice(0, 5);
+    if (productosLista.length < 3) {
+        throw new Error('No hay suficientes productos para crear movimientos de ejemplo');
+    }
+
+    // 1) Traslado ENTREGADO hace ~57 días (creado 60d, en camino 58d, final 57d)
+    await crearMovimientoHistorico({
+        tipo: 'Traslado',
+        idProducto: productosLista[0].idProducto,
+        cantidad: 2,
+        idDepositoOrigen: fabricaId,
+        idDepositoDestino: centralId,
+        fechas: { creado: daysAgo(60), enCamino: daysAgo(58), final: daysAgo(57) },
+        finalEstado: 'Entregado',
+        observaciones: 'Seed: traslado histórico entregado',
+    });
+
+    // 2) Egreso ENTREGADO hace ~13 días (creado 15d, en camino 14d, final 13d)
+    await crearMovimientoHistorico({
+        tipo: 'Egreso',
+        idProducto: productosLista[1].idProducto,
+        cantidad: 3,
+        idDepositoOrigen: centralId,
+        fechas: { creado: daysAgo(15), enCamino: daysAgo(14), final: daysAgo(13) },
+        finalEstado: 'Entregado',
+        observaciones: 'Seed: egreso histórico entregado',
+    });
+
+    // 3) Traslado CANCELADO hace ~5 días (creado 10d, en camino 9d, final 5d)
+    await crearMovimientoHistorico({
+        tipo: 'Traslado',
+        idProducto: productosLista[2].idProducto,
+        cantidad: 1,
+        idDepositoOrigen: centralId,
+        idDepositoDestino: fabricaId,
+        fechas: { creado: daysAgo(10), enCamino: daysAgo(9), final: daysAgo(5) },
+        finalEstado: 'Cancelado',
+        observaciones: 'Seed: traslado histórico cancelado',
+    });
+
+    // 4) Egreso ENTREGADO ayer (creado 2d, en camino 1d, final 1d)
+    await crearMovimientoHistorico({
+        tipo: 'Egreso',
+        idProducto: productosLista[3].idProducto,
+        cantidad: 2,
+        idDepositoOrigen: fabricaId,
+        fechas: { creado: daysAgo(2), enCamino: daysAgo(1), final: daysAgo(1) },
+        finalEstado: 'Entregado',
+        observaciones: 'Seed: egreso reciente entregado',
+    });
+
+    console.log('Seed de MOVIMIENTOS históricos ejecutado OK');
+    */
+    // ======================
+    // ESTADOS DE PEDIDO
+    // ======================
     const estadosPedido = [
         { nombre: "Creado" },
         { nombre: "EnElaboración" },

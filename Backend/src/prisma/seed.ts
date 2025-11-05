@@ -381,7 +381,7 @@ async function main() {
 	} else {
 		console.log('No se encontraron movimientos de ejemplo, omitiendo eliminación.');
 	}
-
+	/*
     // ======================
     // MOVIMIENTOS HISTÓRICOS
     // ======================
@@ -543,7 +543,11 @@ async function main() {
     });
 
     console.log('Seed de MOVIMIENTOS históricos ejecutado OK');
+	*/
 
+	// ======================
+	// ESTADOS DE PEDIDO
+	// ======================
 
     const estadosPedido = [
         { nombre: "Creado" },

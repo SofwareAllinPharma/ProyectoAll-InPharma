@@ -470,6 +470,12 @@ export class MovimientoService {
                     const nuevaUsadaDes = (depDestino.capacidadUsada || 0) + cantidad;
                     await tx.deposito.update({ where: { id: depDestino.id }, data: { capacidadUsada: nuevaUsadaDes } });
                 }
+
+                // Actualizar marca de tiempo global de stock para el producto
+                await tx.producto.update({
+                    where: { idProducto },
+                    data: { lastStockUpdatedAt: now }
+                });
             }
 
             // Actualizar la fecha de última actualización del movimiento

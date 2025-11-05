@@ -206,6 +206,7 @@ model Producto {
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)
+  lastStockUpdatedAt     DateTime     @default(now())
   formula                Formula      @relation(fields: [idFormula], references: [id])
   inventario             Inventario[]
   pedidos                Pedido[]     
@@ -222,6 +223,7 @@ model Inventario {
   cantidadProducto     Int      @default(0)
   umbralMin            Int      @default(0)
   umbralMax            Int?
+  updatedAt            DateTime @default(now()) @updatedAt
 
   // Relaciones de Movimientos (Archivo 1)
   movimientosComoOrigen  Movimiento_Producto[] @relation("MovimientosOrigen")
