@@ -3,7 +3,7 @@ import Modal from '../../../../components/ui/modales/Modal';
 import ModalHeader from '../../../../components/ui/modales/ModalHeader';
 import Button from '../../../../components/ui/Button';
 
-export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, onConfirm }: { open: boolean; onClose: () => void; from: string; to: string; onConfirm: (args: { responsable?: string; responsableEntrega?: string; responsableRecepcion?: string; observaciones?: string }) => Promise<void> | void }) {
+export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, onConfirm, errorMessage }: { open: boolean; onClose: () => void; from: string; to: string; onConfirm: (args: { responsable?: string; responsableEntrega?: string; responsableRecepcion?: string; observaciones?: string }) => Promise<void> | void; errorMessage?: string }) {
   const [responsable, setResponsable] = useState('');
   const [responsableEntrega, setResponsableEntrega] = useState('');
   const [responsableRecepcion, setResponsableRecepcion] = useState('');
@@ -51,6 +51,12 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
       <div className="flex flex-col h-full">
         <ModalHeader>Confirmar cambio de estado</ModalHeader>
         <div className="p-4 sm:p-5 space-y-3 text-sm">
+          {errorMessage && (
+            <div className="mb-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
+              <strong>Capacidad insuficiente:</strong>
+              <div className="mt-1">{errorMessage}</div>
+            </div>
+          )}
           <div className="text-gray-700">Cambiar de <span className="font-semibold">{from}</span> a <span className="font-semibold">{to}</span></div>
           <div className="text-gray-600">Fecha y hora: {fechaHora}</div>
           <div className="space-y-2">
