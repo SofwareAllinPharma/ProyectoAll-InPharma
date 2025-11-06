@@ -67,8 +67,8 @@ export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            {idDeposito 
-              ? 'Movimientos de Stock' 
+            {idDeposito
+              ? 'Movimientos de Stock'
               : 'Movimientos Globales de Stock'
             }
           </h2>
@@ -94,8 +94,8 @@ export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
         <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
       </div>
 
-  <MovimientosCards resumen={resumen} loading={loading} />
-      
+      <MovimientosCards resumen={resumen} loading={loading} />
+
       <MovimientoFilters
         filters={filters}
         onFiltersChange={setFilters}
