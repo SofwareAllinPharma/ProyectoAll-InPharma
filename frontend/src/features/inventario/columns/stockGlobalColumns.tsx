@@ -7,7 +7,8 @@ import { formatFecha } from '../utils/formatters';
 export function getStockGlobalColumns(
   navigate: (path: string) => void,
   onCrearPedido?: (row: StockGlobalRow) => void,
-  onMovimientoStock?: (row: StockGlobalRow) => void
+  onMovimientoStock?: (row: StockGlobalRow) => void,
+  onCrearMovimientoPrefill?: (args: { producto: { idProducto: number; nombreComercial?: string }; depositoOrigen?: { id: number; nombre?: string } }) => void
 ): Column<StockGlobalRow>[] {
   return [
     {
@@ -59,7 +60,7 @@ export function getStockGlobalColumns(
       key: 'acciones',
       title: 'Acciones',
       render: (r) => (
-        <StockGlobalActionsCell row={r} onCrearPedido={onCrearPedido} onMovimientoStock={onMovimientoStock} />
+        <StockGlobalActionsCell row={r} onCrearPedido={onCrearPedido} onMovimientoStock={onMovimientoStock} onCrearMovimientoPrefill={onCrearMovimientoPrefill} />
       ),
       align: 'center',
       className: 'w-36',

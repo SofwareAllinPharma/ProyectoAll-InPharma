@@ -24,16 +24,16 @@ import { useToast } from '../../../components/ui/toast/ToastContext';
    responsable?: boolean;
  }
 
-export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?: () => void }) {
+export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?: () => void; initial?: { tipo?: TipoMovimiento; depositoOrigen?: { id: number; nombre?: string }; producto?: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null } } }) {
   const { onCreated, onClose } = args || {};
   const { show } = useToast();
   const [errors, setErrors] = useState<RMErrors>({});
   const [touched, setTouched] = useState<RMTouched>({});
   const [submitted, setSubmitted] = useState(false);
-  const [tipo, setTipo] = useState<SelectOption<TipoMovimiento> | null>(null);
-  const [depOrigen, setDepOrigen] = useState<DepositoMin>(null);
+  const [tipo, setTipo] = useState<SelectOption<TipoMovimiento> | null>(() => args?.initial?.tipo ? { key: args.initial.tipo, label: args.initial.tipo, value: args.initial.tipo } : null);
+  const [depOrigen, setDepOrigen] = useState<DepositoMin>(() => args?.initial?.depositoOrigen ? { id: args.initial.depositoOrigen.id, nombre: args.initial.depositoOrigen.nombre || '' } : null);
   const [depDestino, setDepDestino] = useState<DepositoMin>(null);
-  const [producto, setProducto] = useState<ProductoInv>(null);
+  const [producto, setProducto] = useState<ProductoInv>(() => args?.initial?.producto ? { idProducto: args.initial.producto.idProducto, nombreComercial: args.initial.producto.nombreComercial, cantidadProducto: args.initial.producto.cantidadProducto } : null);
   const [cantidad, setCantidad] = useState<number | ''>(0);
   const [responsable, setResponsable] = useState('');
   const [observaciones, setObservaciones] = useState('');

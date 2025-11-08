@@ -13,7 +13,7 @@ import MovimientoSummaryModal from './MovimientoSummaryModal';
 import { useRegistroMovimiento } from '../../hooks/useRegistroMovimiento';
 
 type DepositoMin = { id: number; nombre: string };
-export default function RegistroMovimientoModal({ open, onClose, onCreated, defaultDepOrigen }: { open: boolean; onClose: () => void; onCreated?: () => void; defaultDepOrigen?: DepositoMin }) {
+export default function RegistroMovimientoModal({ open, onClose, onCreated, defaultDepOrigen, defaultProducto }: { open: boolean; onClose: () => void; onCreated?: () => void; defaultDepOrigen?: DepositoMin; defaultProducto?: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null } }) {
   const { depositos } = useDepositos();
   const rm = useRegistroMovimiento({ onCreated, onClose });
   const { productos } = useProductosPorDeposito(rm.depOrigen?.id);
@@ -21,12 +21,22 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
   // Prefill Depósito Origen si viene desde un depósito específico
   // Sólo se aplica al abrir el modal o si cambia el depósito por defecto
   // No sobreescribe si el usuario ya seleccionó otro depósito manualmente
+  // Efecto 1: prefijar depósito origen
   React.useEffect(() => {
     if (!open || !defaultDepOrigen) return;
-    if (rm.depOrigen && rm.depOrigen.id === defaultDepOrigen.id) return;
-    const nombre = defaultDepOrigen.nombre || depositos.find(d => d.id === defaultDepOrigen.id)?.nombre || '';
-    rm.setDepOrigen({ id: defaultDepOrigen.id, nombre });
-  }, [open, defaultDepOrigen?.id, defaultDepOrigen?.nombre, depositos]);
+    if (!rm.depOrigen || rm.depOrigen.id !== defaultDepOrigen.id) {
+      const nombre = defaultDepOrigen.nombre || depositos.find(d => d.id === defaultDepOrigen.id)?.nombre || '';
+      rm.setDepOrigen({ id: defaultDepOrigen.id, nombre });
+    }
+  }, [open, defaultDepOrigen?.id, defaultDepOrigen?.nombre, depositos, rm.depOrigen?.id]);
+
+  // Efecto 2: prefijar producto (espera a que el depósito origen esté seteado si viene definido)
+  React.useEffect(() => {
+    if (!open || !defaultProducto) return;
+    if (defaultDepOrigen && (!rm.depOrigen || rm.depOrigen.id !== defaultDepOrigen.id)) return; // esperar a que se setee depósito
+    if (rm.producto && rm.producto.idProducto === defaultProducto.idProducto) return;
+    rm.setProducto({ idProducto: defaultProducto.idProducto, nombreComercial: defaultProducto.nombreComercial, cantidadProducto: defaultProducto.cantidadProducto });
+  }, [open, defaultProducto?.idProducto, defaultProducto?.nombreComercial, defaultProducto?.cantidadProducto, rm.depOrigen?.id, defaultDepOrigen?.id]);
 
   return (
     <Modal open={open} onClose={() => { rm.reset(); onClose(); }} containerClass="bg-white rounded-xl shadow-2xl w-full mx-4 max-h-[85vh] sm:max-w-xl md:max-w-2xl lg:max-w-3xl">

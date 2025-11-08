@@ -1,5 +1,7 @@
 import InventarioCardsGlobal from '../../inventario/components/InventarioCardsGlobal';
 import StockGlobalTable from '../../inventario/components/StockGlobalTable';
+import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
+import { useState } from 'react';
 import type { StockGlobalRow } from '../../inventario/types/stock';
 
 interface Props {
@@ -17,6 +19,9 @@ export default function StockGlobalTab({
   onCrearPedido,
   onMovimientoStock
 }: Props) {
+  // Nuevo estado para producto preseleccionado
+  const [prefillProducto, setPrefillProducto] = useState<{ idProducto: number; nombreComercial?: string } | null>(null);
+  const [showMovimientoModal, setShowMovimientoModal] = useState(false);
   return (
     <div className="space-y-4">
       <div className="mb-4">
@@ -36,8 +41,19 @@ export default function StockGlobalTab({
           loading={loadingGlobal}
           onCrearPedido={onCrearPedido}
           onMovimientoStock={onMovimientoStock}
+          onCrearMovimientoPrefill={({ producto }) => {
+            setPrefillProducto(producto);
+            setShowMovimientoModal(true);
+          }}
         />
       </div>
+
+      <RegistroMovimientoModal
+        open={showMovimientoModal}
+        onClose={() => { setShowMovimientoModal(false); setPrefillProducto(null); }}
+        defaultProducto={prefillProducto ?? undefined}
+        onCreated={() => { setShowMovimientoModal(false); setPrefillProducto(null); }}
+      />
     </div>
   );
 }

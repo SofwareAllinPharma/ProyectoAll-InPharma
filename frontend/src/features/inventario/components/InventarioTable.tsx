@@ -15,9 +15,10 @@ interface Props {
     loading?: boolean;
     onMovimientoStock?: (row: InventarioProducto) => void;
     onCrearPedido?: (row: InventarioProducto) => void;
+    onCrearMovimientoPrefill?: (args: { producto: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null }; depositoOrigen?: { id: number; nombre?: string } }) => void;
 }
 
-const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, onCrearPedido }) => {
+const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, onCrearPedido, onCrearMovimientoPrefill }) => {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
     const [estadoFilter, setEstadoFilter] = useState<string>('');
@@ -80,9 +81,14 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
         {
             key: 'acciones',
             title: 'Acciones',
-            render: (r) => (
-                <InventarioActionsCell row={r} onMovimientoStock={onMovimientoStock} onCrearPedido={onCrearPedido} />
-            ),
+                        render: (r) => (
+                                <InventarioActionsCell
+                                    row={r}
+                                    onMovimientoStock={onMovimientoStock}
+                                    onCrearPedido={onCrearPedido}
+                                    onCrearMovimientoPrefill={onCrearMovimientoPrefill}
+                                />
+                        ),
             align: 'center',
             className: 'w-36'
         }

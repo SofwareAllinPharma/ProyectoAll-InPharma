@@ -6,9 +6,10 @@ interface Props {
   row: any; // stock row shape - kept loose to avoid circular types
   onCrearPedido?: (row: any) => void;
   onMovimientoStock?: (row: any) => void;
+  onCrearMovimientoPrefill?: (args: { producto: { idProducto: number; nombreComercial?: string }; depositoOrigen?: { id: number; nombre?: string } }) => void;
 }
 
-const StockGlobalActionsCell: React.FC<Props> = ({ row, onCrearPedido, onMovimientoStock }) => {
+const StockGlobalActionsCell: React.FC<Props> = ({ row, onCrearPedido, onMovimientoStock, onCrearMovimientoPrefill }) => {
   const mostrarPedido = (r: any) => {
     return r.distribucion.some((d: any) => {
       const est = typeof d.estado === 'string' ? d.estado.trim().toUpperCase() : '';
@@ -29,7 +30,13 @@ const StockGlobalActionsCell: React.FC<Props> = ({ row, onCrearPedido, onMovimie
         variant="traslado"
         title="Realizar Movimiento"
         icon={<FaTruck size={16} />}
-        onClick={() => onMovimientoStock?.(row)}
+        onClick={() => {
+          if (onCrearMovimientoPrefill) {
+            onCrearMovimientoPrefill({ producto: { idProducto: row.idProducto, nombreComercial: row.producto }, depositoOrigen: undefined });
+          } else {
+            onMovimientoStock?.(row);
+          }
+        }}
       />
       {mostrarPedido(row) && (
         <MiniActionButton

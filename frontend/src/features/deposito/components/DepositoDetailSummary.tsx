@@ -1,6 +1,9 @@
 import ResumenCard from '../../../components/Card';
 import { FaBox, FaCheckCircle, FaExclamationTriangle, FaTimesCircle } from 'react-icons/fa';
 import InventarioTable from '../../inventario/components/InventarioTable';
+import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
+import { useParams } from 'react-router-dom';
+import { useState } from 'react';
 
 type Props = {
   resumen: any;
@@ -12,6 +15,9 @@ type Props = {
 };
 
 export default function DepositoDetailSummary({ resumen, loadingResumen, inventario, loadingInventario, onCrearPedido, onMovimientoStock }: Props) {
+  const { id } = useParams();
+  const [prefill, setPrefill] = useState<{ producto: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null }; depositoOrigen?: { id: number; nombre?: string } } | null>(null);
+  const [showMovModal, setShowMovModal] = useState(false);
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -23,8 +29,24 @@ export default function DepositoDetailSummary({ resumen, loadingResumen, inventa
 
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6 mt-4">
         <h4 className="text-lg font-semibold text-[#3E3529] mb-4">Stock de productos</h4>
-        <InventarioTable data={inventario} loading={loadingInventario} onCrearPedido={onCrearPedido} onMovimientoStock={onMovimientoStock} />
+        <InventarioTable
+          data={inventario}
+          loading={loadingInventario}
+          onCrearPedido={onCrearPedido}
+          onMovimientoStock={onMovimientoStock}
+          onCrearMovimientoPrefill={({ producto }) => {
+            setPrefill({ producto });
+            setShowMovModal(true);
+          }}
+        />
       </div>
+      <RegistroMovimientoModal
+        open={showMovModal}
+        onClose={() => { setShowMovModal(false); setPrefill(null); }}
+        defaultDepOrigen={id ? { id: Number(id), nombre: '' } : undefined}
+        defaultProducto={prefill?.producto}
+        onCreated={() => { setShowMovModal(false); setPrefill(null); }}
+      />
     </>
   );
 }
