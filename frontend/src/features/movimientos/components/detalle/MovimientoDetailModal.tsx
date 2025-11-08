@@ -16,7 +16,8 @@ import { useGlobalSnack } from '../../../../components/ui/overlay/GlobalSnackCon
 
 export default function MovimientoDetailModal({ open, onClose, movimiento, onEstadoChanged }: { open: boolean; onClose: () => void; movimiento: Movimiento | null; onEstadoChanged?: () => void }) {
   const [detalle, setDetalle] = useState<MovimientoDetalle | null>(null);
-  const [showConfirm, setShowConfirm] = useState<{to: 'EN_CAMINO'|'ENTREGADO'|'CANCELADO'}|null>(null);
+  const [showConfirm, setShowConfirm] = useState<{ to: 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO' } | null>(null);
+  const [capacityError, setCapacityError] = useState<string | null>(null);
   const toastCtx = useContext(ToastContext);
   const showToast = toastCtx?.show;
   const { show: showGlobalSnack } = (() => {
@@ -50,7 +51,6 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
       <div className="flex flex-col h-full">
         <ModalHeader>Detalle de Movimiento</ModalHeader>
         <div className="p-4 sm:p-5 space-y-4">
-          {/* Encabezado centrado con estado en esquina derecha */}
           <section className="relative rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
             <div className="absolute right-3 sm:right-4 top-3 sm:top-4">
               <MovimientosEstadoCell estado={estado} />
@@ -89,7 +89,6 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
             </div>
           </section>
 
-          {/* Cuerpo / Descripción */}
           <section className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
               <div className="text-gray-700">Cantidad:</div>
@@ -103,7 +102,6 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
             </div>
           </section>
 
-          {/* Historial (placeholder) */}
           <section className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
             <div className="text-sm font-medium text-gray-700 mb-1">Historial de estados</div>
             {detalle ? (
@@ -129,39 +127,47 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
 
         <ConfirmarCambioEstadoModal
           open={!!showConfirm}
-          onClose={() => setShowConfirm(null)}
+          onClose={() => { setShowConfirm(null); setCapacityError(null); }}
           from={estado.replace(/_/g, ' ')}
           to={(showConfirm?.to || '').replace(/_/g, ' ')}
+          errorMessage={capacityError ?? undefined}
           onConfirm={async (args) => {
             try {
               const payload = showConfirm!.to === 'ENTREGADO'
                 ? { estado: 'ENTREGADO' as const, responsableEntrega: args.responsableEntrega!, responsableRecepcion: args.responsableRecepcion!, observaciones: args.observaciones }
-                : { estado: showConfirm!.to as 'EN_CAMINO'|'CANCELADO', responsable: args.responsable!, observaciones: args.observaciones };
+                : { estado: showConfirm!.to as 'EN_CAMINO' | 'CANCELADO', responsable: args.responsable!, observaciones: args.observaciones };
               const updated = await MovimientoService.updateEstadoMovimiento(movimiento.id, payload);
               setDetalle(updated);
-              const toLabel = (showConfirm!.to).replace('EN_CAMINO','En camino').replace('ENTREGADO','Entregado').replace('CANCELADO','Cancelado');
+              const toLabel = (showConfirm!.to).replace('EN_CAMINO', 'En camino').replace('ENTREGADO', 'Entregado').replace('CANCELADO', 'Cancelado');
               showToast?.({ type: 'success', title: 'Estado actualizado', message: `Movimiento marcado como ${toLabel}.` });
-              // Global full-screen success confirmation specifically for ENTREGADO
+
               if (showConfirm!.to === 'ENTREGADO') {
                 const cant = updated?.cantidad ?? movimiento.cantidad;
                 const depDestino = updated?.depositoDestinoNombre ?? movimiento.depositoDestino?.nombre ?? null;
                 const tipo = (updated as any)?.tipo ?? movimiento.tipo;
                 let msg = '';
-                if (tipo === 'TRASLADO' && depDestino) {
+
+                // Lógica de mensaje de éxito para diferentes tipos de movimiento
+                if (depDestino && (tipo === 'TRASLADO' || tipo === 'INGRESO')) {
                   msg = `✅ Entrega Exitosa.\nEl movimiento ha llegado al depósito con éxito.\nSe han incrementado ${cant} productos en el ${depDestino}.`;
-                } else {
-                  // Asunción: para Egreso, se comunica egreso del origen para claridad
+                } else if (tipo === 'EGRESO') {
                   const depOrigen = updated?.depositoOrigenNombre ?? movimiento.depositoOrigen?.nombre ?? 'depósito origen';
                   msg = `✅ Entrega Exitosa.\nEl movimiento se completó correctamente.\nSe han egresado ${cant} productos del ${depOrigen}.`;
+                } else {
+                  msg = '✅ Entrega Exitosa. El movimiento se completó correctamente.';
                 }
+
                 showGlobalSnack({ title: 'Movimiento Entregado', message: msg, duration: 4500 });
               }
               onEstadoChanged?.();
-              // Nuevo requerimiento: cerrar también el modal de detalle tras confirmar el cambio
+            } catch (err: any) {
               onClose();
-            } catch {
-              showToast?.({ type: 'error', title: 'Error', message: 'No se pudo actualizar el estado. Intenta nuevamente.' });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              showToast?.({ type: 'error', title: 'Error', message: 'La cantidad que quiere mover no podrá ser almacenada porque sobrepasaría la capacidad total del depósito destino.\nAumente la capacidad total del deposito o haga los movimientos necesarios para liberar espacio.' });
+              setCapacityError(null);
+              console.error('Error update estado detalle:', err);
             }
+            
           }}
         />
       </div>

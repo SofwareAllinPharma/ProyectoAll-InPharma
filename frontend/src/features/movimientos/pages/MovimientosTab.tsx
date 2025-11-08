@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { FaTruck } from 'react-icons/fa';
+import Button from '../../../components/ui/Button';
 import MovimientosCards from '../components/MovimientosCards';
 import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
@@ -8,12 +10,13 @@ import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal'
 import MovimientoDetailModal from '../components/detalle/MovimientoDetailModal';
 
 interface Props {
-  idDeposito?: number; 
+  idDeposito?: number;
+  onShowTraslado?: () => void; 
 }
 
-export default function MovimientosTab({ idDeposito }: Props) {
-  const { 
-    movimientos, 
+export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
+  const {
+    movimientos,
     resumen, 
     loading,
     error,
@@ -30,25 +33,19 @@ export default function MovimientosTab({ idDeposito }: Props) {
     fechaHasta: ''
   });
 
-  // Evitar doble llamada al cargar la pestaña (mount):
-  // useMovimientos ya hace una carga inicial; este debounce para filtros
-  // se saltea la primera vez para no duplicar requests
   const firstFiltersEffect = useRef(true);
   useEffect(() => {
     if (firstFiltersEffect.current) {
       firstFiltersEffect.current = false;
       return;
     }
-    // Validación: fecha desde no puede ser posterior a fecha hasta
     if (filters.fechaDesde && filters.fechaHasta) {
       const from = new Date(filters.fechaDesde);
       const to = new Date(filters.fechaHasta);
       if (!isNaN(from.getTime()) && !isNaN(to.getTime()) && from > to) {
-        // Evitamos llamar a la API con un rango inválido
         return;
       }
     }
-    // Debounce filter changes to avoid blocking typing and rapid re-requests
     const t = setTimeout(() => {
       void filtrarMovimientos(filters);
     }, 300);
@@ -70,8 +67,8 @@ export default function MovimientosTab({ idDeposito }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            {idDeposito 
-              ? 'Movimientos de Stock' 
+            {idDeposito
+              ? 'Movimientos de Stock'
               : 'Movimientos Globales de Stock'
             }
           </h2>
@@ -82,21 +79,23 @@ export default function MovimientosTab({ idDeposito }: Props) {
             }
           </p>
         </div>
-        
-        <button
-          onClick={() => setOpenRegistroModal(true)}
-          className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-all flex items-center gap-2"
+
+        <Button
+          variant="outline"
+          title="Registrar Traslado"
+          icon={<FaTruck size={16} className="text-[#7C6A55]" />}
+          onClick={() => {
+            onShowTraslado?.();
+            setOpenRegistroModal(true);
+          }}
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>Nuevo Movimiento</span>
-        </button>
-  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
+          Nuevo Movimiento
+        </Button>
+        <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
       </div>
 
-  <MovimientosCards resumen={resumen} loading={loading} />
-      
+      <MovimientosCards resumen={resumen} loading={loading} />
+
       <MovimientoFilters
         filters={filters}
         onFiltersChange={setFilters}

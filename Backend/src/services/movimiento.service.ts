@@ -454,7 +454,8 @@ export class MovimientoService {
                     if (!depDestino) throw new Error('Depósito destino no encontrado');
                     const espacioDisponible = (depDestino.capacidadTotal || 0) - (depDestino.capacidadUsada || 0);
                     if (espacioDisponible < cantidad) {
-                        throw new Error('El depósito destino no tiene capacidad disponible para completar la entrega');
+                        // Lanzar un error con prefijo detectible por el frontend
+                        throw new Error('CAPACITY_EXCEEDED: El depósito destino no tiene capacidad disponible para completar la entrega');
                     }
 
                     // Agregar stock al destino
@@ -553,4 +554,5 @@ export class MovimientoService {
 
         return { ok: true };
     }
+
 }

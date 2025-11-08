@@ -18,10 +18,6 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
   const rm = useRegistroMovimiento({ onCreated, onClose });
   const { productos } = useProductosPorDeposito(rm.depOrigen?.id);
 
-  // Prefill Depósito Origen si viene desde un depósito específico
-  // Sólo se aplica al abrir el modal o si cambia el depósito por defecto
-  // No sobreescribe si el usuario ya seleccionó otro depósito manualmente
-  // Efecto 1: prefijar depósito origen
   React.useEffect(() => {
     if (!open || !defaultDepOrigen) return;
     if (!rm.depOrigen || rm.depOrigen.id !== defaultDepOrigen.id) {
@@ -43,14 +39,12 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
       <form className="registro-movimiento-modal flex flex-col h-full" onSubmit={rm.handleSubmit}>
         <ModalHeader>Registrar movimiento</ModalHeader>
         <div className="p-4 sm:p-6 flex-1 space-y-4 overflow-auto">
-          {/* Tipo de movimiento */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de movimiento</label>
             <TipoSelect value={rm.tipo} onChange={rm.handleTipoChange} onBlur={rm.handleTipoBlur} />
             {rm.errors.tipo && (rm.touched.tipo || rm.submitted) ? <p className="text-red-600 text-sm mt-1">{rm.errors.tipo}</p> : null}
           </div>
 
-          {/* Depósitos: visibles según tipo */}
           {rm.tipo?.value === 'EGRESO' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Depósito origen</label>
