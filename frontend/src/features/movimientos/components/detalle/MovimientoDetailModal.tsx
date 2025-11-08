@@ -157,6 +157,8 @@ export default function MovimientoDetailModal({ open, onClose, movimiento, onEst
                 showGlobalSnack({ title: 'Movimiento Entregado', message: msg, duration: 4500 });
               }
               onEstadoChanged?.();
+              // Nuevo requerimiento: cerrar también el modal de detalle tras confirmar el cambio
+              onClose();
             } catch {
               showToast?.({ type: 'error', title: 'Error', message: 'No se pudo actualizar el estado. Intenta nuevamente.' });
             }
