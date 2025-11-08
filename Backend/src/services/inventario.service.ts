@@ -53,7 +53,7 @@ export const InventarioService = {
       cantidadProducto: r.cantidadProducto,
       umbralMin: r.umbralMin,
       estado: calcularEstado(r.cantidadProducto, r.umbralMin),
-      updatedAt: (r as any).updatedAt ?? null,
+      updatedAt: (r as any).updatedAt ? ((r as any).updatedAt as Date).toISOString() : null,
     }));
   },
 

@@ -12,5 +12,6 @@ export interface StockGlobalRow {
   producto: string;
   stockTotal: number;
   distribucion: DistribucionDeposito[];
-  updatedAt?: string;
+  updatedAt?: string | null;
+  horaActualizacion?: string | null; // HH:MM derivado de updatedAt
 }

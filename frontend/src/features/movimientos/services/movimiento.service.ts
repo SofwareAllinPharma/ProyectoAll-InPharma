@@ -133,6 +133,14 @@ export class MovimientoService {
         return '';
       };
 
+      // Helper para HH:MM a partir de ISO o fecha parseable
+      const toHour = (s?: string | null): string | null => {
+        if (!s) return null;
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      };
+
       // Mapear cada elemento al tipo Movimiento esperado por el frontend
       const mapped: Movimiento[] = (rawList as RawMovimiento[]).map((it) => {
         const id = it.idMovimiento ?? it.id ?? 0;
@@ -159,6 +167,7 @@ export class MovimientoService {
           estado: estadoNorm as 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO',
           fechaCreacion: it.fechaCreacion ?? '',
           fechaActualizacion: it.fechaHoraActualizacion ?? null,
+          horaActualizacion: toHour(it.fechaHoraActualizacion),
           idUsuario: it.idUsuario ?? 0,
           responsable: it.responsable ?? (it.usuario?.nombre ?? undefined),
           producto: {

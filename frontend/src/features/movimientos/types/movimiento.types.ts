@@ -17,6 +17,7 @@ export interface Movimiento {
   estado: EstadoMovimiento;
   fechaCreacion: string;
   fechaActualizacion?: string | null;
+  horaActualizacion?: string | null; // nueva: hora HH:MM de la última actualización
   idUsuario: number;
   // Responsable del movimiento (nombre plano desde BD)
   responsable?: string;

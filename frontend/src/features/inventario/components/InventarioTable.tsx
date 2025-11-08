@@ -66,7 +66,14 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
         {
             key: 'actualizacion',
             title: 'Actualización',
-            render: (r) => formatFecha(r.updatedAt),
+            render: (r) => (
+                <div className="leading-tight">
+                    <div>{formatFecha(r.updatedAt)}</div>
+                    {r.horaActualizacion && (
+                        <div className="text-xs text-gray-500">{r.horaActualizacion}</div>
+                    )}
+                </div>
+            ),
             align: 'center',
             className: 'w-32'
         },

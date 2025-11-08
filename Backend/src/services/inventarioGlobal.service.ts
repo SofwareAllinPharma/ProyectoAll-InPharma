@@ -44,6 +44,7 @@ export const InventarioGlobalService = {
       select: {
         idProducto: true,
         nombreComercial: true,
+        lastStockUpdatedAt: true,
         inventario: { include: { deposito: { select: { id: true, nombre: true } } } },
       },
     });
@@ -61,6 +62,7 @@ export const InventarioGlobalService = {
         producto: p.nombreComercial,
         stockTotal: total,
         distribucion,
+        updatedAt: p.lastStockUpdatedAt ? (p.lastStockUpdatedAt as Date).toISOString() : undefined,
       };
     });
 

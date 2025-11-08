@@ -108,7 +108,7 @@ export class MovimientoService {
             return `${day}/${month}/${year2}`;
         }
 
-        const dataFormateada = movimientos.map(mov => {
+    const dataFormateada = movimientos.map(mov => {
             
             
             const CREATED_STATE_ID = 1;
@@ -128,7 +128,8 @@ export class MovimientoService {
             return {
                 idMovimiento: mov.idMovimiento,
                 fechaCreacion: fechaCreacion,
-                fechaHoraActualizacion: formatDateArg(mov.fechaHoraActualizacion),
+                // En lista devolvemos ISO completo para poder mostrar fecha y hora separadas en el frontend
+                fechaHoraActualizacion: mov.fechaHoraActualizacion ? (mov.fechaHoraActualizacion as Date).toISOString() : null,
                 producto: productoNombre,
                 estado: estadoActual,
                 cantidad: cantidad,
@@ -330,7 +331,7 @@ export class MovimientoService {
         const detalle = {
             idMovimiento: mov.idMovimiento,
             fechaCreacion,
-            fechaHoraActualizacion: formatDateArg(mov.fechaHoraActualizacion),
+            fechaHoraActualizacion: mov.fechaHoraActualizacion ? (mov.fechaHoraActualizacion as Date).toISOString() : null,
             responsable: mov.responsable,
             producto: producto ? {
                 idProducto: producto.idProducto,
