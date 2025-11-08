@@ -58,22 +58,22 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Entrega (requerido)</label>
-                  <input value={responsableEntrega} onChange={(e) => setResponsableEntrega(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien entrega" />
+                  <input value={responsableEntrega} onChange={(e) => setResponsableEntrega(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien entrega" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Recepción (requerido)</label>
-                  <input value={responsableRecepcion} onChange={(e) => setResponsableRecepcion(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien recibe" />
+                  <input value={responsableRecepcion} onChange={(e) => setResponsableRecepcion(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien recibe" />
                 </div>
               </>
             ) : (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Responsable (requerido)</label>
-                <input value={responsable} onChange={(e) => setResponsable(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre del responsable" />
+                <input value={responsable} onChange={(e) => setResponsable(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre del responsable" />
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-              <textarea value={obs} onChange={(e) => setObs(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="No Aplica" rows={3} />
+              <textarea value={obs} onChange={(e) => setObs(e.target.value)} maxLength={100} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="No Aplica" rows={3} />
             </div>
           </div>
         </div>

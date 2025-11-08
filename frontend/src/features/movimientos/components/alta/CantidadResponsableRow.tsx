@@ -44,6 +44,7 @@ export default function CantidadResponsableRow({ stock, cantidad, onCantidadChan
             onChange={(e) => onResponsableChange(e.target.value)}
             onBlur={() => onBlurResponsable?.()}
             placeholder="Nombre del responsable"
+            maxLength={20}
             className="w-45 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm"
           />
           {errorResponsable ? <p className="text-red-600 text-sm mt-1">{errorResponsable}</p> : null}
