@@ -7,6 +7,7 @@ import { PedidosPage } from "../../pedidos";
 import PedidoDetailPage from "../../pedidos/pages/PedidoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
+import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 
 import { InsumoService } from "../../insumos/services/insumo.service";
 import { FormulaService } from "../../formulas/services/formula.service";
@@ -242,6 +243,9 @@ export default function AdminSisDashboard() {
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+
+      {/* Movimientos */}
+      <Route path="movimientos/:id" element={<MovimientoDetailPage />} />
 
       {/* Wildcard: si preferís que vaya a depósitos, cambia "." por "depositos" */}
       <Route path="*" element={<Navigate to="." replace />} />
