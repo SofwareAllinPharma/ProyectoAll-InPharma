@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useToast } from "../../../../components/ui/toast/ToastContext";
 import Modal from "../../../../components/ui/modales/Modal";
 import ModalHeader from "../../../../components/ui/modales/ModalHeader";
-import Button from "../../../../components/ui/Button";
+import FormActions from "../../../../components/form/FormActions";
 import { ProductoService } from "../../../productos/services/producto.service";
 import type { Producto } from "../../../productos/types/producto.types";
 import QuantityControl from "./QuantityControl";
@@ -236,6 +236,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
         <ModalHeader>Crear Pedido</ModalHeader>
 
         <form
+          id="crear-pedido-form"
           onSubmit={(e) => {
             e.preventDefault();
             void handleSubmit();
@@ -249,33 +250,23 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
               Cantidad (seleccione unidad)
             </label>
             <div className="flex gap-4 items-center mt-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "gramos"}
-                  onChange={() => setMode("gramos")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Gramos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "paquetes"}
-                  onChange={() => setMode("paquetes")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Paquetes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "porciones"}
-                  onChange={() => setMode("porciones")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Porciones</span>
-              </div>
+              {(
+                [
+                  { k: 'gramos', label: 'Gramos' },
+                  { k: 'paquetes', label: 'Paquetes' },
+                  { k: 'porciones', label: 'Porciones' },
+                ] as const
+              ).map((opt) => (
+                <label key={opt.k} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={mode === opt.k}
+                    onChange={() => setMode(opt.k)}
+                    disabled={!selected}
+                  />
+                  <span className="ml-1">{opt.label}</span>
+                </label>
+              ))}
             </div>
             <QuantityControl
               mode={mode}
@@ -297,14 +288,13 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Observación
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Observación</label>
             <textarea
-              className="mt-1 block w-full px-4 py-3 border rounded-md"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] text-sm"
               rows={4}
               value={observacion}
               onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Notas adicionales…"
             />
           </div>
           
@@ -315,25 +305,13 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
         </form>
 
         <div className="mt-4 border-t pt-4">
-          <div className="flex gap-3 pt-4 px-4 py-4 justify-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} className="px-6 py-2">
-              Cancelar
-            </Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  setValidationError(null);
-                  await handleSubmit();
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="px-6 py-2"
-              ariaLabel="Crear Pedido"
-            >
-              {submitting ? "Creando..." : "Crear Pedido"}
-            </Button>
+          <div className="pt-2">
+            <FormActions
+              onCancel={onClose}
+              submitting={submitting}
+              submitLabel="Crear Pedido"
+              formId="crear-pedido-form"
+            />
           </div>
         </div>
       </div>

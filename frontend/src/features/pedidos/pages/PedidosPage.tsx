@@ -6,7 +6,7 @@ import { PedidoService } from "../services/pedido.service";
 import type { Pedido, CreatePedidoRequest } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
 import PedidoDetailModal from '../components/PedidoDetailModal';
-import PedidoAccionesCell from '../components/table/PedidoAccionesCell';
+import PedidoEstadoCell from "../components/PedidoEstadoCell";
 import PedidoFormModal from "../components/form/PedidoFormModal";
 import PedidoHistoryModal from "../components/PedidoHistoryModal";
 import PedidoStats from "../components/PedidoStats";
@@ -72,10 +72,23 @@ const PedidosPage: React.FC = () => {
     );
   });
 
+  const normalize = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, '')
+      .toLowerCase();
+
   const sortedPedidos = visiblePedidos.slice().sort((a, b) => {
+    const aEstado = normalize(a.cambioActual?.estado?.nombre || '');
+    const bEstado = normalize(b.cambioActual?.estado?.nombre || '');
+    const aCancelled = aEstado === 'cancelado' ? 1 : 0;
+    const bCancelled = bEstado === 'cancelado' ? 1 : 0;
+    if (aCancelled !== bCancelled) return aCancelled - bCancelled; // no-cancelled first
     const aDate = new Date(a.createdAt).getTime();
     const bDate = new Date(b.createdAt).getTime();
-    return sortOrder === 'asc' ? aDate - bDate : bDate - aDate;
+    if (aDate !== bDate) return sortOrder === 'asc' ? aDate - bDate : bDate - aDate;
+    return (a.numPedido || 0) - (b.numPedido || 0);
   });
 
   const load = useCallback(async () => {
@@ -121,23 +134,7 @@ const PedidosPage: React.FC = () => {
 
   const canCreatePedidos = true;
 
-  const getEstadoBadge = (estado: string) => {
-    const normalize = (s: string) =>
-      s
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .replace(/\s+/g, '')
-        .toLowerCase();
-    const map: Record<string, { label: string; cls: string }> = {
-      creado: { label: "Pendiente", cls: "bg-yellow-100 text-yellow-800" },
-      enelaboracion: { label: "En Proceso", cls: "bg-blue-100 text-blue-800" },
-      elaboradoydepositadoenfabrica: { label: "Completado", cls: "bg-green-100 text-green-800" },
-      cancelado: { label: "Cancelado", cls: "bg-red-100 text-red-800" },
-    };
-    const key = normalize(estado || '');
-    const info = map[key] || { label: estado || '—', cls: 'bg-gray-100 text-gray-800' };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.cls}`}>{info.label}</span>;
-  };
+  // Estado render se mueve a PedidoEstadoCell
 
  
 
@@ -150,18 +147,32 @@ const PedidosPage: React.FC = () => {
     },
     {
       key: "fechaCreacion",
-      title: "Fecha Creación",
-      width: "140px",
+      title: (
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-white"
+          onClick={() => setSortOrder((s) => (s === 'asc' ? 'desc' : 'asc'))}
+          title={sortOrder === 'asc' ? 'Ordenar por fecha descendente' : 'Ordenar por fecha ascendente'}
+        >
+          <span>FECHA CREACIÓN</span>
+          <svg
+            className={`h-3.5 w-3.5 transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      ),
+      width: "160px",
       render: (r) => new Date(r.createdAt).toLocaleDateString(),
     },
     {
       key: "producto",
       title: "Producto",
       render: (r) => (
-        <div className="text-sm">
-          <div className="font-medium">{r.producto?.nombreComercial ?? `#${r.idProducto}`}</div>
-          <div className="text-xs text-gray-500">ID: {r.idProducto}</div>
-        </div>
+        <div className="text-sm font-medium">{r.producto?.nombreComercial ?? `#${r.idProducto}`}</div>
       ),
     },
   { key: 'creador', title: 'Creador', render: (r) => formatUserName(r.mailUsuarioCreador) ?? '-' },
@@ -182,34 +193,44 @@ const PedidosPage: React.FC = () => {
     {
       key: "estado",
       title: "Estado",
-      render: (r) => getEstadoBadge(r.cambioActual?.estado?.nombre ?? ""),
+      align: 'center',
+      render: (r) => (
+        <PedidoEstadoCell estado={r.cambioActual?.estado?.nombre ?? ''} asignado={r.estaAsignado === true} />
+      ),
     },
     {
       key: "acciones",
       title: "Acciones",
-      render: (r) => {
-        return (
-          <div className="flex gap-2">
-            {/* Use the reusable ActionMenu as in Productos */}
-            <PedidoAccionesCell
-              pedido={r}
-              onAction={async () => {
-                // only 'view' action is provided by the menu; fetch full detail and open modal
-                setModals((s) => ({ ...s, detail: true }));
-                setDetailLoading(true);
-                try {
-                  const full = await PedidoService.detail(r.numPedido);
-                  setSelected(full);
-                } catch (err) {
-                  show({ message: (err as Error)?.message || 'Error cargando detalle', type: 'error' });
-                } finally {
-                  setDetailLoading(false);
-                }
-              }}
-            />
-          </div>
-        );
-      },
+      align: 'center',
+      render: (r) => (
+        <div className="relative inline-flex group">
+          <button
+            className="inline-flex items-center justify-center h-8 w-8 text-gray-700 hover:text-[#5d5448]"
+            onClick={async (e) => {
+              e.stopPropagation();
+              setModals((s) => ({ ...s, detail: true }));
+              setDetailLoading(true);
+              try {
+                const full = await PedidoService.detail(r.numPedido);
+                setSelected(full);
+              } catch (err) {
+                show({ message: (err as Error)?.message || 'Error cargando detalle', type: 'error' });
+              } finally {
+                setDetailLoading(false);
+              }
+            }}
+            aria-label={`Ver detalle PED-${r.numPedido}`}
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="12" r="3" strokeWidth="2"/>
+            </svg>
+          </button>
+          <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            Ver detalle
+          </span>
+        </div>
+      ),
     },
   ];
 
@@ -252,14 +273,6 @@ const PedidosPage: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="px-3 py-2 border rounded-md"
           />
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-            className="ml-2 px-3 py-2 border rounded-md text-sm"
-          >
-            <option value="asc">Fecha ↑ (más antiguo primero)</option>
-            <option value="desc">Fecha ↓ (más reciente primero)</option>
-          </select>
         </div>
 
         <div className="flex items-center gap-2">
@@ -298,7 +311,7 @@ const PedidosPage: React.FC = () => {
         />
       )}
 
-      <div className="bg-white rounded-lg shadow-sm p-4">
+      <div className="bg-white rounded-lg shadow-sm">
         <DataTable
           columns={columns}
           data={sortedPedidos}
