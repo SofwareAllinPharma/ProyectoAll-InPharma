@@ -18,31 +18,21 @@ const PedidosPage: React.FC = () => {
   const [modals, setModals] = useState({ form: false, history: false, detail: false });
   const [detailLoading, setDetailLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [filter, setFilter] = useState<
-    "todos" | "pendientes" | "asignados" | "finalizados"
-  >("todos");
+  type EstadoFiltro = '' | 'creado' | 'enelaboracion' | 'completado' | 'cancelado';
+  const [estadoFilter, setEstadoFilter] = useState<EstadoFiltro>('');
   const [search, setSearch] = useState("");
   
   const { show } = useToast();
 
-  const userProfile = localStorage.getItem("userPerfil") || "";
-  const profileNum = Number(userProfile || 0);
+  // userProfile reservado si se requiere reglas por perfil para crear pedidos
   
 
   const filteredPedidos = pedidos.filter((pedido) => {
-    const estado = pedido.cambioActual?.estado?.nombre || "";
-    switch (filter) {
-      case "pendientes":
-        return estado === "Creado";
-      case "asignados":
-        return estado === "EnElaboración" || pedido.estaAsignado === true || estado === "EnElaboración";
-      case "finalizados":
-        return (
-          estado === "ElaboradoYDepositadoEnFábrica" || estado === "Cancelado"
-        );
-      default:
-        return true;
-    }
+    // Filtra sólo por estado seleccionado en el desplegable (o ninguno)
+    const est = (pedido.cambioActual?.estado?.nombre || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, '').toLowerCase();
+    if (!estadoFilter) return true;
+    if (estadoFilter === 'completado') return est === 'elaboradoydepositadoenfabrica';
+    return est === estadoFilter;
   });
 
 
@@ -240,66 +230,49 @@ const PedidosPage: React.FC = () => {
       subtitle="Gestión de pedidos de elaboración"
       loading={loading}
       noContainer
+      extraActions={canCreatePedidos ? (
+        <button
+          onClick={onCreate}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 focus:ring-2 focus:ring-[#5d5448]/50 focus:outline-none transition-all duration-200"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span>Crear Pedido</span>
+        </button>
+      ) : null}
     >
       <PedidoStats pedidos={pedidos} />
 
-      {canCreatePedidos ? (
-        <div className="mb-4">
-          <button
-            onClick={onCreate}
-            className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 focus:ring-2 focus:ring-[#5d5448]/50 focus:outline-none transition-all duration-200 flex items-center gap-2"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span>Crear Pedido</span>
-          </button>
-        </div>
-      ) : (
-        <div className="mb-4">
-          <div className="text-sm text-gray-500">
-            El botón <strong>Crear Pedido</strong> se muestra solo para administradores.
-            Perfil actual: <strong>{profileNum || 'no definido'}</strong>.
+      {/* Barra de búsqueda y filtro por estado (estética de Movimientos) */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Buscar pedido..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100"
+            />
           </div>
-        </div>
-      )}
-
-      <div className="mb-4 flex gap-2 flex-wrap items-center justify-between">
-          <div className="flex items-center gap-2">
-          <input
-            type="search"
-            placeholder="Buscar pedido..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border rounded-md"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 py-2">
-            Filtrar por estado:
-          </span>
-          {(["todos", "pendientes", "asignados", "finalizados"] as const).map(
-            (f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  filter === f
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {f === "todos"
-                  ? "Todos"
-                  : f === "pendientes"
-                  ? "Pendientes"
-                  : f === "asignados"
-                  ? "Asignados/En Proceso"
-                  : "Finalizados"}
-              </button>
-            )
-          )}
+          <div className="flex items-center gap-3">
+            <select
+              value={estadoFilter}
+              onChange={(e) => {
+                const v = e.target.value as EstadoFiltro;
+                const allow: EstadoFiltro[] = ['', 'creado', 'enelaboracion', 'completado', 'cancelado'];
+                setEstadoFilter(allow.includes(v) ? v : '');
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100"
+            >
+              <option value="">Todos los estados</option>
+              <option value="creado">Creado</option>
+              <option value="enelaboracion">En elaboración</option>
+              <option value="completado">Completado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
         </div>
       </div>
 
