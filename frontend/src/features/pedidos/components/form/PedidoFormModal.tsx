@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useToast } from "../../../../components/ui/toast/ToastContext";
-import Modal from "../../../../components/ui/modales/Modal";
-import ModalHeader from "../../../../components/ui/modales/ModalHeader";
 import FormActions from "../../../../components/form/FormActions";
 import { ProductoService } from "../../../productos/services/producto.service";
 import type { Producto } from "../../../productos/types/producto.types";
@@ -10,6 +8,7 @@ import ProductSelector from "./ProductSelector";
 import InsumosPreview from "./InsumosPreview";
 import CreatorInfo from "./CreatorInfo";
 import type { CreatePedidoRequest } from "../../types/pedido.types";
+import PedidoModalShell from "../PedidoModalShell";
 
 interface Props {
   isOpen: boolean;
@@ -227,21 +226,27 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   };
 
   return (
-    <Modal
+    <PedidoModalShell
       open={isOpen}
       onClose={onClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4"
+      title={<span>Crear Pedido</span>}
+      size="md"
+      footer={(
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel="Crear Pedido"
+          formId="crear-pedido-form"
+        />
+      )}
     >
-      <div className="p-4">
-        <ModalHeader>Crear Pedido</ModalHeader>
-
-        <form
+      <form
           id="crear-pedido-form"
           onSubmit={(e) => {
             e.preventDefault();
             void handleSubmit();
           }}
-          className="space-y-4 mt-4"
+          className="space-y-4"
         >
           <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
@@ -249,7 +254,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
             <label className="block text-sm font-medium text-gray-700">
               Cantidad (seleccione unidad)
             </label>
-            <div className="flex gap-4 items-center mt-2">
+            <div className="flex gap-4 items-center mt-2 text-sm">
               {(
                 [
                   { k: 'gramos', label: 'Gramos' },
@@ -287,35 +292,27 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
             {/* Adjust suggestion removed: equivalencias now controlled via arrows only */}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Observación</label>
-            <textarea
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] text-sm"
-              rows={4}
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-              placeholder="Notas adicionales…"
-            />
-          </div>
-          
           {/* Info: creador y fecha */}
           <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
 
           <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
-        </form>
 
-        <div className="mt-4 border-t pt-4">
-          <div className="pt-2">
-            <FormActions
-              onCancel={onClose}
-              submitting={submitting}
-              submitLabel="Crear Pedido"
-              formId="crear-pedido-form"
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Observación</label>
+            <textarea
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] text-sm"
+              rows={2}
+              maxLength={256}
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Notas adicionales…"
             />
+            <div className="mt-1 text-xs text-gray-500 text-right">
+              {observacion.length}/256
+            </div>
           </div>
-        </div>
-      </div>
-    </Modal>
+        </form>
+    </PedidoModalShell>
   );
 };
 
