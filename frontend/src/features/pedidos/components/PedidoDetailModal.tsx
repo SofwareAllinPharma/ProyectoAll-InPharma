@@ -6,6 +6,7 @@ import ProductInfoCard from '../../productos/components/ProductInfoCard';
 import type { Producto } from '../../productos/types/producto.types';
 import { ProductoService } from '../../productos/services/producto.service';
 import PedidoActions from './PedidoActions';
+import PedidoEstadoCell from './PedidoEstadoCell';
 
 interface Props {
   isOpen: boolean;
@@ -65,22 +66,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
     return Number(n.toFixed(4)).toString();
   };
 
-  const estadoInfo = (estadoName?: string) => {
-    const normalize = (s: string) =>
-      s
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .replace(/\s+/g, '')
-        .toLowerCase();
-    const map: Record<string, { label: string; cls: string }> = {
-      creado: { label: 'Pendiente', cls: 'bg-yellow-100 text-yellow-800' },
-      enelaboracion: { label: 'En Proceso', cls: 'bg-blue-100 text-blue-800' },
-      elaboradoydepositadoenfabrica: { label: 'Completado', cls: 'bg-green-100 text-green-800' },
-      cancelado: { label: 'Cancelado', cls: 'bg-red-100 text-red-800' },
-    };
-    const key = normalize(estadoName || '');
-    return map[key] ?? { label: estadoName || '-', cls: 'bg-gray-100 text-gray-800' };
-  };
+  // estado badge ahora reutiliza PedidoEstadoCell
 
   const formatUserName = (email?: string | null) => {
     if (!email) return '-';
@@ -156,11 +142,7 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
             <div className="bg-gray-50 border rounded p-4">
               <h3 className="font-semibold mb-2">Estado del Pedido</h3>
               <div className="mt-2">
-                {/* prominent estado */}
-                {(() => {
-                  const info = estadoInfo(pedido.cambioActual?.estado?.nombre);
-                  return <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${info.cls}`}>{info.label}</div>;
-                })()}
+                <PedidoEstadoCell estado={pedido.cambioActual?.estado?.nombre ?? ''} asignado={pedido.estaAsignado === true} />
               </div>
               <div className="mt-4 text-sm">Creador</div>
               <div className="mt-1">{formatUserName(pedido.mailUsuarioCreador)}</div>

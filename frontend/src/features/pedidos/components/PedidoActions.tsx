@@ -47,6 +47,7 @@ export default function PedidoActions({ pedido, onRefresh }: Props) {
         <Button
           onClick={() => runAndRefresh(() => PedidoService.tomarPedido(pedido.numPedido), 'Pedido tomado')}
           disabled={busy}
+          ariaLabel="Tomar pedido"
         >
           Tomar pedido
         </Button>
@@ -57,7 +58,7 @@ export default function PedidoActions({ pedido, onRefresh }: Props) {
           <Button
             onClick={() => runAndRefresh(() => PedidoService.finalizarElaboracion(pedido.numPedido), 'Elaboración finalizada')}
             disabled={busy}
-            className="bg-green-600 text-white"
+            ariaLabel="Finalizar elaboración"
           >
             Finalizar elaboración
           </Button>
@@ -65,7 +66,7 @@ export default function PedidoActions({ pedido, onRefresh }: Props) {
             onClick={() => runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado')}
             disabled={busy}
             variant="outline"
-            className="bg-red-600 text-white"
+            ariaLabel="Cancelar pedido"
           >
             Cancelar pedido
           </Button>
