@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import Modal from '../../../components/ui/modales/Modal';
-import ModalHeader from '../../../components/ui/modales/ModalHeader';
 import type { Pedido } from '../types/pedido.types';
 import ProductInfoCard from '../../productos/components/ProductInfoCard';
 import type { Producto } from '../../productos/types/producto.types';
 import { ProductoService } from '../../productos/services/producto.service';
 import PedidoActions from './PedidoActions';
 import PedidoEstadoCell from './PedidoEstadoCell';
+import PedidoModalShell from './PedidoModalShell';
 
 interface Props {
   isOpen: boolean;
@@ -82,19 +81,23 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
 
 
   return (
-    <Modal open={isOpen} onClose={onClose} containerClass={`bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col`} backdropClassName="bg-black/30">
-      <ModalHeader>
-        <span className="text-2xl">Pedido PED-{pedido.numPedido}</span>
-      </ModalHeader>
-
-      {/* If parent passes loading, show a simple placeholder */}
-      {loading ? (
-        <div className="p-8 flex flex-col items-center justify-center flex-1">
-          <div className="mb-4 text-lg">Cargando pedido…</div>
-          <div className="h-8 w-8 border-4 border-gray-200 border-t-[#5d5448] rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+    <PedidoModalShell
+      open={isOpen}
+      onClose={onClose}
+      title={<span className="text-2xl">Pedido PED-{pedido.numPedido}</span>}
+      size="xl"
+      loading={loading}
+      footer={(
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-6 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-colors"
+        >
+          Cerrar
+        </button>
+      )}
+    >
+      <div className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* Reuse ProductInfoCard used in Productos for consistent look */}
@@ -193,13 +196,8 @@ const PedidoDetailModal: React.FC<Props> = ({ isOpen, pedido, onClose, loading, 
             ))}
           </div>
         </div>
-        </div>
-      )}
-
-      <div className="flex gap-3 px-6 py-4 justify-center sm:justify-end">
-        <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-colors">Cerrar</button>
       </div>
-    </Modal>
+    </PedidoModalShell>
   );
 };
 
