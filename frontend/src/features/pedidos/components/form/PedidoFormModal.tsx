@@ -232,23 +232,22 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
       onClose={onClose}
       containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4"
     >
-      <div className="p-4">
-        <ModalHeader>Crear Pedido</ModalHeader>
+      <ModalHeader>Crear Pedido</ModalHeader>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void handleSubmit();
-          }}
-          className="space-y-4 mt-4"
-        >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit();
+        }}
+        className="space-y-4 px-6 py-4"
+      >
           <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Cantidad (seleccione unidad)
             </label>
-            <div className="flex gap-4 items-center mt-2">
+            <div className="flex gap-4 items-center mt-2 text-sm">
               <div className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -301,40 +300,44 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
               Observación
             </label>
             <textarea
-              className="mt-1 block w-full px-4 py-3 border rounded-md"
-              rows={4}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] text-sm"
+              rows={2}
+              maxLength={256}
               value={observacion}
               onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Notas adicionales…"
             />
+            <div className="mt-1 text-xs text-gray-500 text-right">
+              {observacion.length}/256
+            </div>
           </div>
           
           {/* Info: creador y fecha */}
           <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
 
           <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
-        </form>
+      </form>
 
-        <div className="mt-4 border-t pt-4">
-          <div className="flex gap-3 pt-4 px-4 py-4 justify-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} className="px-6 py-2">
-              Cancelar
-            </Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  setValidationError(null);
-                  await handleSubmit();
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="px-6 py-2"
-              ariaLabel="Crear Pedido"
-            >
-              {submitting ? "Creando..." : "Crear Pedido"}
-            </Button>
-          </div>
+      <div className="border-t px-6 py-4">
+        <div className="flex gap-3 justify-center sm:justify-end">
+          <Button variant="outline" onClick={onClose} className="px-6 py-2">
+            Cancelar
+          </Button>
+          <Button
+            onClick={async () => {
+              setSubmitting(true);
+              try {
+                setValidationError(null);
+                await handleSubmit();
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            className="px-6 py-2"
+            ariaLabel="Crear Pedido"
+          >
+            {submitting ? "Creando..." : "Crear Pedido"}
+          </Button>
         </div>
       </div>
     </Modal>
