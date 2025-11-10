@@ -11,6 +11,7 @@ import {
   FaUsers,
   FaCog,
   FaWarehouse,
+  FaBox,
 } from "react-icons/fa";
 
 export default function PostLoginLoyout() {
@@ -25,7 +26,7 @@ export default function PostLoginLoyout() {
         { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
         { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
         { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
-        { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaClipboardList /> },
+        { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBox /> },
         { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },
         { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
         { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },

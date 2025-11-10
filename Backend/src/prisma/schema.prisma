@@ -130,7 +130,7 @@ model FormulaInsumo {
   @@map("FORMULAINSUMO")
 }
 
-model Tipos_Movimiento {
+model TiposMovimiento {
   idTipoMovimiento Int                   @id @default(autoincrement())
   nombre           String                @db.VarChar(120) @unique
   movimientos      Movimiento_Producto[]
@@ -138,7 +138,7 @@ model Tipos_Movimiento {
   @@map("TIPOS_MOVIMIENTO")
 }
 
-model Movimiento_Producto {
+model MovimientoProducto {
   idMovimiento           Int       @id @default(autoincrement())
   fechaHoraActualizacion DateTime  @default(now())
   idDepositoOrigen       Int
@@ -159,7 +159,7 @@ model Movimiento_Producto {
   @@map("MOVIMIENTO_PRODUCTO")
 }
 
-model Estado_Movimiento {
+model EstadoMovimiento {
   idEstadoMovimiento Int                          @id @default(autoincrement())
   nombre             String                       @db.VarChar(120) @unique
   cambios            Cambio_Estado_Movimiento[] @relation("estado_cambios")
@@ -167,7 +167,7 @@ model Estado_Movimiento {
   @@map("ESTADO_MOVIMIENTO")
 }
 
-model Cambio_Estado_Movimiento {
+model CambioEstadoMovimiento {
   idCambioEstadoMovimiento Int               @id @default(autoincrement())
   idEstadoMovimiento       Int
   fechaHoraInicio          DateTime
@@ -193,6 +193,7 @@ model Deposito {
   capacidadTotal Int
   capacidadUsada Int          @default(0)
   estado         Boolean      @default(true)
+  esProtegido    Boolean      @default(false)
   inventario     Inventario[]
 
   @@map("DEPOSITOS")
@@ -205,6 +206,7 @@ model Producto {
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)
+  lastStockUpdatedAt     DateTime     @default(now())
   formula                Formula      @relation(fields: [idFormula], references: [id])
   inventario             Inventario[]
   pedidos                Pedido[]     
@@ -221,6 +223,7 @@ model Inventario {
   cantidadProducto     Int      @default(0)
   umbralMin            Int      @default(0)
   umbralMax            Int?
+  updatedAt            DateTime @default(now()) @updatedAt
 
   // Relaciones de Movimientos (Archivo 1)
   movimientosComoOrigen  Movimiento_Producto[] @relation("MovimientosOrigen")

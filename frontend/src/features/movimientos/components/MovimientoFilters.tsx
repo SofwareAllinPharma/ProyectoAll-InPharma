@@ -8,6 +8,10 @@ interface Props {
 
 export default function MovimientoFilters({ filters, onFiltersChange }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const isDateRangeInvalid =
+    !!filters.fechaDesde &&
+    !!filters.fechaHasta &&
+    new Date(filters.fechaDesde) > new Date(filters.fechaHasta);
 
   const handleChange = <K extends keyof MovimientoFilters>(key: K, value: MovimientoFilters[K]) => {
     onFiltersChange({
@@ -88,7 +92,10 @@ export default function MovimientoFilters({ filters, onFiltersChange }: Props) {
               type="date"
               value={filters.fechaDesde || ''}
               onChange={(e) => handleChange('fechaDesde', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100"
+              aria-invalid={isDateRangeInvalid}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100 ${
+                isDateRangeInvalid ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
           </div>
           <div>
@@ -97,7 +104,10 @@ export default function MovimientoFilters({ filters, onFiltersChange }: Props) {
               type="date"
               value={filters.fechaHasta || ''}
               onChange={(e) => handleChange('fechaHasta', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100"
+              aria-invalid={isDateRangeInvalid}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100 ${
+                isDateRangeInvalid ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
           </div>
 
@@ -115,6 +125,11 @@ export default function MovimientoFilters({ filters, onFiltersChange }: Props) {
               <option value="CANCELADO">Cancelado</option>
             </select>
           </div>
+          {isDateRangeInvalid && (
+            <div className="md:col-span-3 text-sm text-red-600 -mt-2">
+              La fecha Desde no puede ser posterior a la fecha Hasta.
+            </div>
+          )}
         </div>
       )}
     </div>

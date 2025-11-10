@@ -20,6 +20,7 @@ export default function TipoSelect({ value, onChange, onBlur }: { value: Option 
         onClear={() => onChange(null)}
         placeholder="Seleccionar tipo..."
         noResultsText="Sin resultados"
+        disableTyping
       />
     </div>
   );

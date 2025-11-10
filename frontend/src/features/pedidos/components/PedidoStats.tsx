@@ -1,4 +1,6 @@
 import React from "react";
+import ResumenCard from "../../../components/Card";
+import { FaClipboardList, FaClock, FaUserCheck, FaCog, FaCheckCircle, FaThumbsUp, FaTimesCircle } from "react-icons/fa";
 import type { Pedido } from "../types/pedido.types";
 
 interface Props {
@@ -36,51 +38,57 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
     }
   );
 
-  const statCards = [
-    { label: "Total", value: stats.total, color: "bg-gray-100 text-gray-800" },
-    {
-      label: "Pendientes",
-      value: stats.pendientes,
-      color: "bg-yellow-100 text-yellow-800",
-    },
-    {
-      label: "Asignados",
-      value: stats.asignados,
-      color: "bg-blue-100 text-blue-800",
-    },
-    {
-      label: "En Proceso",
-      value: stats.enProceso,
-      color: "bg-purple-100 text-purple-800",
-    },
-    {
-      label: "Finalizados",
-      value: stats.finalizados,
-      color: "bg-orange-100 text-orange-800",
-    },
-    {
-      label: "Aprobados",
-      value: stats.aprobados,
-      color: "bg-green-100 text-green-800",
-    },
-    {
-      label: "Cancelados",
-      value: stats.rechazados,
-      color: "bg-red-100 text-red-800",
-    },
-  ];
-
   return (
-    <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {statCards.map((stat) => (
-        <div
-          key={stat.label}
-          className={`p-3 rounded-lg ${stat.color} text-center`}
-        >
-          <div className="text-lg font-bold">{stat.value}</div>
-          <div className="text-xs font-medium">{stat.label}</div>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
+      <ResumenCard
+        title="Total"
+        value={stats.total}
+        icon={<FaClipboardList className="text-[#9D977B]" size={18} />}
+        borderColor="#9D977B"
+        bgIcon="#F5F3EB"
+      />
+      <ResumenCard
+        title="Pendientes"
+        value={stats.pendientes}
+        icon={<FaClock className="text-yellow-500" size={18} />}
+        borderColor="#eab308"
+        bgIcon="#FEF9C3"
+      />
+      <ResumenCard
+        title="Asignados"
+        value={stats.asignados}
+        icon={<FaUserCheck className="text-blue-600" size={18} />}
+        borderColor="#3b82f6"
+        bgIcon="#DBEAFE"
+      />
+      <ResumenCard
+        title="En Proceso"
+        value={stats.enProceso}
+        icon={<FaCog className="text-purple-600" size={18} />}
+        borderColor="#9333ea"
+        bgIcon="#E9D5FF"
+      />
+      <ResumenCard
+        title="Finalizados"
+        value={stats.finalizados}
+        icon={<FaCheckCircle className="text-orange-600" size={18} />}
+        borderColor="#ea580c"
+        bgIcon="#FFEDD5"
+      />
+      <ResumenCard
+        title="Aprobados"
+        value={stats.aprobados}
+        icon={<FaThumbsUp className="text-green-600" size={18} />}
+        borderColor="#22c55e"
+        bgIcon="#DCFCE7"
+      />
+      <ResumenCard
+        title="Cancelados"
+        value={stats.rechazados}
+        icon={<FaTimesCircle className="text-red-500" size={18} />}
+        borderColor="#ef4444"
+        bgIcon="#FEE2E2"
+      />
     </div>
   );
 };

@@ -15,6 +15,7 @@ export interface InventarioProducto {
   umbralMin: number | null;
   estado: 'CRITICO' | 'BAJO' | 'NORMAL' | 'DEFAULT';
   updatedAt: string | null;
+  horaActualizacion?: string | null;
 }
 
 export interface DistribucionDeposito {
@@ -46,6 +47,13 @@ export class InventarioService {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
+      const toHour = (s?: string | null): string | null => {
+        if (!s) return null;
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      };
+
       return (response.data as any[]).map((item) => {
         const cantidad = item.cantidadProducto === undefined ? null : item.cantidadProducto;
         const umbral = item.umbralMin === undefined ? null : item.umbralMin;
@@ -62,6 +70,7 @@ export class InventarioService {
           umbralMin: umbral,
           estado,
           updatedAt: item.updatedAt ?? null,
+          horaActualizacion: toHour(item.updatedAt ?? null),
         };
       });
     } catch (error) {
@@ -170,7 +179,18 @@ export class InventarioGlobalService {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
-      return response.data as StockGlobalRow[];
+      const toHour = (s?: string | null): string | null => {
+        if (!s) return null;
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      };
+      const rows = (response.data as any[]).map((r) => ({
+        ...r,
+        updatedAt: r.updatedAt ?? null,
+        horaActualizacion: toHour(r.updatedAt ?? null),
+      })) as StockGlobalRow[];
+      return rows;
     } catch (error) {
       console.error('Error en getStockGlobal:', error);
       throw error;

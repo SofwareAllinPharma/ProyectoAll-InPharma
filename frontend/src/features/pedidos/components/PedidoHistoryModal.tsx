@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import Modal from "../../../components/ui/modales/Modal";
-import ModalHeader from "../../../components/ui/modales/ModalHeader";
 import { PedidoService } from "../services/pedido.service";
 import type { Pedido, CambioEstado } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
+import PedidoModalShell from "./PedidoModalShell";
+import PedidoEstadoCell from "./PedidoEstadoCell";
 
 interface Props {
   isOpen: boolean;
@@ -117,17 +117,22 @@ const PedidoHistoryModal: React.FC<Props> = ({
   const availableActions = getAvailableActions();
 
   return (
-    <Modal
+    <PedidoModalShell
       open={isOpen}
       onClose={onClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4"
+      title={<>Pedido #{pedido.numPedido} - {pedido.producto?.nombreComercial}</>}
+      size="lg"
+      footer={(
+        <button
+          className="px-5 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 disabled:opacity-50"
+          onClick={onClose}
+          disabled={loading}
+        >
+          Cerrar
+        </button>
+      )}
     >
-      <div className="p-6">
-        <ModalHeader>
-          Pedido #{pedido.numPedido} - {pedido.producto?.nombreComercial}
-        </ModalHeader>
-
-        <div className="mt-4 bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium">Producto:</span>{" "}
@@ -135,18 +140,8 @@ const PedidoHistoryModal: React.FC<Props> = ({
             </div>
             <div>
               <span className="font-medium">Estado actual:</span>
-              <span
-                className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                  currentState === "Aprobado"
-                    ? "bg-green-100 text-green-800"
-                    : currentState === "Rechazado"
-                    ? "bg-red-100 text-red-800"
-                    : currentState === "En elaboracion"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {currentState}
+              <span className="ml-2 inline-block align-middle">
+                <PedidoEstadoCell estado={currentState} asignado={pedido.estaAsignado === true} />
               </span>
             </div>
             <div>
@@ -174,9 +169,9 @@ const PedidoHistoryModal: React.FC<Props> = ({
               {pedido.observacion || "Sin observaciones"}
             </div>
           </div>
-        </div>
+      </div>
 
-        <div className="mt-6">
+      <div className="mt-6">
           <h4 className="font-medium text-gray-900 mb-3">
             Historial de Estados
           </h4>
@@ -211,10 +206,10 @@ const PedidoHistoryModal: React.FC<Props> = ({
               </p>
             )}
           </div>
-        </div>
+      </div>
 
-        {availableActions.length > 0 && (
-          <div className="mt-6 pt-4 border-t">
+      {availableActions.length > 0 && (
+        <div className="mt-6 pt-4 border-t">
             <h4 className="font-medium text-gray-900 mb-3">
               Acciones Disponibles
             </h4>
@@ -227,27 +222,16 @@ const PedidoHistoryModal: React.FC<Props> = ({
                   className={`px-4 py-2 rounded-lg font-medium disabled:opacity-50 ${
                     action.variant === "danger"
                       ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-[#5d5448] hover:bg-[#5d5448]/90 text-white"
                   }`}
                 >
                   {loading ? "Procesando..." : action.label}
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        <div className="mt-6 pt-4 border-t flex justify-end">
-          <button
-            className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
-            onClick={onClose}
-            disabled={loading}
-          >
-            Cerrar
-          </button>
         </div>
-      </div>
-    </Modal>
+      )}
+    </PedidoModalShell>
   );
 };
 

@@ -46,8 +46,23 @@ export class MovimientoService {
       
       // Backend expects: producto, idEstado, idDeposito, fechaDesde/hasta, page, limit
       if (filters?.idDeposito) params.append('idDeposito', String(filters.idDeposito));
-      if (filters?.fechaDesde) params.append('fechaDesde', filters.fechaDesde);
-      if (filters?.fechaHasta) params.append('fechaHasta', filters.fechaHasta);
+      // Normalizar fechas para asegurar que 'Hasta' sea inclusiva (23:59:59.999)
+      const normalizeFrom = (d?: string) => {
+        if (!d) return undefined;
+        // Para valores 'YYYY-MM-DD' fijamos inicio del día local
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return `${d}T00:00:00.000`;
+        return d;
+      };
+      const normalizeTo = (d?: string) => {
+        if (!d) return undefined;
+        // Para valores 'YYYY-MM-DD' fijamos fin del día local
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return `${d}T23:59:59.999`;
+        return d;
+      };
+      const from = normalizeFrom(filters?.fechaDesde);
+      const to = normalizeTo(filters?.fechaHasta);
+      if (from) params.append('fechaDesde', from);
+      if (to) params.append('fechaHasta', to);
       if (filters?.search) params.append('producto', filters.search);
       if (filters?.estado) {
         const mapEstadoId: Record<string, number> = {
@@ -118,6 +133,14 @@ export class MovimientoService {
         return '';
       };
 
+      // Helper para HH:MM a partir de ISO o fecha parseable
+      const toHour = (s?: string | null): string | null => {
+        if (!s) return null;
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      };
+
       // Mapear cada elemento al tipo Movimiento esperado por el frontend
       const mapped: Movimiento[] = (rawList as RawMovimiento[]).map((it) => {
         const id = it.idMovimiento ?? it.id ?? 0;
@@ -144,6 +167,7 @@ export class MovimientoService {
           estado: estadoNorm as 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO',
           fechaCreacion: it.fechaCreacion ?? '',
           fechaActualizacion: it.fechaHoraActualizacion ?? null,
+          horaActualizacion: toHour(it.fechaHoraActualizacion),
           idUsuario: it.idUsuario ?? 0,
           responsable: it.responsable ?? (it.usuario?.nombre ?? undefined),
           producto: {

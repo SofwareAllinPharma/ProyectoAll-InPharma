@@ -3,7 +3,7 @@ import Modal from '../../../../components/ui/modales/Modal';
 import ModalHeader from '../../../../components/ui/modales/ModalHeader';
 import Button from '../../../../components/ui/Button';
 
-export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, onConfirm }: { open: boolean; onClose: () => void; from: string; to: string; onConfirm: (args: { responsable?: string; responsableEntrega?: string; responsableRecepcion?: string; observaciones?: string }) => Promise<void> | void }) {
+export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, onConfirm, errorMessage }: { open: boolean; onClose: () => void; from: string; to: string; onConfirm: (args: { responsable?: string; responsableEntrega?: string; responsableRecepcion?: string; observaciones?: string }) => Promise<void> | void; errorMessage?: string }) {
   const [responsable, setResponsable] = useState('');
   const [responsableEntrega, setResponsableEntrega] = useState('');
   const [responsableRecepcion, setResponsableRecepcion] = useState('');
@@ -47,10 +47,16 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
   };
 
   return (
-  <Modal open={open} onClose={onClose} className="z-[11000]" containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4">
+  <Modal open={open} onClose={onClose} className="z-[11000]" containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] overflow-y-auto">
       <div className="flex flex-col h-full">
         <ModalHeader>Confirmar cambio de estado</ModalHeader>
-        <div className="p-5 space-y-3 text-sm">
+        <div className="p-4 sm:p-5 space-y-3 text-sm">
+          {errorMessage && (
+            <div className="mb-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
+              <strong>Capacidad insuficiente:</strong>
+              <div className="mt-1">{errorMessage}</div>
+            </div>
+          )}
           <div className="text-gray-700">Cambiar de <span className="font-semibold">{from}</span> a <span className="font-semibold">{to}</span></div>
           <div className="text-gray-600">Fecha y hora: {fechaHora}</div>
           <div className="space-y-2">
@@ -58,28 +64,28 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, on
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Entrega (requerido)</label>
-                  <input value={responsableEntrega} onChange={(e) => setResponsableEntrega(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien entrega" />
+                  <input value={responsableEntrega} onChange={(e) => setResponsableEntrega(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien entrega" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Recepción (requerido)</label>
-                  <input value={responsableRecepcion} onChange={(e) => setResponsableRecepcion(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien recibe" />
+                  <input value={responsableRecepcion} onChange={(e) => setResponsableRecepcion(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre de quien recibe" />
                 </div>
               </>
             ) : (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Responsable (requerido)</label>
-                <input value={responsable} onChange={(e) => setResponsable(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre del responsable" />
+                <input value={responsable} onChange={(e) => setResponsable(e.target.value)} maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="Nombre del responsable" />
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-              <textarea value={obs} onChange={(e) => setObs(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="No Aplica" rows={3} />
+              <textarea value={obs} onChange={(e) => setObs(e.target.value)} maxLength={100} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55]" placeholder="No Aplica" rows={3} />
             </div>
           </div>
         </div>
-        <div className="px-5 pb-5 flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
+        <div className="px-4 sm:px-5 pb-5 flex gap-2 justify-end flex-col sm:flex-row">
+          <Button className="w-full sm:w-auto" variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button className="w-full sm:w-auto" onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
         </div>
       </div>
     </Modal>

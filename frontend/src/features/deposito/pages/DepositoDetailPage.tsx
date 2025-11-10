@@ -89,11 +89,20 @@ export default function DepositoDetailPage() {
 
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
-            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} />
+            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} defaultDepOrigen={{ id: dep.id, nombre: dep.nombre }} />
           </>
         }
       >
-        <DepositoDetailHeader dep={dep} capacidadUsada={capacidadUsada} onEdit={() => setOpenForm(true)} onShowUmbrales={() => setShowUmbrales(true)} onShowDelete={() => setShowDeleteConfirm(true)} />
+        <DepositoDetailHeader
+          dep={dep}
+          capacidadUsada={capacidadUsada}
+          onEdit={() => setOpenForm(true)}
+          onShowUmbrales={() => setShowUmbrales(true)}
+          onShowDelete={() => {
+            if (dep.esProtegido || dep.nombre === 'Fábrica') return;
+            setShowDeleteConfirm(true);
+          }}
+        />
 
         <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => setShowPedidoModal(true)} onMovimientoStock={() => setShowTrasladoModal(true)} />
       </PageShell>

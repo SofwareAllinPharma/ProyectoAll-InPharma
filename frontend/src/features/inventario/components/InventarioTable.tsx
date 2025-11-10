@@ -15,9 +15,10 @@ interface Props {
     loading?: boolean;
     onMovimientoStock?: (row: InventarioProducto) => void;
     onCrearPedido?: (row: InventarioProducto) => void;
+    onCrearMovimientoPrefill?: (args: { producto: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null }; depositoOrigen?: { id: number; nombre?: string } }) => void;
 }
 
-const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, onCrearPedido }) => {
+const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, onCrearPedido, onCrearMovimientoPrefill }) => {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
     const [estadoFilter, setEstadoFilter] = useState<string>('');
@@ -66,16 +67,28 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
         {
             key: 'actualizacion',
             title: 'Actualización',
-            render: (r) => formatFecha(r.updatedAt),
+            render: (r) => (
+                <div className="leading-tight">
+                    <div>{formatFecha(r.updatedAt)}</div>
+                    {r.horaActualizacion && (
+                        <div className="text-xs text-gray-500">{r.horaActualizacion}</div>
+                    )}
+                </div>
+            ),
             align: 'center',
             className: 'w-32'
         },
         {
             key: 'acciones',
             title: 'Acciones',
-            render: (r) => (
-                <InventarioActionsCell row={r} onMovimientoStock={onMovimientoStock} onCrearPedido={onCrearPedido} />
-            ),
+                        render: (r) => (
+                                <InventarioActionsCell
+                                    row={r}
+                                    onMovimientoStock={onMovimientoStock}
+                                    onCrearPedido={onCrearPedido}
+                                    onCrearMovimientoPrefill={onCrearMovimientoPrefill}
+                                />
+                        ),
             align: 'center',
             className: 'w-36'
         }
@@ -90,7 +103,7 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
                 onEstadoChange={v => setEstadoFilter(v)}
             />
             {loading ? (
-                <div className="p-6 text-center text-gray-600">Cargando inventario...</div>
+                <div className="p-6 text-center text-gray-600">Cargando stock...</div>
             ) : (
                 <DataTable
                     data={filtered}

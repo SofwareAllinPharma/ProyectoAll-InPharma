@@ -33,7 +33,13 @@ export class MovimientoController {
             res.json(paginatedResult);
 
         } catch (err: any) {
-            res.status(400).json({ error: err.message });
+            const msg = err?.message || String(err || 'Error');
+            // Detectar error de capacidad y devolver código y status específico
+            if (/CAPACITY_EXCEEDED|capacit|capacidad|sobrepas/i.test(msg)) {
+                const clean = msg.replace(/^CAPACITY_EXCEEDED:\s*/i, '').trim();
+                return res.status(409).json({ error: clean, code: 'CAPACITY_EXCEEDED' });
+            }
+            res.status(400).json({ error: msg });
         }
     }
 
@@ -50,6 +56,7 @@ export class MovimientoController {
         }
 
     }
+    
     async CambiarEstado(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id as string);
@@ -75,7 +82,14 @@ export class MovimientoController {
             const updated = await service.CambiarEstado(id, nombreEstado, usuario, observaciones, responsableEntrega, responsableRecepcion);
             res.json(updated);
         } catch (err: any) {
-            res.status(400).json({ error: err.message });
+            const msg = err?.message || String(err || 'Error');
+            // MODIFICACIÓN: Manejar error de capacidad para el cambio de estado.
+            if (/CAPACITY_EXCEEDED|capacit|capacidad|sobrepas/i.test(msg)) {
+                // Devolver 409 Conflict si hay un problema de capacidad
+                const clean = msg.replace(/^CAPACITY_EXCEEDED:\s*/i, '').trim();
+                return res.status(409).json({ error: clean, code: 'CAPACITY_EXCEEDED' });
+            }
+            res.status(400).json({ error: msg });
         }
     }
 
@@ -95,7 +109,13 @@ export class MovimientoController {
             const created = await service.registrarMovimiento(payload);
             res.status(201).json(created);
         } catch (err: any) {
-            res.status(400).json({ error: err.message });
+            const msg = err?.message || String(err || 'Error');
+            // MODIFICACIÓN: Manejar error de capacidad para la creación de movimiento.
+            if (/CAPACITY_EXCEEDED|capacit|capacidad|sobrepas/i.test(msg)) {
+                const clean = msg.replace(/^CAPACITY_EXCEEDED:\s*/i, '').trim();
+                return res.status(409).json({ error: clean, code: 'CAPACITY_EXCEEDED' });
+            }
+            res.status(400).json({ error: msg });
         }
     }
 

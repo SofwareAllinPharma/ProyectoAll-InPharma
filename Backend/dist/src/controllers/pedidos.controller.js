@@ -54,6 +54,46 @@ class PedidosController {
             res.status(400).json({ error: err.message });
         }
     }
+    async iniciarElaboracion(req, res) {
+        try {
+            const numPedido = Number(req.params.id);
+            const data = await service.iniciarElaboracion(numPedido);
+            res.json(data);
+        }
+        catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    }
+    async finalizarElaboracion(req, res) {
+        try {
+            const numPedido = Number(req.params.id);
+            const data = await service.finalizarElaboracion(numPedido);
+            res.json(data);
+        }
+        catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    }
+    async aprobar(req, res) {
+        try {
+            const numPedido = Number(req.params.id);
+            const data = await service.aprobar(numPedido);
+            res.json(data);
+        }
+        catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    }
+    async rechazar(req, res) {
+        try {
+            const numPedido = Number(req.params.id);
+            const data = await service.rechazar(numPedido);
+            res.json(data);
+        }
+        catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    }
     async cancelar(req, res) {
         try {
             const numPedido = Number(req.params.id);

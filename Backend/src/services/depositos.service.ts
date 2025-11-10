@@ -72,6 +72,11 @@ export class DepositosService {
    * métodos del service (getStockTotalEnDeposito y tieneMovimientosPendientes
    */
   async deactivate(id: number): Promise<Deposito> {
+    const dep = await prisma.deposito.findUnique({ where: { id } });
+    if (!dep) throw new Error("Depósito no encontrado");
+    if (dep.esProtegido || dep.nombre === "Fábrica") {
+      throw new Error("Este depósito es del sistema y no puede eliminarse ni desactivarse.");
+    }
     return prisma.deposito.update({
       where: { id },
       data: { estado: false },

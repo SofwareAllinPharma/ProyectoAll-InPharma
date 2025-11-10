@@ -6,6 +6,7 @@ export interface Deposito {
   capacidadTotal: number;
   capacidadUsada: number;
   estado: boolean;
+  esProtegido?: boolean;
 }
 
 export interface CreateDepositoDTO {

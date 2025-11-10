@@ -230,33 +230,33 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     <Modal
       open={isOpen}
       onClose={onClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4"
+      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
     >
-      <div className="p-4">
-        <ModalHeader>Crear Pedido</ModalHeader>
+      <ModalHeader>Crear Pedido</ModalHeader>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void handleSubmit();
-          }}
-          className="space-y-4 mt-4"
-        >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit();
+        }}
+        className="space-y-4 px-6 py-4"
+      >
           <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
+          <div className="border-t border-gray-100 pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Cantidad (seleccione unidad)
             </label>
-            <div className="flex gap-4 items-center mt-2">
+            <div className="flex gap-4 items-center bg-gray-50 rounded-md p-2 mb-2 text-sm">
               <div className="flex items-center gap-2">
                 <input
                   type="radio"
                   checked={mode === "gramos"}
                   onChange={() => setMode("gramos")}
                   disabled={!selected}
+                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
                 />
-                <span className="ml-1">Gramos</span>
+                <span className="text-gray-700">Gramos</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -264,8 +264,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
                   checked={mode === "paquetes"}
                   onChange={() => setMode("paquetes")}
                   disabled={!selected}
+                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
                 />
-                <span className="ml-1">Paquetes</span>
+                <span className="text-gray-700">Paquetes</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -273,8 +274,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
                   checked={mode === "porciones"}
                   onChange={() => setMode("porciones")}
                   disabled={!selected}
+                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
                 />
-                <span className="ml-1">Porciones</span>
+                <span className="text-gray-700">Porciones</span>
               </div>
             </div>
             <QuantityControl
@@ -285,56 +287,67 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
               disabled={!selected}
             />
             {conv && (
-              <div className="mt-2 text-sm text-gray-600 text-center">
-                Equivalencias: <span className="font-medium">{formatQty(conv.gramos)} g</span> — <span className="font-medium">{Math.round(conv.paquetes)} pqt</span> — <span className="font-medium">{formatQty(conv.porciones)} porciones</span>
+              <div className="mt-2 p-2 bg-[#F5F3EB] rounded-md text-xs text-gray-700 text-center border border-gray-200">
+                <span className="text-xs text-gray-500 mr-1">Equivalencias:</span>
+                <span className="font-medium text-[#5d5448]">{formatQty(conv.gramos)} g</span>
+                <span className="mx-1 text-gray-400">•</span>
+                <span className="font-medium text-[#5d5448]">{Math.round(conv.paquetes)} pqt</span>
+                <span className="mx-1 text-gray-400">•</span>
+                <span className="font-medium text-[#5d5448]">{formatQty(conv.porciones)} porciones</span>
               </div>
             )}
             {validationError && (
-              <div className="mt-2 text-sm text-red-600">{validationError}</div>
+              <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{validationError}</div>
             )}
-            {errors.cantidad && <p className="mt-1 text-sm text-red-600">{errors.cantidad}</p>}
-            {/* Adjust suggestion removed: equivalencias now controlled via arrows only */}
+            {errors.cantidad && <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{errors.cantidad}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
+          <div className="border-t border-gray-100 pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Observación
             </label>
             <textarea
-              className="mt-1 block w-full px-4 py-3 border rounded-md"
-              rows={4}
+              className="block w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#5d5448] focus:border-[#5d5448] text-sm transition-colors"
+              rows={2}
+              maxLength={256}
               value={observacion}
               onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Notas adicionales…"
             />
+            <div className="mt-1 text-xs text-gray-400 text-right">
+              {observacion.length}/256
+            </div>
           </div>
           
-          {/* Info: creador y fecha */}
-          <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
-
-          <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
-        </form>
-
-        <div className="mt-4 border-t pt-4">
-          <div className="flex gap-3 pt-4 px-4 py-4 justify-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} className="px-6 py-2">
-              Cancelar
-            </Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  setValidationError(null);
-                  await handleSubmit();
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="px-6 py-2"
-              ariaLabel="Crear Pedido"
-            >
-              {submitting ? "Creando..." : "Crear Pedido"}
-            </Button>
+          <div className="border-t border-gray-100 pt-4">
+            <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
           </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
+          </div>
+      </form>
+
+      <div className="border-t border-gray-100 px-6 py-4">
+        <div className="flex gap-3 justify-center sm:justify-end">
+          <Button variant="outline" onClick={onClose} className="px-6 py-2">
+            Cancelar
+          </Button>
+          <Button
+            onClick={async () => {
+              setSubmitting(true);
+              try {
+                setValidationError(null);
+                await handleSubmit();
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            className="px-6 py-2"
+            ariaLabel="Crear Pedido"
+          >
+            {submitting ? "Creando..." : "Crear Pedido"}
+          </Button>
         </div>
       </div>
     </Modal>
