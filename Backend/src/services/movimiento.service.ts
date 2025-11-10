@@ -17,7 +17,7 @@ export class MovimientoService {
         
         const skip = (page - 1) * limit;
 
-        const and: Prisma.Movimiento_ProductoWhereInput[] = [];
+    const and: Prisma.MovimientoProductoWhereInput[] = [];
 
         if (producto) {
             and.push({
@@ -73,10 +73,10 @@ export class MovimientoService {
             and.push({ OR: [{ idDepositoOrigen: idDeposito }, { idDepositoDestino: idDeposito }] });
         }
 
-        const where: Prisma.Movimiento_ProductoWhereInput = and.length > 0 ? { AND: and } : {};
+    const where: Prisma.MovimientoProductoWhereInput = and.length > 0 ? { AND: and } : {};
 
         const [movimientos, total] = await prisma.$transaction([
-            prisma.movimiento_Producto.findMany({
+            prisma.movimientoProducto.findMany({
                 skip: skip,
                 take: limit,
                 where: where,
@@ -96,7 +96,7 @@ export class MovimientoService {
                 // Mostrar primero lo más actualizado
                 orderBy: { fechaHoraActualizacion: 'desc' }, 
             }),
-            prisma.movimiento_Producto.count({ where: where })
+            prisma.movimientoProducto.count({ where: where })
         ]);
 
 	
@@ -182,10 +182,10 @@ export class MovimientoService {
         
         let tipoMov: any = null;
         if (idTipoMovimiento) {
-            tipoMov = await prisma.tipos_Movimiento.findUnique({ where: { idTipoMovimiento } });
+            tipoMov = await prisma.tiposMovimiento.findUnique({ where: { idTipoMovimiento } });
         } else if (nombreTipoMovimiento) {
             // Buscar de forma case-insensitive para evitar problemas por diferencias de casing en la BD
-            tipoMov = await prisma.tipos_Movimiento.findFirst({ where: { nombre: { equals: nombreTipoMovimiento, mode: 'insensitive' } } });
+            tipoMov = await prisma.tiposMovimiento.findFirst({ where: { nombre: { equals: nombreTipoMovimiento, mode: 'insensitive' } } });
         } else {
             throw new Error('Tipo de movimiento (idTipoMovimiento o nombreTipoMovimiento) es requerido');
         }
@@ -229,12 +229,12 @@ export class MovimientoService {
 
         
     // Buscar el estado 'Creado' de forma case-insensitive para mayor tolerancia con la BD
-    const estadoCreado = await prisma.estado_Movimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
+    const estadoCreado = await prisma.estadoMovimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
         if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
 
         // Realizamos la transacción para crear el movimiento
         const result = await prisma.$transaction(async (tx) => {
-            const mov = await tx.movimiento_Producto.create({
+            const mov = await tx.movimientoProducto.create({
                 data: {
                     idDepositoOrigen,
                     idProducto,
@@ -246,7 +246,7 @@ export class MovimientoService {
                 }
             });
 
-            await tx.cambio_Estado_Movimiento.create({
+            await tx.cambioEstadoMovimiento.create({
                 data: {
                     idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
                     fechaHoraInicio: now,
@@ -286,7 +286,7 @@ export class MovimientoService {
 
 
     async getById(idMovimiento: number) {
-        const mov = await prisma.movimiento_Producto.findUnique({
+        const mov = await prisma.movimientoProducto.findUnique({
             where: { idMovimiento },
             include: {
                 tipoMovimiento: true,
@@ -378,7 +378,7 @@ export class MovimientoService {
         responsableEntrega?: string,
         responsableRecepcion?: string
     ) {
-        const mov = await prisma.movimiento_Producto.findUnique({
+        const mov = await prisma.movimientoProducto.findUnique({
             where: { idMovimiento },
             include: {
                 cambiosDeEstado: { orderBy: { fechaHoraInicio: 'asc' }, include: { estadoMovimiento: true } },
@@ -410,14 +410,14 @@ export class MovimientoService {
             throw new Error(`Transición no permitida desde '${nombreActual ?? 'indefinido'}' a '${nombreEstadoDestino}'`);
         }
 
-        const estadoDestino = await prisma.estado_Movimiento.findUnique({ where: { nombre: nombreEstadoDestino } });
+    const estadoDestino = await prisma.estadoMovimiento.findUnique({ where: { nombre: nombreEstadoDestino } });
         if (!estadoDestino) throw new Error('Estado destino no existe');
 
         const now = new Date();
 
         await prisma.$transaction(async (tx) => {
             if (cambioActual && cambioActual.fechaHoraFin === null) {
-                await tx.cambio_Estado_Movimiento.update({
+                await tx.cambioEstadoMovimiento.update({
                     where: { idCambioEstadoMovimiento: cambioActual.idCambioEstadoMovimiento },
                     data: { fechaHoraFin: now }
                 });
@@ -436,7 +436,7 @@ export class MovimientoService {
                 createData.responsableEntrega = responsableEntrega ?? null;
                 createData.responsableRecepcion = responsableRecepcion ?? null;
             }
-            await tx.cambio_Estado_Movimiento.create({ data: createData });
+            await tx.cambioEstadoMovimiento.create({ data: createData });
 
             // Si pasa a ENTREGADO, aplicar impacto en stock y capacidades SOLO del destino (origen ya fue impactado en la creación)
             if (destinoNorm === 'entregado') {
@@ -481,7 +481,7 @@ export class MovimientoService {
             }
 
             // Actualizar la fecha de última actualización del movimiento
-            await tx.movimiento_Producto.update({
+            await tx.movimientoProducto.update({
                 where: { idMovimiento },
                 data: { fechaHoraActualizacion: now }
             });
@@ -491,7 +491,7 @@ export class MovimientoService {
     }
 
     async deleteMovimiento(idMovimiento: number) {
-        const mov = await prisma.movimiento_Producto.findUnique({
+        const mov = await prisma.movimientoProducto.findUnique({
             where: { idMovimiento },
             include: {
                 inventarioOrigen: { include: { deposito: true } },
@@ -548,8 +548,8 @@ export class MovimientoService {
             await tx.producto.update({ where: { idProducto }, data: ({ lastStockUpdatedAt: new Date() } as any) });
 
             // eliminar cambios y luego el movimiento
-            await tx.cambio_Estado_Movimiento.deleteMany({ where: { idMovimiento } });
-            await tx.movimiento_Producto.delete({ where: { idMovimiento } });
+            await tx.cambioEstadoMovimiento.deleteMany({ where: { idMovimiento } });
+            await tx.movimientoProducto.delete({ where: { idMovimiento } });
         });
 
         return { ok: true };

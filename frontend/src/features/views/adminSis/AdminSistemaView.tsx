@@ -218,12 +218,12 @@ const UsuariosComponent = () => (
   </div>
 );
 
-const ConfiguracionComponent = () => (
+/*const ConfiguracionComponent = () => (
   <div>
     <h2>Configuración</h2>
     <p>En desarrollo...</p>
   </div>
-);
+);*/
 
 export default function AdminSisDashboard() {
   return (

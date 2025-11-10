@@ -133,7 +133,7 @@ model FormulaInsumo {
 model TiposMovimiento {
   idTipoMovimiento Int                   @id @default(autoincrement())
   nombre           String                @db.VarChar(120) @unique
-  movimientos      Movimiento_Producto[]
+  movimientos      MovimientoProducto[]
 
   @@map("TIPOS_MOVIMIENTO")
 }
@@ -150,8 +150,8 @@ model MovimientoProducto {
   idTipoMovimiento       Int
   inventarioOrigen       Inventario @relation("MovimientosOrigen", fields: [idDepositoOrigen, idProducto], references: [idDeposito, idProducto])
   inventarioDestino      Inventario? @relation("MovimientosDestino", fields: [idDepositoDestino, idProducto], references: [idDeposito, idProducto])
-  tipoMovimiento         Tipos_Movimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
-  cambiosDeEstado        Cambio_Estado_Movimiento[]
+  tipoMovimiento         TiposMovimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+  cambiosDeEstado        CambioEstadoMovimiento[]
 
   @@index([idDepositoOrigen, idProducto])
   @@index([idDepositoDestino, idProducto])
@@ -162,7 +162,7 @@ model MovimientoProducto {
 model EstadoMovimiento {
   idEstadoMovimiento Int                          @id @default(autoincrement())
   nombre             String                       @db.VarChar(120) @unique
-  cambios            Cambio_Estado_Movimiento[] @relation("estado_cambios")
+  cambios            CambioEstadoMovimiento[] @relation("estado_cambios")
 
   @@map("ESTADO_MOVIMIENTO")
 }
@@ -176,9 +176,9 @@ model CambioEstadoMovimiento {
   responsableEntrega       String?           @db.VarChar(255)
   responsableRecepcion     String?           @db.VarChar(255)
   observaciones            String?           @db.Text
-  estadoMovimiento         Estado_Movimiento @relation("estado_cambios", fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
+  estadoMovimiento         EstadoMovimiento @relation("estado_cambios", fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
   idMovimiento             Int
-  movimiento               Movimiento_Producto @relation(fields: [idMovimiento], references: [idMovimiento])
+  movimiento               MovimientoProducto @relation(fields: [idMovimiento], references: [idMovimiento])
 
   @@index([idEstadoMovimiento])
   @@index([idMovimiento])
@@ -226,8 +226,8 @@ model Inventario {
   updatedAt            DateTime @default(now()) @updatedAt
 
   // Relaciones de Movimientos (Archivo 1)
-  movimientosComoOrigen  Movimiento_Producto[] @relation("MovimientosOrigen")
-  movimientosComoDestino Movimiento_Producto[] @relation("MovimientosDestino")
+  movimientosComoOrigen  MovimientoProducto[] @relation("MovimientosOrigen")
+  movimientosComoDestino MovimientoProducto[] @relation("MovimientosDestino")
 
   @@id([idDeposito, idProducto])
   @@index([idDeposito])

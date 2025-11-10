@@ -338,45 +338,45 @@ async function main() {
     console.log(`Seed de INVENTARIO (23 productos configurados en 2 depósitos con Umbral Max <= ${umbralMaxLimite}) ejecutado OK`);
 
 
-	const estadoCreado = await prisma.estado_Movimiento.upsert({
+    const estadoCreado = await prisma.estadoMovimiento.upsert({
 		where: { nombre: 'Creado' },
 		update: {},
 		create: { nombre: 'Creado' },
 	});
-	const estadoEnCamino = await prisma.estado_Movimiento.upsert({
+    const estadoEnCamino = await prisma.estadoMovimiento.upsert({
 		where: { nombre: 'En Camino' },
 		update: {},
 		create: { nombre: 'En Camino' },
 	});
-	const estadoEntregado = await prisma.estado_Movimiento.upsert({
+    const estadoEntregado = await prisma.estadoMovimiento.upsert({
 		where: { nombre: 'Entregado' },
 		update: {},
 		create: { nombre: 'Entregado' },
 	});
-	const estadoCancelado = await prisma.estado_Movimiento.upsert({
+    const estadoCancelado = await prisma.estadoMovimiento.upsert({
 		where: { nombre: 'Cancelado' },
 		update: {},
 		create: { nombre: 'Cancelado' },
 	});
 	console.log('Seed de ESTADOS_MOVIMIENTO ejecutado OK');
 
-	const tipoTraslado = await prisma.tipos_Movimiento.upsert({
+    const tipoTraslado = await prisma.tiposMovimiento.upsert({
 		where: { nombre: 'Traslado' },
 		update: {},
 		create: { nombre: 'Traslado' },
 	});
-	const tipoEgreso = await prisma.tipos_Movimiento.upsert({
+    const tipoEgreso = await prisma.tiposMovimiento.upsert({
 		where: { nombre: 'Egreso' },
 		update: {},
 		create: { nombre: 'Egreso' },
 	});
 	console.log("Seed de TIPOS_MOVIMIENTO ejecutado OK (Egreso y Traslado)")
 
-	const existingMovs = await prisma.movimiento_Producto.count();
+    const existingMovs = await prisma.movimientoProducto.count();
 	if (existingMovs > 0) {
 		console.log(`Eliminando ${existingMovs} movimientos de ejemplo existentes...`);
-		await prisma.cambio_Estado_Movimiento.deleteMany({});
-		await prisma.movimiento_Producto.deleteMany({});
+        await prisma.cambioEstadoMovimiento.deleteMany({});
+        await prisma.movimientoProducto.deleteMany({});
 		console.log('Movimientos de ejemplo ELIMINADOS.');
 	} else {
 		console.log('No se encontraron movimientos de ejemplo, omitiendo eliminación.');
@@ -420,7 +420,7 @@ async function main() {
         } = opts;
 
         // Crear movimiento con fechaHoraActualizacion en la fecha final
-        const mov = await prisma.movimiento_Producto.create({
+        const mov = await prisma.movimientoProducto.create({
             data: {
                 idDepositoOrigen,
                 idProducto,
@@ -434,7 +434,7 @@ async function main() {
         });
 
         // Historial de estados: Creado -> En Camino -> (Entregado|Cancelado)
-        await prisma.cambio_Estado_Movimiento.create({
+        await prisma.cambioEstadoMovimiento.create({
             data: {
                 idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
                 fechaHoraInicio: fechas.creado,
@@ -442,7 +442,7 @@ async function main() {
                 idMovimiento: mov.idMovimiento,
             },
         });
-        await prisma.cambio_Estado_Movimiento.create({
+        await prisma.cambioEstadoMovimiento.create({
             data: {
                 idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
                 fechaHoraInicio: fechas.enCamino,
@@ -450,7 +450,7 @@ async function main() {
                 idMovimiento: mov.idMovimiento,
             },
         });
-        await prisma.cambio_Estado_Movimiento.create({
+        await prisma.cambioEstadoMovimiento.create({
             data: {
                 idEstadoMovimiento:
                     finalEstado === 'Entregado'
