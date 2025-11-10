@@ -14,6 +14,7 @@ import { ProductoService } from "../../productos/services/producto.service";
 
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
+import Dashboard from "../../dashboard";
 
 const ResumenComponent = () => {
   const [insumosCount, setInsumosCount] = useState(0);
@@ -227,10 +228,12 @@ const ConfiguracionComponent = () => (
 export default function AdminSisDashboard() {
   return (
     <Routes>
-      {/* Resumen como ruta index */}
-      <Route index element={<ResumenComponent />} />
+  {/* Dashboard como ruta index */}
+  <Route index element={<Dashboard />} />
 
-      {/* Rutas de módulos */}
+  {/* Rutas de módulos */}
+  {/* antigua vista resumen disponible en /resumen */}
+  <Route path="resumen" element={<ResumenComponent />} />
       <Route path="insumos" element={<InsumosPage />} />
       <Route path="formulas" element={<FormulasPage />} />
       <Route path="productos" element={<ProductosPage />} />
