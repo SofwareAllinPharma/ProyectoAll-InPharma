@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import DataTable from '../../../components/ui/DataTable';
 import { PedidoService } from '../services/pedido.service';
 import type { Pedido, CreatePedidoRequest } from '../types/pedido.types';
 import { useToast } from '../../../components/ui/toast/ToastContext';
-import PedidoDetailModal from '../components/PedidoDetailModal';
 import PedidoFormModal from '../components/form/PedidoFormModal';
-import PedidoHistoryModal from '../components/PedidoHistoryModal';
 import PedidoStats from '../components/PedidoStats';
 import PedidosFilters from '../components/PedidosFilters';
 import { usePedidosData } from '../hooks/usePedidosData';
@@ -14,10 +13,9 @@ import { usePedidosFilters } from '../hooks/usePedidosFilters';
 import { usePedidosTableColumns } from '../components/table/PedidosTableColumns';
 
 const PedidosPage: React.FC = () => {
+  const navigate = useNavigate();
   const { pedidos, loading, reload } = usePedidosData();
-  const [selected, setSelected] = useState<Pedido | null>(null);
-  const [modals, setModals] = useState({ form: false, history: false, detail: false });
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [modals, setModals] = useState({ form: false });
   
   const { show } = useToast();
 
@@ -31,17 +29,9 @@ const PedidosPage: React.FC = () => {
     sortedPedidos,
   } = usePedidosFilters(pedidos);
 
-  const handleViewDetail = async (pedido: Pedido) => {
-    setModals((s) => ({ ...s, detail: true }));
-    setDetailLoading(true);
-    try {
-      const full = await PedidoService.detail(pedido.numPedido);
-      setSelected(full);
-    } catch (err) {
-      show({ message: (err as Error)?.message || 'Error cargando detalle', type: 'error' });
-    } finally {
-      setDetailLoading(false);
-    }
+  const handleViewDetail = (pedido: Pedido) => {
+    // Navegar a la página de detalle del pedido
+    navigate(`/adminsis/pedidos/${pedido.numPedido}`);
   };
 
   const columns = usePedidosTableColumns({
@@ -64,17 +54,6 @@ const PedidosPage: React.FC = () => {
         type: 'error',
       });
       throw e;
-    }
-  };
-
-  const handleRefreshDetail = async () => {
-    if (!selected) return;
-    try {
-      const fresh = await PedidoService.detail(selected.numPedido);
-      setSelected(fresh);
-      await reload();
-    } catch (err) {
-      show({ message: (err as Error)?.message || 'Error refrescando pedido', type: 'error' });
     }
   };
 
@@ -127,21 +106,6 @@ const PedidosPage: React.FC = () => {
           defaultPageSize={10}
         />
       </div>
-
-      <PedidoHistoryModal
-        isOpen={modals.history}
-        pedido={selected ?? undefined}
-        onClose={() => setModals((s) => ({ ...s, history: false }))}
-        onRefresh={reload}
-      />
-
-      <PedidoDetailModal
-        isOpen={modals.detail}
-        pedido={selected}
-        loading={detailLoading}
-        onClose={() => setModals((s) => ({ ...s, detail: false }))}
-        onRefresh={handleRefreshDetail}
-      />
     </PageShell>
   );
 };
