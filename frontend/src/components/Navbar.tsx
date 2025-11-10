@@ -1,6 +1,5 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import ConfirmLogoutModal from "./nav/ConfirmLogoutModal";
 import NavbarButtons from "./nav/NavbarButtons";
 
 export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
@@ -11,9 +10,8 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
     void onMenuToggle;
   }, [onMenuToggle]);
   const location = useLocation();
-  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  // Navbar ya no maneja el modal de cierre de sesión; lo hace la sidebar
   // mark prop as read to satisfy TS noUnusedParameters without altering behavior
   void onMenuToggle;
 
@@ -39,12 +37,15 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
   else if (path.startsWith("/auth/login")) variant = "login";
   else if (path === "/perfiles" || path === "/perfiles/") variant = "profiles-root";
   else if (path.startsWith("/perfiles/")) variant = "profiles-item";
-  else if (path.startsWith("/tecnico") || path.startsWith("/adminfab") || path.startsWith("/adminsis")) variant = "dashboard";
+  else if (
+    path.startsWith("/tecnico") ||
+    path.startsWith("/adminfab") ||
+    path.startsWith("/adminsis") ||
+    path.startsWith("/puntoventa")
+  )
+    variant = "dashboard";
 
-  const handleLogout = () => {
-    setShowConfirm(false);
-    navigate("/", { replace: true });
-  };
+  
 
   return (
     <>
@@ -66,11 +67,10 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
             <span>All-In Pharma</span>
           </Link>
 
-          <NavbarButtons variant={variant} onLogoutClick={() => setShowConfirm(true)} />
+          <NavbarButtons variant={variant} />
         </div>
       </nav>
 
-      <ConfirmLogoutModal open={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={handleLogout} />
     </>
   );
 }

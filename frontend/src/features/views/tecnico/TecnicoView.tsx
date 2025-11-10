@@ -3,6 +3,8 @@ import { PedidosPage } from "../../pedidos";
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
+import FormulasPage from "../../formulas/pages/FormulasPage";
+import { ProductosPage } from "../../productos";
 
 // Secciones (placeholders por ahora)
 const OperacionesComponent = () => (
@@ -34,6 +36,8 @@ export default function TecnicoDashboard() {
 
       <Route path="mantenimiento" element={<MantenimientoComponent />} />
       <Route path="pedidos" element={<PedidosPage />} />
+  <Route path="formulas" element={<FormulasPage />} />
+  <Route path="productos" element={<ProductosPage />} />
       <Route path="reportes" element={<ReportesComponent />} />
 
       {/* Depósitos */}

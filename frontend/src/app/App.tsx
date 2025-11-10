@@ -13,6 +13,7 @@ import SelectProfile from "../features/profiles/pages/SelectProfile";
 import TecnicoDashboard from "../features/views/tecnico/TecnicoView";
 import AdminFabDashboard from "../features/views/adminFab/AdminFabricaView";
 import AdminSisDashboard from "../features/views/adminSis/AdminSistemaView";
+import PuntoDashboard from "../features/views/punto/PuntoView";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/perfiles" element={<SelectProfile />} />
           <Route path="/tecnico/*" element={<TecnicoDashboard />} />
           <Route path="/adminfab/*" element={<AdminFabDashboard />} />
+          <Route path="/puntoventa/*" element={<PuntoDashboard />} />
           <Route path="/adminsis/*" element={<AdminSisDashboard />} />
         </Route>
 

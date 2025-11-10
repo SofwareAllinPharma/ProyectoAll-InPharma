@@ -46,35 +46,14 @@ function GhostButton({
   );
 }
 
-function PrimaryButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition"
-    >
-      {children}
-    </button>
-  );
-}
 
-export default function NavbarButtons({
-  variant,
-  onLogoutClick,
-}: {
-  variant:
-    | "landing-root"
-    | "landing-inner"
-    | "login"
-    | "profiles-root"
-    | "profiles-item"
-    | "dashboard";
-  onLogoutClick: () => void;
+export default function NavbarButtons({ variant }: { variant:
+  | "landing-root"
+  | "landing-inner"
+  | "login"
+  | "profiles-root"
+  | "profiles-item"
+  | "dashboard";
 }) {
   // Map variants to exact button sets requested by the user:
   // - landing-root: '¿Quiénes somos?' and 'Iniciar Sesión'
@@ -113,9 +92,11 @@ export default function NavbarButtons({
 
   if (variant === "profiles-root") {
     return (
-      <div className="flex items-center gap-6">
-        <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
-      </div>
+      // Cuando estamos en la pantalla de selección de perfiles (/perfiles)
+      // no mostramos el botón 'Perfiles' en la navbar.
+      // El botón 'Perfiles' sólo debe aparecer cuando ya estamos dentro
+      // de un perfil (dashboard) o en una vista concreta de perfil.
+      <></>
     );
   }
 
@@ -131,7 +112,6 @@ export default function NavbarButtons({
     <div className="flex items-center gap-3">
       {pedidosPath ? <GhostButton to={pedidosPath}>Pedidos</GhostButton> : null}
       <GhostButton to="/perfiles">Perfiles</GhostButton>
-      <PrimaryButton onClick={onLogoutClick}>Salir</PrimaryButton>
     </div>
   );
 }

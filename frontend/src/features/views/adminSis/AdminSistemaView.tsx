@@ -211,6 +211,7 @@ const ResumenComponent = () => {
   );
 };
 
+/* TODO_RECUPERAR: componentes Usuarios y Configuración ocultados temporalmente
 const UsuariosComponent = () => (
   <div>
     <h2>Gestión de Usuarios</h2>
@@ -218,12 +219,13 @@ const UsuariosComponent = () => (
   </div>
 );
 
-/*const ConfiguracionComponent = () => (
+const ConfiguracionComponent = () => (
   <div>
     <h2>Configuración</h2>
     <p>En desarrollo...</p>
   </div>
-);*/
+);
+*/
 
 export default function AdminSisDashboard() {
   return (
@@ -237,8 +239,9 @@ export default function AdminSisDashboard() {
       <Route path="productos" element={<ProductosPage />} />
   <Route path="pedidos" element={<PedidosPage />} />
   <Route path="pedidos/:id" element={<PedidoDetailPage />} />
-      <Route path="usuarios" element={<UsuariosComponent />} />
-      <Route path="configuracion" element={<ConfiguracionComponent />} />
+  {/* TODO_RECUPERAR: rutas de Usuarios y Configuración ocultadas temporalmente */}
+  { /* <Route path="usuarios" element={<UsuariosComponent />} /> */ }
+  { /* <Route path="configuracion" element={<ConfiguracionComponent />} /> */ }
 
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />

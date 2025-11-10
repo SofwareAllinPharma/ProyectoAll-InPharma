@@ -5,31 +5,31 @@ import PedidoDetailPage from '../../pedidos/pages/PedidoDetailPage';
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
-import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
 
-const ResumenAdminFab = () => (
+const ResumenComponent = () => (
   <div>
-    <h2 className="text-2xl font-bold mb-4">Resumen - Administrador de Fábrica</h2>
-    <p className="mb-4">Panel rápido con indicadores para la gestión de la fábrica.</p>
+    <h2 className="text-2xl font-bold mb-4">Resumen Punto de Venta</h2>
+    <p>Resumen y acciones rápidas para el punto de venta.</p>
   </div>
 );
 
-export default function AdminFabDashboard() {
+export default function PuntoDashboard() {
   return (
     <Routes>
-      <Route index element={<ResumenAdminFab />} />
+      <Route index element={<ResumenComponent />} />
 
       <Route path="pedidos" element={<PedidosPage />} />
       <Route path="pedidos/:id" element={<PedidoDetailPage />} />
-      <Route path="formulas" element={<FormulasPage />} />
-      <Route path="productos" element={<ProductosPage />} />
+
+  <Route path="productos" element={<ProductosPage />} />
+
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+
       <Route path="movimientos/:id" element={<MovimientoDetailPage />} />
 
-      {/* Fallback dentro del módulo: volver al resumen (ruta index) */}
-      <Route path="*" element={<Navigate to="." replace />} />
+      <Route path="*" element={<Navigate to="" replace />} />
     </Routes>
   );
 }

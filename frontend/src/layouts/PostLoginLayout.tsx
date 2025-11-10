@@ -12,6 +12,7 @@ import {
   FaCog,
   FaWarehouse,
   FaBox,
+  FaTruck,
 } from "react-icons/fa";
 
 export default function PostLoginLoyout() {
@@ -29,29 +30,41 @@ export default function PostLoginLoyout() {
         { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBox /> },
         { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },
         { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
-        { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
-        { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
+  // TODO_RECUPERAR: ocultado temporalmente hasta completar la configuración de usuarios
+  // { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
+  // TODO_RECUPERAR: ocultado temporalmente hasta completar módulo de configuración
+  // { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
       ];
     }
     if (pathname.startsWith("/tecnico")) {
       return [
-        { id: "operaciones", label: "Operaciones", to: "/tecnico" },
-        { id: "pedidos", label: "Pedidos", to: "/tecnico/pedidos" },
-        { id: "depositos", label: "Depósitos", to: "/tecnico/depositos" },
-        {
-          id: "mantenimiento",
-          label: "Mantenimiento",
-          to: "/tecnico/mantenimiento",
-        },
-        { id: "reportes", label: "Reportes", to: "/tecnico/reportes" },
+        { id: 'resumen', label: 'Resumen', to: '/tecnico', icon: <FaThLarge /> },
+        { id: 'formulas', label: 'Fórmulas', to: '/tecnico/formulas', icon: <FaFlask /> },
+        { id: 'productos', label: 'Productos', to: '/tecnico/productos', icon: <FaBox /> },
+        { id: 'pedidos', label: 'Pedidos', to: '/tecnico/pedidos', icon: <FaClipboardList /> },
+        { id: 'depositos', label: 'Depósitos', to: '/tecnico/depositos', icon: <FaWarehouse /> },
+        { id: 'movimientos', label: 'Movimientos', to: '/tecnico/movimientos', icon: <FaTruck /> },
       ];
     }
     if (pathname.startsWith("/adminfab")) {
       return [
-        { id: "pedidos", label: "Pedidos", to: "/adminfab/pedidos" },
-        { id: "depositos", label: "Depósitos", to: "/adminfab/depositos" },
-        { id: "stock", label: "Stock", to: "/adminfab/stock" },
-        { id: "mostrador", label: "Mostrador", to: "/adminfab/mostrador" },
+        { id: 'resumen', label: 'Resumen', to: '/adminfab', icon: <FaThLarge /> },
+        { id: 'formulas', label: 'Fórmulas', to: '/adminfab/formulas', icon: <FaFlask /> },
+        { id: 'productos', label: 'Productos', to: '/adminfab/productos', icon: <FaBox /> },
+        { id: 'pedidos', label: 'Pedidos', to: '/adminfab/pedidos', icon: <FaClipboardList /> },
+        { id: 'depositos', label: 'Depósitos', to: '/adminfab/depositos', icon: <FaWarehouse /> },
+  { id: 'movimientos', label: 'Movimientos', to: '/adminfab/movimientos', icon: <FaTruck /> },
+      ];
+    }
+
+    // Encargado Punto de Venta
+    if (pathname.startsWith('/puntoventa')) {
+      return [
+        { id: 'resumen', label: 'Resumen', to: '/puntoventa', icon: <FaThLarge /> },
+        { id: 'productos', label: 'Productos', to: '/puntoventa/productos', icon: <FaBox /> },
+        { id: 'pedidos', label: 'Pedidos', to: '/puntoventa/pedidos', icon: <FaClipboardList /> },
+        { id: 'depositos', label: 'Depósitos', to: '/puntoventa/depositos', icon: <FaWarehouse /> },
+        { id: 'movimientos', label: 'Movimientos', to: '/puntoventa/movimientos', icon: <FaTruck /> },
       ];
     }
 
@@ -64,7 +77,8 @@ export default function PostLoginLoyout() {
   const isDashboard =
     pathname.startsWith("/adminsis") ||
     pathname.startsWith("/adminfab") ||
-    pathname.startsWith("/tecnico");
+    pathname.startsWith("/tecnico") ||
+  pathname.startsWith('/puntoventa');
 
   useEffect(() => {
     if (isDashboard) setSidebarCollapsed(undefined);
