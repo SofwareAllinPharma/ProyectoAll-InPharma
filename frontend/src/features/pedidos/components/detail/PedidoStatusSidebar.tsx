@@ -9,6 +9,7 @@ interface PedidoStatusSidebarProps {
   pedidoCompletado: boolean;
   onRefresh: () => void;
   onBack: () => void;
+  onShowToast?: (message: string, type: 'success' | 'error') => void;
 }
 
 export default function PedidoStatusSidebar({
@@ -17,6 +18,7 @@ export default function PedidoStatusSidebar({
   pedidoCompletado,
   onRefresh,
   onBack,
+  onShowToast,
 }: PedidoStatusSidebarProps) {
   const estado = pedido.cambioActual?.estado?.nombre ?? '';
 
@@ -58,7 +60,7 @@ export default function PedidoStatusSidebar({
       {/* Botones de Acción */}
       {!pedidoCompletado && (
         <div className="mt-6 space-y-2">
-          <PedidoActions pedido={pedido} onRefresh={onRefresh} />
+          <PedidoActions pedido={pedido} onRefresh={onRefresh} onShowToast={onShowToast} />
         </div>
       )}
 

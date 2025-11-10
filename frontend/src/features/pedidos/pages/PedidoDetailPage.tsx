@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import PedidoHeader from '../components/detail/PedidoHeader';
 import PedidoInfoSection from '../components/detail/PedidoInfoSection';
 import InsumosRequeridosTable from '../components/detail/InsumosRequeridosTable';
 import PedidoStatusSidebar from '../components/detail/PedidoStatusSidebar';
+import LocalToast from '../components/detail/LocalToast';
 import { usePedidoDetail } from '../hooks/usePedidoDetail';
 import { computeInsumosRequeridos } from '../utils/insumos.utils';
 
@@ -10,8 +12,21 @@ export default function PedidoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { pedido, productoDetalle, loading, reload } = usePedidoDetail(id);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; isVisible: boolean }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  });
 
   const handleBack = () => navigate(-1);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type, isVisible: true });
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
 
   if (loading) {
     return (
@@ -57,7 +72,14 @@ export default function PedidoDetailPage() {
   const insumos = computeInsumosRequeridos(pedido, productoDetalle);
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6 relative">
+      <LocalToast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+
       <button
         onClick={handleBack}
         className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -97,6 +119,7 @@ export default function PedidoDetailPage() {
             pedidoCompletado={pedidoCompletado}
             onRefresh={reload}
             onBack={handleBack}
+            onShowToast={showToast}
           />
         </div>
       </div>
