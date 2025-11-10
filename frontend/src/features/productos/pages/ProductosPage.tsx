@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import { ProductosTable } from '../components/table/ProductosTable';
 import { ProductoSearchBar } from '../components/ProductoSearchBar';
@@ -36,6 +37,33 @@ const ProductosPage: React.FC = () => {
   };
 
   useEffect(() => { void load(); }, []);
+  // Si hay parámetro de ruta :id, abrir modal nutricional para ese producto
+  const params = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const idParam = params.id ? Number(params.id) : undefined;
+    if (!idParam) return;
+    // Si los productos ya cargaron, seleccionar y abrir modal
+    const found = productos.find((p) => p.idProducto === idParam);
+    if (found) {
+      setSelected(found);
+      setModals((s) => ({ ...s, nutr: true }));
+    } else {
+      // intenta cargar de API individualmente
+      (async () => {
+        try {
+          const prod = await ProductoService.getProductoById(idParam);
+          setSelected(prod);
+          setModals((s) => ({ ...s, nutr: true }));
+        } catch (e) {
+          // si no existe, navegar a la lista
+          navigate('/adminsis/productos', { replace: true });
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id, productos]);
   const onSearch = useCallback((f?: ProductoSearchFilters) => void load(f ?? filters), [filters]);
 
   const { show } = useToast() as any;
