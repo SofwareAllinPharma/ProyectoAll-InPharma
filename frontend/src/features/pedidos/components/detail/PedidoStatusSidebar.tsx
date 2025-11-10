@@ -44,11 +44,7 @@ export default function PedidoStatusSidebar({
             }}
           ></div>
         </div>
-        <div className="text-xs text-gray-500 mt-1 text-right">
-          {estadoNormalizado === 'elaboradoydepositadoenfabrica' ? '5 de 5 pasos completados' :
-           estadoNormalizado === 'enelaboracion' ? '2 de 5 pasos completados' :
-           '0 de 5 pasos completados'}
-        </div>
+        {/* Solo mostrar la barra de progreso, sin texto de pasos completados */}
       </div>
 
       {/* Historial de Actividades */}

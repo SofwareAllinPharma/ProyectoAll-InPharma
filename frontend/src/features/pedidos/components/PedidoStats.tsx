@@ -1,6 +1,6 @@
 import React from "react";
 import ResumenCard from "../../../components/Card";
-import { FaClipboardList, FaClock, FaUserCheck, FaCog, FaCheckCircle, FaThumbsUp, FaTimesCircle } from "react-icons/fa";
+import { FaClipboardList, FaClock, FaCog, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import type { Pedido } from "../types/pedido.types";
 
 interface Props {
@@ -17,29 +17,44 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
           .replace(/\p{Diacritic}/gu, '')
           .replace(/\s+/g, '')
           .toLowerCase();
-      const st = normalize(raw);
-      if (st === 'creado' || st === 'pendiente') acc.pendientes++;
-  else if (st === 'asignado' || pedido.estaAsignado === true) acc.asignados++;
-  else if (st === 'enelaboracion' || st === 'enproceso') acc.enProceso++;
-      else if (st === 'elaboradoydepositadoenfabrica' || st === 'finalizado' || st === 'completado') acc.finalizados++;
-      else if (st === 'aprobado') acc.aprobados++;
-      else if (st === 'cancelado' || st === 'rechazado') acc.rechazados++;
+    const st = normalize(raw);
+    // Seguir la máquina de estados con prioridad para estados terminales.
+    // 1) Finalizados (varias variantes)
+    if (st === 'elaboradoydepositadoenfabrica' || st === 'finalizado' || st === 'completado') {
+      acc.finalizados++;
+    }
+    // 2) Cancelados
+    else if (st === 'cancelado' || st === 'rechazado') {
+      acc.rechazados++;
+    }
+    // 3) En elaboración / asignado
+    else if (st === 'asignado' || st === 'enelaboracion' || st === 'enproceso') {
+      acc.enProceso++;
+    }
+    // 4) Creado / pendiente (si está asignado lo consideramos en elaboración)
+    else if (st === 'creado' || st === 'pendiente' || st === '') {
+      if (pedido.estaAsignado === true) acc.enProceso++;
+      else acc.pendientes++;
+    }
+    // 5) Fallback: contar como pendientes
+    else {
+      if (pedido.estaAsignado === true) acc.enProceso++;
+      else acc.pendientes++;
+    }
       acc.total++;
       return acc;
     },
     {
       total: 0,
       pendientes: 0,
-      asignados: 0,
       enProceso: 0,
       finalizados: 0,
-      aprobados: 0,
       rechazados: 0,
     }
   );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <ResumenCard
         title="Total"
         value={stats.total}
@@ -55,14 +70,7 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
         bgIcon="#FEF9C3"
       />
       <ResumenCard
-        title="Asignados"
-        value={stats.asignados}
-        icon={<FaUserCheck className="text-blue-600" size={18} />}
-        borderColor="#3b82f6"
-        bgIcon="#DBEAFE"
-      />
-      <ResumenCard
-        title="En Proceso"
+        title="En Elaboración"
         value={stats.enProceso}
         icon={<FaCog className="text-purple-600" size={18} />}
         borderColor="#9333ea"
@@ -74,13 +82,6 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
         icon={<FaCheckCircle className="text-orange-600" size={18} />}
         borderColor="#ea580c"
         bgIcon="#FFEDD5"
-      />
-      <ResumenCard
-        title="Aprobados"
-        value={stats.aprobados}
-        icon={<FaThumbsUp className="text-green-600" size={18} />}
-        borderColor="#22c55e"
-        bgIcon="#DCFCE7"
       />
       <ResumenCard
         title="Cancelados"

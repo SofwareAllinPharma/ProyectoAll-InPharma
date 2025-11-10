@@ -68,22 +68,42 @@ export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props)
     <>
       <div className="flex flex-col gap-2">
         {isCreado && !pedido.estaAsignado && (
-          <Button
-            onClick={() =>
-              openConfirm(
-                'Tomar pedido',
-                '¿Está seguro que desea tomar este pedido?',
-                () => {
-                  closeConfirm();
-                  void runAndRefresh(() => PedidoService.tomarPedido(pedido.numPedido), 'Pedido tomado exitosamente');
-                }
-              )
-            }
-            disabled={busy}
-            ariaLabel="Tomar pedido"
-          >
-            Tomar pedido
-          </Button>
+          <>
+            <Button
+              onClick={() =>
+                openConfirm(
+                  'Tomar pedido',
+                  '¿Está seguro que desea tomar este pedido?',
+                  () => {
+                    closeConfirm();
+                    void runAndRefresh(() => PedidoService.tomarPedido(pedido.numPedido), 'Pedido tomado exitosamente');
+                  }
+                )
+              }
+              disabled={busy}
+              ariaLabel="Tomar pedido"
+            >
+              Tomar pedido
+            </Button>
+
+            <Button
+              onClick={() =>
+                openConfirm(
+                  'Cancelar pedido',
+                  '¿Está seguro que desea cancelar este pedido? Esta acción no se puede deshacer.',
+                  () => {
+                    closeConfirm();
+                    void runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado');
+                  }
+                )
+              }
+              disabled={busy}
+              variant="outline"
+              ariaLabel="Cancelar pedido"
+            >
+              Cancelar pedido
+            </Button>
+          </>
         )}
 
         {isEnElaboracion && (

@@ -2,19 +2,36 @@ import type { CambioEstado } from '../types/pedido.types';
 import StateHistory from '../../../components/ui/state/StateHistory';
 import type { StateHistoryItem } from '../../../components/ui/state/StateHistory';
 
-const colorMap: Record<string, string> = {
-  'creado': 'bg-blue-500',
-  'enelaboracion': 'bg-yellow-500',
-  'elaboradoydepositadoenfabrica': 'bg-green-500',
-  'cancelado': 'bg-red-500',
-};
-
 const normalizeEstado = (estado: string) => {
   return estado
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
     .replace(/\s+/g, '')
     .toLowerCase();
+};
+
+// Mapear estados del backend a las 4 etiquetas visibles en el detalle
+const mapEstadoLabel = (estadoNorm: string) => {
+  if (estadoNorm === 'creado' || estadoNorm === 'pendiente' || estadoNorm === 'aprobado') return 'Pendiente';
+  if (estadoNorm === 'asignado' || estadoNorm === 'enelaboracion' || estadoNorm === 'enproceso') return 'En Elaboración';
+  if (estadoNorm === 'elaboradoydepositadoenfabrica' || estadoNorm === 'finalizado' || estadoNorm === 'completado') return 'Finalizado';
+  if (estadoNorm === 'cancelado' || estadoNorm === 'rechazado') return 'Cancelado';
+  return 'Pendiente';
+};
+
+const colorForLabel = (label: string) => {
+  switch (label) {
+    case 'Pendiente':
+      return 'bg-yellow-500';
+    case 'En Elaboración':
+      return 'bg-purple-500';
+    case 'Finalizado':
+      return 'bg-orange-500';
+    case 'Cancelado':
+      return 'bg-red-500';
+    default:
+      return 'bg-gray-500';
+  }
 };
 
 const formatFechaHora = (fecha: string | Date | null | undefined): string | undefined => {
@@ -38,13 +55,13 @@ const formatFechaHora = (fecha: string | Date | null | undefined): string | unde
 export default function PedidoHistory({ cambios }: { cambios: CambioEstado[] }) {
   const items: StateHistoryItem[] = (cambios || []).map((c) => {
     const estadoNormalizado = normalizeEstado(c.estado?.nombre ?? '');
-    
+    const label = mapEstadoLabel(estadoNormalizado);
     return {
-      title: c.estado?.nombre ?? 'Sin estado',
+      title: label.toUpperCase(),
       lines: [],
       start: formatFechaHora(c.fechaHoraInicio),
       end: formatFechaHora(c.fechaHoraFin),
-      colorClass: colorMap[estadoNormalizado] || 'bg-gray-500',
+      colorClass: colorForLabel(label),
     };
   });
 

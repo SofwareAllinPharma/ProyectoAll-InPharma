@@ -31,29 +31,39 @@ const PedidoHistoryModal: React.FC<Props> = ({
   );
 
   const currentState = pedido.cambioActual?.estado?.nombre || "";
+  const normalize = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, '').toLowerCase();
+  const estadoNorm = normalize(currentState);
   const userProfile = localStorage.getItem("userPerfil") || "";
 
   const getAvailableActions = () => {
     const actions: Array<{ label: string; action: string; variant?: string }> =
       [];
 
-    switch (currentState) {
-      case "Pendiente":
+    // Usar estado normalizado para decidir acciones (evitar depender de etiquetas del backend)
+    switch (estadoNorm) {
+      case 'creado':
+      case 'pendiente':
+      case 'aprobado':
         if (userProfile === "3" || userProfile === "2") {
           actions.push({ label: "Tomar Pedido", action: "tomar" });
+          // Permitir cancelar pedido desde estado Pendiente/Creado para los mismos perfiles
+          actions.push({ label: "Cancelar Pedido", action: "cancelar", variant: "danger" });
         }
         break;
-      case "Asignado":
+      case 'asignado':
         if (userProfile === "3") {
           actions.push({ label: "Iniciar Elaboración", action: "iniciar" });
         }
         break;
-      case "En elaboracion":
+      case 'enelaboracion':
+      case 'enproceso':
         if (userProfile === "3") {
           actions.push({ label: "Finalizar Elaboración", action: "finalizar" });
         }
         break;
-      case "Finalizado":
+      case 'elaboradoydepositadoenfabrica':
+      case 'finalizado':
+      case 'completado':
         if (userProfile === "2") {
           actions.push({ label: "Aprobar", action: "aprobar" });
           actions.push({
@@ -88,6 +98,10 @@ const PedidoHistoryModal: React.FC<Props> = ({
         case "finalizar":
           await PedidoService.finalizarElaboracion(pedido.numPedido);
           message = "Elaboración finalizada";
+          break;
+        case "cancelar":
+          await PedidoService.cancelar(pedido.numPedido);
+          message = "Pedido cancelado";
           break;
         case "aprobar":
           await PedidoService.aprobarPedido(pedido.numPedido);
@@ -176,30 +190,33 @@ const PedidoHistoryModal: React.FC<Props> = ({
             Historial de Estados
           </h4>
           <div className="space-y-3 max-h-60 overflow-y-auto">
-            {cambios.map((c, index) => (
-              <div key={c.idCambioEstado} className="flex items-start gap-3">
-                <div
-                  className={`w-3 h-3 mt-1 rounded-full ${
-                    index === cambios.length - 1
-                      ? "bg-blue-500"
-                      : "bg-green-500"
-                  }`}
-                />
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
-                    {c.estado?.nombre ?? "Estado"}
+            {cambios.map((c) => {
+              const estadoN = normalize(c.estado?.nombre || '');
+              const label = (
+                estadoN === 'creado' || estadoN === 'pendiente' || estadoN === 'aprobado'
+              ) ? 'Pendiente' : (
+                estadoN === 'asignado' || estadoN === 'enelaboracion' || estadoN === 'enproceso'
+              ) ? 'En Elaboración' : (
+                estadoN === 'elaboradoydepositadoenfabrica' || estadoN === 'finalizado' || estadoN === 'completado'
+              ) ? 'Finalizado' : (
+                estadoN === 'cancelado' || estadoN === 'rechazado'
+              ) ? 'Cancelado' : 'Pendiente';
+
+              const color = label === 'Pendiente' ? 'bg-yellow-500' : label === 'En Elaboración' ? 'bg-purple-500' : label === 'Finalizado' ? 'bg-orange-500' : 'bg-red-500';
+
+              return (
+                <div key={c.idCambioEstado} className="flex items-start gap-3">
+                  <div className={`w-3 h-3 mt-1 rounded-full ${color}`} />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">{label.toUpperCase()}</div>
+                    <div className="text-xs text-gray-500">Inicio: {new Date(c.fechaHoraInicio).toLocaleString()}</div>
+                    {c.fechaHoraFin && (
+                      <div className="text-xs text-gray-500">Fin: {new Date(c.fechaHoraFin).toLocaleString()}</div>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Inicio: {new Date(c.fechaHoraInicio).toLocaleString()}
-                  </div>
-                  {c.fechaHoraFin && (
-                    <div className="text-xs text-gray-500">
-                      Fin: {new Date(c.fechaHoraFin).toLocaleString()}
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {cambios.length === 0 && (
               <p className="text-gray-500 text-sm">
                 No hay historial disponible

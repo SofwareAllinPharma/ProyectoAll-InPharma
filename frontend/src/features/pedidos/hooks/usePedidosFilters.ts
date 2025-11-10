@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { Pedido } from '../types/pedido.types';
 import { formatUserName } from '../utils/pedido.utils';
 
-type EstadoFiltro = '' | 'creado' | 'enelaboracion' | 'completado' | 'cancelado';
+type EstadoFiltro = '' | 'creado' | 'enelaboracion' | 'elaboradoydepositadoenfabrica' | 'cancelado';
 
 export const usePedidosFilters = (pedidos: Pedido[]) => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -24,9 +24,9 @@ export const usePedidosFilters = (pedidos: Pedido[]) => {
         .replace(/\s+/g, '')
         .toLowerCase();
       
-      if (!estadoFilter) return true;
-      if (estadoFilter === 'completado') return est === 'elaboradoydepositadoenfabrica';
-      return est === estadoFilter;
+  if (!estadoFilter) return true;
+  if (estadoFilter === 'elaboradoydepositadoenfabrica') return est === 'elaboradoydepositadoenfabrica';
+  return est === estadoFilter;
     });
   }, [pedidos, estadoFilter]);
 

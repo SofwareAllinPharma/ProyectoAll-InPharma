@@ -1,20 +1,20 @@
 import { FaClipboardList } from 'react-icons/fa';
+import PedidoEstadoCell from '../PedidoEstadoCell';
 
 interface PedidoHeaderProps {
   numPedido: number;
   estado: string;
   createdAt: string | Date;
+  asignado?: boolean;
 }
 
-export default function PedidoHeader({ numPedido, estado, createdAt }: PedidoHeaderProps) {
+export default function PedidoHeader({ numPedido, estado, createdAt, asignado }: PedidoHeaderProps) {
   const fecha = new Date(createdAt);
   
   return (
     <section className="relative rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
       <div className="absolute right-6 top-6">
-        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          {estado || 'Pendiente'}
-        </span>
+        <PedidoEstadoCell estado={estado} asignado={asignado} />
       </div>
       <div className="flex flex-col items-center text-center gap-4">
         <div className="h-16 w-16 rounded-full bg-[#F5F3EB] flex items-center justify-center">

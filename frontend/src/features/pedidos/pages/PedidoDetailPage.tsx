@@ -96,6 +96,7 @@ export default function PedidoDetailPage() {
             numPedido={pedido.numPedido}
             estado={estado}
             createdAt={pedido.createdAt}
+            asignado={pedido.estaAsignado === true}
           />
 
           <PedidoInfoSection

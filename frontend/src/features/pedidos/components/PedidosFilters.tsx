@@ -1,6 +1,6 @@
 import React from 'react';
 
-type EstadoFiltro = '' | 'creado' | 'enelaboracion' | 'completado' | 'cancelado';
+type EstadoFiltro = '' | 'creado' | 'enelaboracion' | 'elaboradoydepositadoenfabrica' | 'cancelado';
 
 interface PedidosFiltersProps {
   search: string;
@@ -32,7 +32,7 @@ const PedidosFilters: React.FC<PedidosFiltersProps> = ({
             value={estadoFilter}
             onChange={(e) => {
               const v = e.target.value as EstadoFiltro;
-              const allow: EstadoFiltro[] = ['', 'creado', 'enelaboracion', 'completado', 'cancelado'];
+              const allow: EstadoFiltro[] = ['', 'creado', 'enelaboracion', 'elaboradoydepositadoenfabrica', 'cancelado'];
               onEstadoChange(allow.includes(v) ? v : '');
             }}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] disabled:bg-gray-100"
@@ -40,7 +40,7 @@ const PedidosFilters: React.FC<PedidosFiltersProps> = ({
             <option value="">Todos los estados</option>
             <option value="creado">Creado</option>
             <option value="enelaboracion">En elaboración</option>
-            <option value="completado">Completado</option>
+            <option value="elaboradoydepositadoenfabrica">Finalizado</option>
             <option value="cancelado">Cancelado</option>
           </select>
         </div>

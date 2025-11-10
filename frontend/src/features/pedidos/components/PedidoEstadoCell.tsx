@@ -18,13 +18,15 @@ export default function PedidoEstadoCell({ estado, asignado }: Props) {
 
   // Si está asignado pero el estado es 'creado' distinguimos visualmente.
   const map: Record<string, { label: string; cls: string }> = {
-    creado: { label: asignado ? 'Asignado' : 'Pendiente', cls: asignado ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800' },
-    enelaboracion: { label: 'En Proceso', cls: 'bg-purple-100 text-purple-800' },
-    elaboradoydepositadoenfabrica: { label: 'Completado', cls: 'bg-green-100 text-green-800' },
+  // Si se marcó como asignado lo mostramos como 'En Elaboración' (no mostrar 'Asignado')
+  creado: { label: asignado ? 'En Elaboración' : 'Pendiente', cls: asignado ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800' },
+    enelaboracion: { label: 'En Elaboración', cls: 'bg-purple-100 text-purple-800' },
+    elaboradoydepositadoenfabrica: { label: 'Finalizado', cls: 'bg-orange-100 text-orange-800' },
     cancelado: { label: 'Cancelado', cls: 'bg-red-100 text-red-800' },
     aprobado: { label: 'Aprobado', cls: 'bg-green-100 text-green-800' },
     rechazado: { label: 'Rechazado', cls: 'bg-red-100 text-red-800' },
     finalizado: { label: 'Finalizado', cls: 'bg-orange-100 text-orange-800' },
+    completado: { label: 'Finalizado', cls: 'bg-orange-100 text-orange-800' },
   };
 
   const info = map[key] || { label: estado || '—', cls: 'bg-gray-100 text-gray-800' };
