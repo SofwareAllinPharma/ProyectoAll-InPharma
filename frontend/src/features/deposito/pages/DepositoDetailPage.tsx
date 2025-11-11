@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
 import DepositoFormModal from '../components/DepositoFormModal';
@@ -24,7 +24,6 @@ export default function DepositoDetailPage() {
     setShowDeleteConfirm,
     showTrasladoModal,
     setShowTrasladoModal,
-    setShowPedidoModal,
     inventario,
     loadingInventario,
     resumen,
@@ -35,6 +34,8 @@ export default function DepositoDetailPage() {
     refreshInventario,
     refreshResumen,
   } = useDepositoDetail(id);
+
+  const navigate = useNavigate();
 
   const { show } = useToast();
 
@@ -64,7 +65,7 @@ export default function DepositoDetailPage() {
           <>
             <div className="flex items-center space-x-2">
               <Button variant="outline" title="Registrar Traslado" icon={<FaTruck size={16} className="text-[#7C6A55]" />} onClick={() => setShowTrasladoModal(true)}>Registrar Traslado</Button>
-              <Button variant="solid" title="Registrar Pedido" icon={<FaPlus size={16} />} onClick={() => setShowPedidoModal(true)}>Registrar Pedido</Button>
+              <Button variant="solid" title="Registrar Pedido" icon={<FaPlus size={16} />} onClick={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })}>Registrar Pedido</Button>
             </div>
           </>
         }
@@ -79,8 +80,7 @@ export default function DepositoDetailPage() {
                 setShowUmbrales(false);
                 try {
                   await Promise.all([refreshInventario?.(), refreshResumen?.()]);
-                } catch {
-                }
+                } catch { /* empty */ }
                 show({ message: 'Umbrales actualizados correctamente', type: 'success' });
               }}
             />
@@ -104,7 +104,7 @@ export default function DepositoDetailPage() {
           }}
         />
 
-        <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => setShowPedidoModal(true)} onMovimientoStock={() => setShowTrasladoModal(true)} />
+  <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })} onMovimientoStock={() => setShowTrasladoModal(true)} />
       </PageShell>
     </div>
   );

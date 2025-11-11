@@ -28,7 +28,6 @@ export default function DepositosPage() {
   loadingGlobal,
   showTrasladoModal,
   setShowTrasladoModal,
-  setShowPedidoModal,
     resumenGlobal,
     handleCreate,
     handleDelete,
@@ -46,7 +45,7 @@ export default function DepositosPage() {
         extraActions={
           <DepositosToolbar 
             onShowTraslado={() => setShowTrasladoModal(true)} 
-            onShowPedido={() => setShowPedidoModal(true)} 
+            onShowPedido={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })} 
           />
         }
         modals={
@@ -125,7 +124,7 @@ export default function DepositosPage() {
                     stockGlobal={stockGlobal}
                     loadingGlobal={loadingGlobal}
                     resumenGlobal={resumenGlobal}
-                    onCrearPedido={() => setShowPedidoModal(true)}
+                    onCrearPedido={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })}
                     onMovimientoStock={() => setShowTrasladoModal(true)}
                   />
                 )}

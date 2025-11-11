@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import DataTable from '../../../components/ui/DataTable';
 import { PedidoService } from '../services/pedido.service';
@@ -14,6 +14,7 @@ import { usePedidosTableColumns } from '../components/table/PedidosTableColumns'
 
 const PedidosPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { pedidos, loading, reload } = usePedidosData();
   const [modals, setModals] = useState({ form: false });
   
@@ -41,6 +42,17 @@ const PedidosPage: React.FC = () => {
   });
 
   const onCreate = () => setModals((s) => ({ ...s, form: true }));
+
+  // If navigation included state requesting to open create modal, handle it here
+  React.useEffect(() => {
+    const state = (location.state as any) || {};
+    if (state.openCreate) {
+      setModals((s) => ({ ...s, form: true }));
+      // clear the navigation state so reloading / back doesn't re-open modal
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   const handleCreate = async (payload: CreatePedidoRequest) => {
     try {
