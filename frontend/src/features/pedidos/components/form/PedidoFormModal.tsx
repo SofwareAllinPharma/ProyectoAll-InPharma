@@ -47,9 +47,16 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     setErrors({});
   };
 
+  // Reset form whenever the modal open state changes (open or close)
   useEffect(() => {
-    if (isOpen) resetForm();
+    resetForm();
   }, [isOpen]);
+
+  // ensure we clear state before notifying parent that modal closed
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   // Keep previous mode to convert value when switching units
   const prevModeRef = React.useRef(mode);
@@ -229,7 +236,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   return (
     <Modal
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
     >
       <ModalHeader>Crear Pedido</ModalHeader>
@@ -330,7 +337,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
 
       <div className="border-t border-gray-100 px-6 py-4">
         <div className="flex gap-3 justify-center sm:justify-end">
-          <Button variant="outline" onClick={onClose} className="px-6 py-2">
+          <Button variant="outline" onClick={handleClose} className="px-6 py-2">
             Cancelar
           </Button>
           <Button
