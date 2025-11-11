@@ -1,10 +1,20 @@
 import { ProductoService } from '../../productos/services/producto.service';
 import { PedidoService } from '../../pedidos/services/pedido.service';
-import type { TopProduct } from '../types/dashboard.types';
+import { InventarioGlobalService } from '../../inventario/services/inventario.service';
+import type { TopProduct, OrderStatusData, InventoryAlerts } from '../types/dashboard.types';
 import type { Pedido } from '../../pedidos/types/pedido.types';
 import type { Producto } from '../../productos/types/producto.types';
 
-const DEFAULT_COLORS = ['#2C5F6F', '#10B981', '#7C6A55', '#F59E0B', '#6B7280'];
+// Colores de la empresa All-InPharma
+const DEFAULT_COLORS = ['#D0BB95', '#7C6A55', '#9D977B', '#5D5448', '#BDAF9E'];
+
+// Colores específicos para los estados de pedidos
+const STATUS_COLORS: Record<string, string> = {
+  'Creado': '#F59E0B', // Amber/Orange - En espera
+  'EnElaboración': '#3B82F6', // Blue - En proceso
+  'ElaboradoYDepositadoEnFábrica': '#10B981', // Green - Completado
+  'Cancelado': '#EF4444', // Red - Cancelado
+};
 
 function isDateInCurrentMonth(dateInput?: string | Date | null) {
   if (!dateInput) return false;
@@ -87,6 +97,72 @@ export const DashboardService = {
     } catch (error) {
       console.error('DashboardService.getTopProducts error', error);
       return [];
+    }
+  },
+
+  /**
+   * Devuelve la distribución de pedidos por estado actual.
+   */
+  async getOrderStatusDistribution(): Promise<OrderStatusData[]> {
+    try {
+      const pedidos = await PedidoService.list(1, 5000);
+      const pedidosArr = (pedidos || []) as Pedido[];
+
+      const statusCounts = new Map<string, { count: number; id: number }>();
+
+      for (const pedido of pedidosArr) {
+        const estadoNombre = pedido.cambioActual?.estado?.nombre || 'Sin Estado';
+        const estadoId = pedido.cambioActual?.estado?.id || 0;
+        
+        const current = statusCounts.get(estadoNombre) || { count: 0, id: estadoId };
+        statusCounts.set(estadoNombre, { count: current.count + 1, id: estadoId });
+      }
+
+      // Mapear estados a nombres legibles en español
+      const statusLabels: Record<string, string> = {
+        'Creado': 'Pendientes',
+        'EnElaboración': 'En Elaboración',
+        'ElaboradoYDepositadoEnFábrica': 'Finalizados',
+        'Cancelado': 'Cancelados',
+        'Sin Estado': 'Sin Estado',
+      };
+
+      // Convertir a array y ordenar
+      const items: OrderStatusData[] = Array.from(statusCounts.entries())
+        .map(([estado, data]) => ({
+          label: statusLabels[estado] || estado,
+          value: data.count,
+          color: STATUS_COLORS[estado] || '#6B7280',
+          estadoId: data.id,
+        }))
+        .sort((a, b) => b.value - a.value);
+
+      return items;
+    } catch (error) {
+      console.error('DashboardService.getOrderStatusDistribution error', error);
+      return [];
+    }
+  },
+
+  /**
+   * Devuelve el total de alertas de inventario (productos en estado BAJO o CRÍTICO).
+   */
+  async getInventoryAlerts(): Promise<InventoryAlerts> {
+    try {
+      const resumen = await InventarioGlobalService.getResumenEstadosGlobal();
+      
+      return {
+        total: resumen.bajo + resumen.critico,
+        critico: resumen.critico,
+        bajo: resumen.bajo,
+      };
+    } catch (error) {
+      console.error('DashboardService.getInventoryAlerts error', error);
+      return {
+        total: 0,
+        critico: 0,
+        bajo: 0,
+      };
     }
   },
 };

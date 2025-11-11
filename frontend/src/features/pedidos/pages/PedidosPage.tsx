@@ -43,12 +43,22 @@ const PedidosPage: React.FC = () => {
 
   const onCreate = () => setModals((s) => ({ ...s, form: true }));
 
-  // If navigation included state requesting to open create modal, handle it here
+  // If navigation included state requesting to open create modal or filter by estado
   React.useEffect(() => {
     const state = (location.state as any) || {};
+    
+    // Manejar apertura de modal de creación
     if (state.openCreate) {
       setModals((s) => ({ ...s, form: true }));
-      // clear the navigation state so reloading / back doesn't re-open modal
+    }
+    
+    // Manejar filtro por estado desde el dashboard
+    if (state.filterByEstado) {
+      setEstadoFilter(state.filterByEstado);
+    }
+    
+    // Limpiar el estado de navegación para que no se repita al recargar
+    if (state.openCreate || state.filterByEstado) {
       navigate(location.pathname, { replace: true, state: {} });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
