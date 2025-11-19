@@ -198,99 +198,99 @@ async function main() {
             },
         });
 
-        const productoData = await prisma.producto.upsert({
-            where: { nombreComercial: productName },
-            update: {
-                idFormula: formulaData.id,
-                pesoNeto: peso,
-                cantPorcionesAportadas: porciones,
-            },
-            create: {
-                idFormula: formulaData.id,
-                nombreComercial: productName,
-                pesoNeto: peso,
-                cantPorcionesAportadas: porciones,
-            },
-        });
+        const productoData = await prisma.producto.upsert({
+            where: { nombreComercial: productName },
+            update: {
+                idFormula: formulaData.id,
+                pesoNeto: peso,
+                cantPorcionesAportadas: porciones,
+            },
+            create: {
+                idFormula: formulaData.id,
+                nombreComercial: productName,
+                pesoNeto: peso,
+                cantPorcionesAportadas: porciones,
+            },
+        });
         return productoData;
     }
     
     const productosParaInventario = [];
     
-    productosParaInventario.push(await seedProduct(
-        'Prote A',
-        [{ nombre: 'Concentrado de Suero de Queso', cantidad: 25 }, { nombre: 'Cacao Amargo Fenix 54', cantidad: 3 }, { nombre: 'Sucralosa', cantidad: 2 }],
-        30, 120, 0.9, 30, 'Prote A 900g'
-    ));
+    productosParaInventario.push(await seedProduct(
+        'Prote A',
+        [{ nombre: 'Concentrado de Suero de Queso', cantidad: 25 }, { nombre: 'Cacao Amargo Fenix 54', cantidad: 3 }, { nombre: 'Sucralosa', cantidad: 2 }],
+        30, 120, 900, 30, 'Prote A 900g'
+    ));
 
-    productosParaInventario.push(await seedProduct(
-        'Colágeno Plus',
-        [{ nombre: 'Colageno Hidrolizado (mathpro)', cantidad: 9 }, { nombre: 'Saborizante Frutilla', cantidad: 0.8 }, { nombre: 'Xilitol', cantidad: 0.2 }],
-        10, 40, 0.3, 30, 'Colágeno Plus 300g'
-    ));
+    productosParaInventario.push(await seedProduct(
+        'Colágeno Plus',
+        [{ nombre: 'Colageno Hidrolizado (mathpro)', cantidad: 9 }, { nombre: 'Saborizante Frutilla', cantidad: 0.8 }, { nombre: 'Xilitol', cantidad: 0.2 }],
+        10, 40, 300, 30, 'Colágeno Plus 300g'
+    ));
 
-    productosParaInventario.push(await seedProduct(
-        'Suplemento Vegano Salado',
-        [{ nombre: 'Proteínas de Soja', cantidad: 40 }, { nombre: 'Saborizante Cuatro Quesos', cantidad: 5 }, { nombre: 'Cebolla en Polvo', cantidad: 3 }, { nombre: 'Perejil Deshidratado', cantidad: 2 }],
-        50, 180, 1.0, 20, 'Vegano Salado 1000g'
-    ));
+    productosParaInventario.push(await seedProduct(
+        'Suplemento Vegano Salado',
+        [{ nombre: 'Proteínas de Soja', cantidad: 40 }, { nombre: 'Saborizante Cuatro Quesos', cantidad: 5 }, { nombre: 'Cebolla en Polvo', cantidad: 3 }, { nombre: 'Perejil Deshidratado', cantidad: 2 }],
+        50, 180, 1000, 20, 'Vegano Salado 1000g'
+    ));
 
-    productosParaInventario.push(await seedProduct(
-        'Batido Energético Keto',
-        [{ nombre: 'Aceite de Coco', cantidad: 20 }, { nombre: 'Concentrado de Suero de Queso', cantidad: 15 }, { nombre: 'Saborizante Chocolate rbp 10845', cantidad: 5 }],
-        40, 300, 0.4, 10, 'Keto Shake 400g'
-    ));
+    productosParaInventario.push(await seedProduct(
+        'Batido Energético Keto',
+        [{ nombre: 'Aceite de Coco', cantidad: 20 }, { nombre: 'Concentrado de Suero de Queso', cantidad: 15 }, { nombre: 'Saborizante Chocolate rbp 10845', cantidad: 5 }],
+        40, 300, 400, 10, 'Keto Shake 400g'
+    ));
 
-    productosParaInventario.push(await seedProduct(
-        'Proteína de Huevo-Café',
-        [{ nombre: 'Albúmina de Huevo', cantidad: 30 }, { nombre: 'Café Instantáneo', cantidad: 5 }, { nombre: 'Sucralosa', cantidad: 1 }],
-        36, 150, 0.6, 16, 'Huevo-Café 600g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Gainer Alto Carb.',
-        [{ nombre: 'Maltodextrinas', cantidad: 60 }, { nombre: 'Concentrado de Suero de Queso', cantidad: 20 }, { nombre: 'Saborizante DDL rbp 10046', cantidad: 3 }],
-        83, 340, 1.5, 18, 'Gainer XL 1.5Kg'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Sal Baja en Sodio',
-        [{ nombre: 'Cloruro de Sodio', cantidad: 10 }, { nombre: 'Steviósido Puro', cantidad: 90 }],
-        1, 0, 0.1, 100, 'Sal Keto 100g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Sopa de Tomate y Pimentón',
-        [{ nombre: 'Tomate en Polvo (imp. premium)', cantidad: 40 }, { nombre: 'Pimentón Extra Callieri', cantidad: 5 }, { nombre: 'DDL Polvo HIS ESTABON COMPLEX DOL', cantidad: 5 }],
-        50, 160, 0.75, 15, 'Sopa Fit 750g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Snack de Arroz Croc.',
-        [{ nombre: 'Arroz Crocante', cantidad: 90 }, { nombre: 'Saborizante Queso Parmesano', cantidad: 10 }],
-        40, 180, 0.2, 5, 'Snack Parm. 200g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Mix de Avena y Semillas',
-        [{ nombre: 'Avena', cantidad: 50 }, { nombre: 'Salvado de Avena', cantidad: 30 }, { nombre: 'Semilla de Lino Molida', cantidad: 20 }],
-        60, 210, 0.8, 13, 'Avena Premium 800g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Bebida Anti-inflamatoria',
-        [{ nombre: 'Curcuma (Callieri)', cantidad: 5 }, { nombre: 'Xilitol', cantidad: 2 }, { nombre: 'Saborizante Frutilla', cantidad: 1 }],
-        8, 30, 0.15, 18, 'Anti-Inflamatorio 150g'
-    ));
-    productosParaInventario.push(await seedProduct(
-        'Aderezo de Hierbas',
-        [{ nombre: 'Romero', cantidad: 30 }, { nombre: 'Tomillo', cantidad: 20 }, { nombre: 'Aceite de Coco', cantidad: 50 }],
-        15, 450, 0.1, 6, 'Aderezo Hierbas 100g'
-    ));
+    productosParaInventario.push(await seedProduct(
+        'Proteína de Huevo-Café',
+        [{ nombre: 'Albúmina de Huevo', cantidad: 30 }, { nombre: 'Café Instantáneo', cantidad: 5 }, { nombre: 'Sucralosa', cantidad: 1 }],
+        36, 150, 600, 16, 'Huevo-Café 600g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Gainer Alto Carb.',
+        [{ nombre: 'Maltodextrinas', cantidad: 60 }, { nombre: 'Concentrado de Suero de Queso', cantidad: 20 }, { nombre: 'Saborizante DDL rbp 10046', cantidad: 3 }],
+        83, 340, 1500, 18, 'Gainer XL 1.5Kg'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Sal Baja en Sodio',
+        [{ nombre: 'Cloruro de Sodio', cantidad: 10 }, { nombre: 'Steviósido Puro', cantidad: 90 }],
+        1, 0, 100, 100, 'Sal Keto 100g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Sopa de Tomate y Pimentón',
+        [{ nombre: 'Tomate en Polvo (imp. premium)', cantidad: 40 }, { nombre: 'Pimentón Extra Callieri', cantidad: 5 }, { nombre: 'DDL Polvo HIS ESTABON COMPLEX DOL', cantidad: 5 }],
+        50, 160, 750, 15, 'Sopa Fit 750g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Snack de Arroz Croc.',
+        [{ nombre: 'Arroz Crocante', cantidad: 90 }, { nombre: 'Saborizante Queso Parmesano', cantidad: 10 }],
+        40, 180, 200, 5, 'Snack Parm. 200g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Mix de Avena y Semillas',
+        [{ nombre: 'Avena', cantidad: 50 }, { nombre: 'Salvado de Avena', cantidad: 30 }, { nombre: 'Semilla de Lino Molida', cantidad: 20 }],
+        60, 210, 800, 13, 'Avena Premium 800g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Bebida Anti-inflamatoria',
+        [{ nombre: 'Curcuma (Callieri)', cantidad: 5 }, { nombre: 'Xilitol', cantidad: 2 }, { nombre: 'Saborizante Frutilla', cantidad: 1 }],
+        8, 30, 150, 18, 'Anti-Inflamatorio 150g'
+    ));
+    productosParaInventario.push(await seedProduct(
+        'Aderezo de Hierbas',
+        [{ nombre: 'Romero', cantidad: 30 }, { nombre: 'Tomillo', cantidad: 20 }, { nombre: 'Aceite de Coco', cantidad: 50 }],
+        15, 450, 100, 6, 'Aderezo Hierbas 100g'
+    ));
     
     for (let i = 1; i <= 11; i++) {
         const insumo1 = i % 2 === 0 ? 'Dextrosa' : 'Concentrado de Suero de Queso';
         const insumo2 = i % 3 === 0 ? 'Maltodextrinas' : 'Sucralosa';
         
-        productosParaInventario.push(await seedProduct(
-            `Fórmula Adicional ${i}`,
-            [{ nombre: insumo1, cantidad: 15 + i }, { nombre: insumo2, cantidad: 5 + i }],
-            30 + i, 100 + i * 5, 0.5 + i * 0.1, 15 + i, `Producto Adicional ${i} ${500 + i * 100}g`
-        ));
+        productosParaInventario.push(await seedProduct(
+            `Fórmula Adicional ${i}`,
+            [{ nombre: insumo1, cantidad: 15 + i }, { nombre: insumo2, cantidad: 5 + i }],
+            30 + i, 100 + i * 5, 500 + i * 100, 15 + i, `Producto Adicional ${i} ${500 + i * 100}g`
+        ));
     }
 
 	console.log(`Seed de FORMULAS (${productosParaInventario.length} en total) y PRODUCTOS ejecutado OK`);

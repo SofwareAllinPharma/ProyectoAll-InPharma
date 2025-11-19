@@ -121,11 +121,21 @@ const ProductosPage: React.FC = () => {
     }
   };
 
+  const openCreateForm = () => {
+    setSelected(null);
+    setModals(s => ({ ...s, form: true }));
+  };
+
+  const closeAllAndClear = () => {
+    setSelected(null);
+    setModals({ form: false, action: false, nutr: false, del: false });
+  };
+
   return (
     <PageShell
       title="Productos"
       subtitle="Gestiona los productos"
-      onCreate={() => setModals(s => ({ ...s, form: true }))}
+      onCreate={openCreateForm}
       createLabel="Nuevo Producto"
       loading={loading}
       noContainer
@@ -134,7 +144,7 @@ const ProductosPage: React.FC = () => {
         <>
           <ProductoFormModal
             isOpen={modals.form}
-            onClose={closeAll}
+            onClose={closeAllAndClear}
             onSubmit={selected ? handleUpdateProducto : handleCreateProducto}
             producto={selected ?? undefined}
             isLoading={submitting}
