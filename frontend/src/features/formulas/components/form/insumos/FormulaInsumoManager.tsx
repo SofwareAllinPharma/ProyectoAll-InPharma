@@ -41,13 +41,28 @@ export const FormulaInsumoManager: React.FC<Props> = ({ formulaInsumos, onChange
 
   const baseRow = () => ({ idFormula: 0, idInsumo: 0, cantidadInsumo: 0 } as FormulaInsumo);
   const add = () => { const i = formulaInsumos.length; onChange([...formulaInsumos, baseRow()]); setLastIdx(i); };
-  const upd = (idx: number, f: keyof FormulaInsumo, v: number) => {
+  const upd = (idx: number, f: keyof FormulaInsumo, v: number, markTouched = false) => {
     const copy = [...formulaInsumos]; copy[idx] = { ...copy[idx], [f]: v };
     if (f === 'idInsumo') copy[idx].insumo = insumos.find(x => x.id === v);
-    onChange(copy, Object.keys(touched).length > 0);
+    if (markTouched) {
+      setTouched(s => ({ ...s, [idx]: true }));
+      onChange(copy, true);
+    } else {
+      onChange(copy, Object.keys(touched).length > 0);
+    }
   };
   const remove = (idx: number) => onChange(formulaInsumos.filter((_, i) => i !== idx), Object.keys(touched).length > 0);
-  const rowBlur = (idx: number) => { setTouched(s => ({ ...s, [idx]: true })); setLastIdx(null); onChange(formulaInsumos, true); };
+  const rowBlur = (idx: number) => {
+    setLastIdx(null);
+    setTouched(prev => {
+      const already = Boolean(prev[idx]);
+      const next = { ...prev, [idx]: true };
+      if (!already) {
+        onChange(formulaInsumos, true);
+      }
+      return next;
+    });
+  };
 
   if (loading) return <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7c6a55]"/></div>;
 

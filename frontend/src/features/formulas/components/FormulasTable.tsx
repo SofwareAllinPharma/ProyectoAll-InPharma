@@ -82,6 +82,7 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
         data={formulas} 
         rowKey={r => r.id} 
         emptyState={emptyState}
+        pagination
         defaultPageSize={10} 
         pageSizeOptions={[5, 10, 20]} 
       />

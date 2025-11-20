@@ -60,7 +60,6 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({ isOpen, onCl
 
             <div>
               <FormulaInsumoManager formulaInsumos={formulaInsumos} onChange={handleInsumosChange} disabled={isLoading || isSubmitting} />
-              {errors.insumos && <p className="mt-2 text-sm text-red-600">{errors.insumos}</p>}
             </div>
           </div>
 
