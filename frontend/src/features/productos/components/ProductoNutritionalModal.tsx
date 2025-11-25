@@ -5,6 +5,7 @@ import type { Producto } from '../types/producto.types';
 import ProductInfoCard from './ProductInfoCard';
 import NutritionColumn from './NutritionColumn';
 import { computeNutrition } from '../hooks/useNutrition';
+import { PrintLabelButton } from './etiquetas/PrintLabelButton';
 
 interface Props {
   isOpen: boolean;
@@ -60,9 +61,12 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
 
         {/* Content: scrollable area only (flex-1) */}
         <div className="p-6 overflow-y-auto flex-1 space-y-3">
-          <div className="px-1">
-            <h3 className="text-xl font-semibold text-gray-900">{producto.nombreComercial}</h3>
-            <p className="text-base text-gray-700 mt-0.5">Fórmula: {formula.nombre}</p>
+          <div className="px-1 flex justify-between items-start">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">{producto.nombreComercial}</h3>
+              <p className="text-base text-gray-700 mt-0.5">Fórmula: {formula.nombre}</p>
+            </div>
+            <PrintLabelButton producto={producto} />
           </div>
 
           <ProductInfoCard producto={producto} pesoPorPorcion={pesoPorPorcion} />
