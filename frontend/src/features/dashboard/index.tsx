@@ -5,15 +5,17 @@ import InventoryAlertsCard from './components/InventoryAlertsCard';
 import CompanyAlertsCard from './components/CompanyAlertsCard';
 import WeeklyProductionChart from './components/WeeklyProductionChart';
 import { DashboardService } from './services/dashboard.service';
-import type { TopProduct, OrderStatusData, InventoryAlerts } from './types/dashboard.types';
+import type { TopProduct, OrderStatusData, InventoryAlerts, CompanyAlertsData } from './types/dashboard.types';
 
 const Dashboard: React.FC = () => {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [orderStatus, setOrderStatus] = useState<OrderStatusData[]>([]);
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlerts>({ total: 0, critico: 0, bajo: 0 });
+  const [companyAlerts, setCompanyAlerts] = useState<CompanyAlertsData>({ movimientos: [] });
   const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
+  const [loadingCompanyAlerts, setLoadingCompanyAlerts] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -56,6 +58,21 @@ const Dashboard: React.FC = () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadCompanyAlerts = async () => {
+      setLoadingCompanyAlerts(true);
+      const data = await DashboardService.getCompanyAlerts();
+      if (mounted) setCompanyAlerts(data);
+      setLoadingCompanyAlerts(false);
+    };
+    loadCompanyAlerts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="p-6 sm:p-8 bg-[#f5f1e8] min-h-screen">
       <header className="mb-8">
@@ -84,7 +101,7 @@ const Dashboard: React.FC = () => {
         </div>
         {/* Top productos - 2 columnas */}
         <div className="lg:col-span-2">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-full">
             <h2 className="text-lg font-semibold text-[#5d5448]">Top productos más elaborados</h2>
             <p className="text-sm text-[#7c6a55] mb-6">Basado en pedidos finalizados este mes</p>
             {loading ? (
@@ -96,7 +113,7 @@ const Dashboard: React.FC = () => {
         </div>
         {/* Alertas de la empresa - 1 columna */}
         <div className="lg:col-span-1">
-          <CompanyAlertsCard hasCriticalAlerts={inventoryAlerts.critico > 0} />
+          <CompanyAlertsCard data={companyAlerts} loading={loadingCompanyAlerts} />
         </div>
         {/* Producción semanal - 3 columnas (ancho completo) */}
         <div className="lg:col-span-3">

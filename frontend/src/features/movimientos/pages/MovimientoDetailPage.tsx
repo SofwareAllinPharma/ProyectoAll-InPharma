@@ -278,12 +278,12 @@ export default function MovimientoDetailPage() {
               let msg = '';
 
               if (depDestino && (tipo === 'TRASLADO' || tipo === 'INGRESO')) {
-                msg = `✅ Entrega Exitosa.\nEl movimiento ha llegado al depósito con éxito.\nSe han incrementado ${cant} productos en el ${depDestino}.`;
+                msg = `Entrega Exitosa.\nEl movimiento ha llegado al depósito con éxito.\nSe han incrementado ${cant} productos en el ${depDestino}.`;
               } else if (tipo === 'EGRESO') {
                 const depOrigen = updated?.depositoOrigenNombre ?? 'depósito origen';
-                msg = `✅ Entrega Exitosa.\nEl movimiento se completó correctamente.\nSe han egresado ${cant} productos del ${depOrigen}.`;
+                msg = `Entrega Exitosa.\nEl movimiento se completó correctamente.\nSe han egresado ${cant} productos del ${depOrigen}.`;
               } else {
-                msg = '✅ Entrega Exitosa. El movimiento se completó correctamente.';
+                msg = 'Entrega Exitosa. El movimiento se completó correctamente.';
               }
 
               showGlobalSnack({ title: 'Movimiento Entregado', message: msg, duration: 4500 });

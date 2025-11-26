@@ -28,3 +28,29 @@ export interface ChartData extends WeeklyProductionData {
   fullDate: string;
   originalDateObj: Date;
 }
+
+export interface CriticalStockAlert {
+  idProducto: number;
+  nombreProducto: string;
+  deposito: string;
+  stock: number;
+  umbral: number;
+  estado: 'CRITICO' | 'BAJO';
+}
+
+export interface PendingMovementAlert {
+  idMovimiento: number;
+  referencia: string;
+  origen: string;
+  destino: string;
+  estado: string;
+  fecha: string;
+  diasPendiente: number;
+  tiempoTranscurrido: string;
+  nombreProducto: string;
+  responsable: string;
+}
+
+export interface CompanyAlertsData {
+  movimientos: PendingMovementAlert[];
+}
