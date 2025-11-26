@@ -56,23 +56,20 @@ const Dashboard: React.FC = () => {
       mounted = false;
     };
   }, []);
-
   return (
     <div className="p-6 sm:p-8 bg-[#f5f1e8] min-h-screen">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[#5d5448]">Dashboard All-InPharma</h1>
         <p className="text-[#7c6a55] mt-1">Métricas clave de la empresa y estado operativo</p>
       </header>
-      
       <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Alertas de inventario - 1 columna */}
         <div className="lg:col-span-1 md:col-span-1">
           <InventoryAlertsCard data={inventoryAlerts} loading={loadingAlerts} />
         </div>
-
         {/* Estado de pedidos - 2 columnas */}
         <div className="lg:col-span-2 md:col-span-1">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-semibold text-[#5d5448]">Estado de pedidos</h2>
               <span className="material-icons-outlined text-[#7c6a55] text-xl opacity-60">arrow_forward</span>
@@ -85,7 +82,6 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
-
         {/* Top productos - 2 columnas */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -98,12 +94,10 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
-
         {/* Alertas de la empresa - 1 columna */}
         <div className="lg:col-span-1">
           <CompanyAlertsCard hasCriticalAlerts={inventoryAlerts.critico > 0} />
         </div>
-
         {/* Producción semanal - 3 columnas (ancho completo) */}
         <div className="lg:col-span-3">
           <WeeklyProductionChart />

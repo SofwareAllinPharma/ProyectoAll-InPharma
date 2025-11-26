@@ -1,14 +1,13 @@
 import { ProductoService } from '../../productos/services/producto.service';
 import { PedidoService } from '../../pedidos/services/pedido.service';
 import { InventarioGlobalService } from '../../inventario/services/inventario.service';
-import type { TopProduct, OrderStatusData, InventoryAlerts } from '../types/dashboard.types';
+import type { TopProduct, OrderStatusData, InventoryAlerts, WeeklyProductionData } from '../types/dashboard.types';
 import type { Pedido } from '../../pedidos/types/pedido.types';
 import type { Producto } from '../../productos/types/producto.types';
+import { api } from '../../../lib/api';
 
-// Colores de la empresa All-InPharma
 const DEFAULT_COLORS = ['#D0BB95', '#7C6A55', '#9D977B', '#5D5448', '#BDAF9E'];
 
-// Colores específicos para los estados de pedidos
 const STATUS_COLORS: Record<string, string> = {
   'Creado': '#F59E0B', // Amber/Orange - En espera
   'EnElaboración': '#3B82F6', // Blue - En proceso
@@ -25,47 +24,34 @@ function isDateInCurrentMonth(dateInput?: string | Date | null) {
 }
 
 export const DashboardService = {
-  /**
-   * Devuelve los productos con más pedidos cuya elaboración fue finalizada en el mes actual.
-   */
-  async getTopProducts(limit = 5): Promise<TopProduct[]> {
+    async getTopProducts(limit = 5): Promise<TopProduct[]> {
     try {
       const [pedidos, productos] = await Promise.all([
         PedidoService.list(1, 5000),
         ProductoService.getAllProductos(),
       ]);
 
-      // Normalizar tipos
       const pedidosArr = (pedidos || []) as Pedido[];
       const productosArr = (productos || []) as Producto[];
 
-      // Buscar cambios de estado que indiquen finalización y que ocurran en el mes actual.
-  // Match possible backend states that represent final/completed
-  // Backend uses names like "ElaboradoYDepositadoEnFábrica", "EnElaboración", "Creado" etc.
   const finalRegex = /(elaborad|depositad|finaliz|terminad|finalizado|completad)/i;
 
       const completedThisMonth: Pedido[] = pedidosArr.filter((p) => {
-        // buscar en cambios
         if (Array.isArray(p.cambios) && p.cambios.length > 0) {
           const cambioFinal = p.cambios.find((c) => finalRegex.test(String(c?.estado?.nombre || '')) && (c.fechaHoraFin || c.fechaHoraInicio));
           if (cambioFinal) {
-            // preferir fechaHoraFin, si no está usar fechaHoraInicio
             const fecha = cambioFinal.fechaHoraFin || cambioFinal.fechaHoraInicio;
             if (isDateInCurrentMonth(fecha)) return true;
           }
         }
 
-        // si no tiene cambios con fecha, intentar con cambioActual
         if (p.cambioActual && finalRegex.test(String(p.cambioActual?.estado?.nombre || ''))) {
-          // intentar usar fecha del cambio actual (fechaHoraFin/fechaHoraInicio) o updatedAt/createdAt
           const cambioActual = p.cambioActual as { fechaHoraFin?: string | Date; fechaHoraInicio?: string | Date } | undefined;
           const fechaCambio = cambioActual?.fechaHoraFin ?? cambioActual?.fechaHoraInicio;
           if (isDateInCurrentMonth(fechaCambio) || isDateInCurrentMonth(p.updatedAt) || isDateInCurrentMonth(p.createdAt)) {
             return true;
           }
         }
-
-        // fallback: si updatedAt está en el mes y el estado parece final
         if (isDateInCurrentMonth(p.updatedAt) && (p.cambioActual?.estado?.nombre && finalRegex.test(String(p.cambioActual.estado.nombre)))) return true;
 
         return false;
@@ -87,8 +73,6 @@ export const DashboardService = {
         .sort((a, b) => b.value - a.value)
         .slice(0, limit)
         .map((it, idx) => ({ ...it, color: DEFAULT_COLORS[idx % DEFAULT_COLORS.length] }));
-
-      // Si no hay resultados reales, devolver fallback pequeño (pero preferible no mostrar datos falsos)
       if (items.length === 0) {
         return [];
       }
@@ -99,10 +83,6 @@ export const DashboardService = {
       return [];
     }
   },
-
-  /**
-   * Devuelve la distribución de pedidos por estado actual.
-   */
   async getOrderStatusDistribution(): Promise<OrderStatusData[]> {
     try {
       const pedidos = await PedidoService.list(1, 5000);
@@ -117,8 +97,6 @@ export const DashboardService = {
         const current = statusCounts.get(estadoNombre) || { count: 0, id: estadoId };
         statusCounts.set(estadoNombre, { count: current.count + 1, id: estadoId });
       }
-
-      // Mapear estados a nombres legibles en español
       const statusLabels: Record<string, string> = {
         'Creado': 'Pendientes',
         'EnElaboración': 'En Elaboración',
@@ -126,8 +104,6 @@ export const DashboardService = {
         'Cancelado': 'Cancelados',
         'Sin Estado': 'Sin Estado',
       };
-
-      // Convertir a array y ordenar
       const items: OrderStatusData[] = Array.from(statusCounts.entries())
         .map(([estado, data]) => ({
           label: statusLabels[estado] || estado,
@@ -143,10 +119,6 @@ export const DashboardService = {
       return [];
     }
   },
-
-  /**
-   * Devuelve el total de alertas de inventario (productos en estado BAJO o CRÍTICO).
-   */
   async getInventoryAlerts(): Promise<InventoryAlerts> {
     try {
       const resumen = await InventarioGlobalService.getResumenEstadosGlobal();
@@ -163,6 +135,19 @@ export const DashboardService = {
         critico: 0,
         bajo: 0,
       };
+    }
+  },
+  async getWeeklyProduction(startDate?: string, endDate?: string): Promise<WeeklyProductionData[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get<WeeklyProductionData[]>(`/dashboard/weekly-production?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching weekly production:', error);
+      return [];
     }
   },
 };

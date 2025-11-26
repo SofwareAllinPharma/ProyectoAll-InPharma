@@ -17,3 +17,14 @@ export interface InventoryAlerts {
   critico: number;
   bajo: number;
 }
+
+export interface WeeklyProductionData {
+  date: string;
+  grams: number;
+}
+
+export interface ChartData extends WeeklyProductionData {
+  displayDate: string;
+  fullDate: string;
+  originalDateObj: Date;
+}
