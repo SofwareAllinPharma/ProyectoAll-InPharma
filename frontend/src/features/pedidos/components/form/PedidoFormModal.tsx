@@ -21,7 +21,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mode, setMode] = useState<"gramos" | "paquetes" | "porciones">(
-    "gramos"
+    "paquetes"
   );
   const [value, setValue] = useState<number | string>("");
   const [observacion, setObservacion] = useState("");
@@ -39,7 +39,8 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   // Reset form state when modal opens (ensure stale data doesn't persist)
   const resetForm = () => {
     setSelectedId(null);
-    setMode('gramos');
+    // force mode to paquetes so user edits only packages
+    setMode('paquetes');
     setValue('');
     setObservacion('');
     setSubmitting(false);
@@ -251,41 +252,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
           <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
           <div className="border-t border-gray-100 pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cantidad (seleccione unidad)
-            </label>
-            <div className="flex gap-4 items-center bg-gray-50 rounded-md p-2 mb-2 text-sm">
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "gramos"}
-                  onChange={() => setMode("gramos")}
-                  disabled={!selected}
-                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
-                />
-                <span className="text-gray-700">Gramos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "paquetes"}
-                  onChange={() => setMode("paquetes")}
-                  disabled={!selected}
-                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
-                />
-                <span className="text-gray-700">Paquetes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "porciones"}
-                  onChange={() => setMode("porciones")}
-                  disabled={!selected}
-                  className="w-4 h-4 text-[#5d5448] focus:ring-[#5d5448]"
-                />
-                <span className="text-gray-700">Porciones</span>
-              </div>
-            </div>
+            <div className="mb-2 text-sm text-gray-500"><span className="font-medium text-gray-700">Paquetes</span></div>
             <QuantityControl
               mode={mode}
               value={value}
