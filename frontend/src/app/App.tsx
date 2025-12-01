@@ -37,6 +37,7 @@ export default function App() {
           <Route path="/adminfab/*" element={<AdminFabDashboard />} />
           <Route path="/puntoventa/*" element={<PuntoDashboard />} />
           <Route path="/adminsis/*" element={<AdminSisDashboard />} />
+          
         </Route>
 
         {/* Fallback */}

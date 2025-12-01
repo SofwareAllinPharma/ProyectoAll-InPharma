@@ -30,8 +30,7 @@ export default function PostLoginLoyout() {
         { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBox /> },
         { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },
         { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
-  // TODO_RECUPERAR: ocultado temporalmente hasta completar la configuración de usuarios
-  // { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
+        { id: 'usuarios', label: 'Gestión de Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
   // TODO_RECUPERAR: ocultado temporalmente hasta completar módulo de configuración
   // { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
       ];

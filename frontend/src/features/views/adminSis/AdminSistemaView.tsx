@@ -11,6 +11,7 @@ import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import Dashboard from "../../dashboard";
+import RegisterPage from "../../register/pages/RegisterPage";
 
 /* TODO_RECUPERAR: componentes Usuarios y Configuración ocultados temporalmente
 const UsuariosComponent = () => (
@@ -41,8 +42,9 @@ export default function AdminSisDashboard() {
   <Route path="productos/:id" element={<ProductosPage />} />
   <Route path="pedidos" element={<PedidosPage />} />
   <Route path="pedidos/:id" element={<PedidoDetailPage />} />
-  {/* TODO_RECUPERAR: rutas de Usuarios y Configuración ocultadas temporalmente */}
-  { /* <Route path="usuarios" element={<UsuariosComponent />} /> */ }
+  
+  <Route path="usuarios" element={<RegisterPage />} />
+
   { /* <Route path="configuracion" element={<ConfiguracionComponent />} /> */ }
 
       {/* Depósitos */}

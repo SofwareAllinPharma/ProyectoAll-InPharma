@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
+import adminSisRoutes from "./routes/adminSis.routes";
+import profileRoutes from "./routes/profile.routes";
 import insumosRoutes from "./routes/insumos.routes";
 import depositosRoutes from "./routes/depositos.routes";
 import formulasRoutes from "./routes/formulas.routes";
@@ -25,6 +27,8 @@ app.use((req, _res, next) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/admin-sis", adminSisRoutes);
+app.use("/profile", profileRoutes);
 app.use("/insumos", insumosRoutes);
 app.use("/depositos", depositosRoutes);
 app.use("/formulas", formulasRoutes);
