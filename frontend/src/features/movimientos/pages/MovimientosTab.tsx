@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaTruck } from 'react-icons/fa';
 import Button from '../../../components/ui/Button';
 import MovimientosCards from '../components/MovimientosCards';
@@ -8,6 +8,7 @@ import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
 import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
+import { useAuth } from '../../../lib/auth';
 
 interface Props {
   idDeposito?: number;
@@ -16,6 +17,8 @@ interface Props {
 
 export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const {
     movimientos,
     resumen, 
@@ -54,12 +57,13 @@ export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
   }, [filters, filtrarMovimientos]);
 
   const handleVerDetalle = (movimiento: Movimiento) => {
-    // Determinar la ruta base según el perfil del usuario
-    const perfil = localStorage.getItem('userPerfil');
+    // Determinar la ruta base según la URL actual para mantener el contexto
+    const currentPath = location.pathname;
     let basePath = '/adminsis';
-    if (perfil === '1') basePath = '/tecnico';
-    else if (perfil === '2') basePath = '/adminfab';
-    else if (perfil === '3') basePath = '/adminsis';
+    
+    if (currentPath.startsWith('/tecnico')) basePath = '/tecnico';
+    else if (currentPath.startsWith('/adminfab')) basePath = '/adminfab';
+    else if (currentPath.startsWith('/puntoventa')) basePath = '/puntoventa';
     
     navigate(`${basePath}/movimientos/${movimiento.id}`);
   };
