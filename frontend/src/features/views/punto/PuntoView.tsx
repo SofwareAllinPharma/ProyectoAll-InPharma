@@ -6,14 +6,18 @@ import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 import { ProductosPage } from "../../productos";
-import Dashboard from "../../dashboard";
+import PuntoVentaDashboard from "../../dashboard/components/PuntoVentaDashboard";
+import SolicitudesPage from "./pages/SolicitudesPage";
+import StockPage from "./pages/StockPage";
 
 
 export default function PuntoDashboard() {
   return (
     <Routes>
-      <Route index element={<Dashboard />} />
+      <Route index element={<PuntoVentaDashboard />} />
 
+      <Route path="solicitudes" element={<SolicitudesPage />} />
+      <Route path="stock" element={<StockPage />} />
 
       <Route path="pedidos" element={<PedidosPage />} />
       <Route path="pedidos/:id" element={<PedidoDetailPage />} />

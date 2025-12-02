@@ -7,7 +7,6 @@ import {
   FaUsers,
   FaWarehouse,
   FaBox,
-  FaTruck,
 } from "react-icons/fa";
 
 export interface NavItemConfig {
@@ -44,7 +43,7 @@ export const ROLE_NAV_ITEMS: Record<string, NavItemConfig[]> = {
   ],
   ENCPTOVENTA: [
     { id: 'resumen', label: 'Punto de Venta', to: '/puntoventa', icon: <FaThLarge /> },
-    { id: 'solicitudes', label: 'Solicitudes', to: '/puntoventa/solicitudes', icon: <FaClipboardList /> },
-    { id: 'stock', label: 'Stock', to: '/puntoventa/stock', icon: <FaBox /> },
+    { id: 'solicitudes', label: 'Movimientos', to: '/puntoventa/solicitudes', icon: <FaClipboardList /> },
+    { id: 'stock', label: 'Depósitos', to: '/puntoventa/stock', icon: <FaBox /> },
   ]
 };

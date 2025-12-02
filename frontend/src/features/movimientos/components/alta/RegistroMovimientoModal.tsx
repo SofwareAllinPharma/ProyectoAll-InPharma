@@ -13,7 +13,7 @@ import MovimientoSummaryModal from './MovimientoSummaryModal';
 import { useRegistroMovimiento } from '../../hooks/useRegistroMovimiento';
 
 type DepositoMin = { id: number; nombre: string };
-export default function RegistroMovimientoModal({ open, onClose, onCreated, defaultDepOrigen, defaultProducto }: { open: boolean; onClose: () => void; onCreated?: () => void; defaultDepOrigen?: DepositoMin; defaultProducto?: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null } }) {
+export default function RegistroMovimientoModal({ open, onClose, onCreated, defaultDepOrigen, defaultProducto, defaultDepDestino }: { open: boolean; onClose: () => void; onCreated?: () => void; defaultDepOrigen?: DepositoMin; defaultProducto?: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null }; defaultDepDestino?: DepositoMin }) {
   const { depositos } = useDepositos();
   const rm = useRegistroMovimiento({ onCreated, onClose });
   const { productos } = useProductosPorDeposito(rm.depOrigen?.id);
@@ -25,6 +25,16 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
       rm.setDepOrigen({ id: defaultDepOrigen.id, nombre });
     }
   }, [open, defaultDepOrigen?.id, defaultDepOrigen?.nombre, depositos, rm.depOrigen?.id]);
+
+  React.useEffect(() => {
+    if (!open || !defaultDepDestino) return;
+    if (!rm.depDestino || rm.depDestino.id !== defaultDepDestino.id) {
+      const nombre = defaultDepDestino.nombre || depositos.find(d => d.id === defaultDepDestino.id)?.nombre || '';
+      rm.setDepDestino({ id: defaultDepDestino.id, nombre });
+      // Si hay destino por defecto, asumimos que es un traslado si no está seteado
+      if (!rm.tipo) rm.handleTipoChange({ value: 'TRASLADO', label: 'Traslado' });
+    }
+  }, [open, defaultDepDestino?.id, defaultDepDestino?.nombre, depositos, rm.depDestino?.id, rm.tipo]);
 
   // Efecto 2: prefijar producto (espera a que el depósito origen esté seteado si viene definido)
   React.useEffect(() => {
