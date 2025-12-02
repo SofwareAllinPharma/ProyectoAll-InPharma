@@ -5,9 +5,12 @@ const API_BASE = import.meta.env.VITE_API_URL?.toString() || 'http://localhost:4
 
 export const api = axios.create({
   baseURL: API_BASE,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Añadir interceptor para inyectar token
+// Interceptor de REQUEST: Inyectar token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token && config.headers) {
@@ -16,7 +19,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Fetch genérico para endpoints que no quieras usar con axios
+// Interceptor de RESPONSE: Manejar 401 globalmente
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si el backend dice 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      // Evitar loop infinito si el error viene de /auth/login
+      if (!error.config.url.includes('/auth/login')) {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/auth/login'; // Redirigir a login
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Fetch genérico para endpoints que no quieras usar con axios (Legacy support)
 export async function apiFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {
   const token = localStorage.getItem('accessToken');
   const headers: Record<string, string> = {

@@ -1,22 +1,11 @@
+import { api } from '../../../lib/api';
 import type { Insumo, CreateInsumoDto, UpdateInsumoDto } from '../types/insumo.types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export class InsumoService {
   static async getAllInsumos(): Promise<Insumo[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/insumos`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al obtener insumos: ${response.statusText}`);
-      }
-
-      return await response.json();
+      const { data } = await api.get('/insumos');
+      return data;
     } catch (error) {
       console.error('Error en getAllInsumos:', error);
       throw error;
@@ -25,18 +14,8 @@ export class InsumoService {
 
   static async getInsumoById(id: number): Promise<Insumo> {
     try {
-      const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al obtener insumo: ${response.statusText}`);
-      }
-
-      return await response.json();
+      const { data } = await api.get(`/insumos/${id}`);
+      return data;
     } catch (error) {
       console.error('Error en getInsumoById:', error);
       throw error;
@@ -45,19 +24,8 @@ export class InsumoService {
 
   static async createInsumo(insumo: CreateInsumoDto): Promise<Insumo> {
     try {
-      const response = await fetch(`${API_BASE_URL}/insumos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(insumo),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al crear insumo: ${response.statusText}`);
-      }
-
-      return await response.json();
+      const { data } = await api.post('/insumos', insumo);
+      return data;
     } catch (error) {
       console.error('Error en createInsumo:', error);
       throw error;
@@ -66,19 +34,8 @@ export class InsumoService {
 
   static async updateInsumo(id: number, insumo: UpdateInsumoDto): Promise<Insumo> {
     try {
-      const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(insumo),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al actualizar insumo: ${response.statusText}`);
-      }
-
-      return await response.json();
+      const { data } = await api.put(`/insumos/${id}`, insumo);
+      return data;
     } catch (error) {
       console.error('Error en updateInsumo:', error);
       throw error;
@@ -87,16 +44,7 @@ export class InsumoService {
 
   static async deleteInsumo(id: number): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/insumos/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al eliminar insumo: ${response.statusText}`);
-      }
+      await api.delete(`/insumos/${id}`);
     } catch (error) {
       console.error('Error en deleteInsumo:', error);
       throw error;

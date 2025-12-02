@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { api } from '../../../lib/api';
 import type { 
   Movimiento, 
   CreateMovimientoRequest, 
@@ -8,17 +8,7 @@ import type {
 } from '../types/movimiento.types';
 import type { MovimientoDetalle, MovimientoHistorialEvent } from '../types/movimiento.detalle.types.ts';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-
 export class MovimientoService {
-  private static getHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
-  }
-
   static async getAllMovimientos(filters?: MovimientoFilters): Promise<Movimiento[]> {
     try {
       type RawMovimiento = {
@@ -79,16 +69,13 @@ export class MovimientoService {
       params.append('limit', '100');
 
       const queryString = params.toString();
-      const url = `${API_BASE_URL}/movimientos${queryString ? `?${queryString}` : ''}`;
+      const url = `/movimientos${queryString ? `?${queryString}` : ''}`;
 
-      const response = await axios.get(url, {
-        headers: this.getHeaders(),
-      });
+      const { data: respData } = await api.get(url);
 
       // Normalizar distintos formatos que el backend puede devolver:
       // - lista directa: []
       // - paginado: { data: [], meta: { ... } }
-      const respData = response.data;
       const rawList = Array.isArray(respData) ? respData : (respData && Array.isArray(respData.data) ? respData.data : null);
       if (!rawList) {
         console.warn('Formato inesperado en getAllMovimientos, devolviendo array vacío:', respData);
@@ -201,11 +188,7 @@ export class MovimientoService {
 
   static async getMovimientoDetalle(id: number): Promise<MovimientoDetalle> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/movimientos/${id}`,
-        { headers: this.getHeaders() }
-      );
-  const d = response.data;
+      const { data: d } = await api.get(`/movimientos/${id}`);
       // Map backend detalle -> MovimientoDetalle (fechas ya vienen dd/mm/yy)
       const historial: MovimientoHistorialEvent[] = Array.isArray(d.cambiosDeEstado) ? d.cambiosDeEstado.map((e: { idCambioEstadoMovimiento: number; nombreEstado?: string | null; fechaHoraInicio?: string | null; fechaHoraFin?: string | null; responsable?: string | null; responsableEntrega?: string | null; responsableRecepcion?: string | null; observaciones?: string | null; }) => ({
         id: e.idCambioEstadoMovimiento,
@@ -258,12 +241,8 @@ export class MovimientoService {
         observaciones: data.observaciones ?? undefined,
       };
 
-      const response = await axios.put<Movimiento>(
-        `${API_BASE_URL}/movimientos`,
-        payload,
-        { headers: this.getHeaders() }
-      );
-      return response.data;
+      const { data: responseData } = await api.put<Movimiento>('/movimientos', payload);
+      return responseData;
     } catch (error) {
       console.error('Error creando movimiento:', error);
       throw error;
@@ -287,11 +266,7 @@ export class MovimientoService {
       } else {
         payload.usuario = (data as any).responsable;
       }
-      await axios.post(
-        `${API_BASE_URL}/movimientos/${id}/estado`,
-        payload,
-        { headers: this.getHeaders() }
-      );
+      await api.post(`/movimientos/${id}/estado`, payload);
       // backend devuelve el detalle del movimiento actualizado
       const updated = await this.getMovimientoDetalle(id);
       return updated;
@@ -304,14 +279,12 @@ export class MovimientoService {
   static async getResumenMovimientos(idDeposito?: number): Promise<MovimientosResumen> {
     try {
       const url = idDeposito 
-        ? `${API_BASE_URL}/movimientos/resumen?idDeposito=${idDeposito}`
-        : `${API_BASE_URL}/movimientos/resumen`;
+        ? `/movimientos/resumen?idDeposito=${idDeposito}`
+        : `/movimientos/resumen`;
 
-      const response = await axios.get<MovimientosResumen>(url, {
-        headers: this.getHeaders(),
-      });
+      const { data } = await api.get<MovimientosResumen>(url);
 
-      return response.data;
+      return data;
     } catch (error) {
       console.error('Error obteniendo resumen:', error);
       throw error;
@@ -324,12 +297,11 @@ export class MovimientoService {
     cantidad: number
   ): Promise<{ valido: boolean; mensaje?: string }> {
     try {
-      const response = await axios.post<{ valido: boolean; mensaje?: string }>(
-        `${API_BASE_URL}/movimientos/validar-stock`,
-        { idDeposito, idProducto, cantidad },
-        { headers: this.getHeaders() }
+      const { data } = await api.post<{ valido: boolean; mensaje?: string }>(
+        '/movimientos/validar-stock',
+        { idDeposito, idProducto, cantidad }
       );
-      return response.data;
+      return data;
     } catch (error) {
       console.error('Error validando stock:', error);
       return { 
@@ -341,7 +313,7 @@ export class MovimientoService {
 
   static async deleteMovimiento(id: number): Promise<{ ok: boolean }> {
     try {
-      await axios.delete(`${API_BASE_URL}/movimientos/${id}`, { headers: this.getHeaders() });
+      await api.delete(`/movimientos/${id}`);
       return { ok: true };
     } catch (error) {
       console.error('Error eliminando movimiento:', error);
