@@ -4,47 +4,59 @@ import { computeNutrition } from "../../hooks/useNutrition";
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: "column",
-    backgroundColor: "#ffffff",
     padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    fontFamily: "Helvetica",
   },
   labelContainer: {
-    border: "2px solid #000",
+    borderWidth: 2,
+    borderColor: "#000",
+    borderStyle: "solid",
     padding: 10,
-    width: "100%",
-    maxWidth: 280,
-    fontFamily: "Helvetica",
+    width: 280,
   },
   header: {
     fontSize: 20,
-    marginBottom: 2,
-    borderBottom: "1px solid #000",
+    marginBottom: 5,
+    paddingBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    borderBottomStyle: "solid",
     fontFamily: "Helvetica-Bold",
   },
   subHeader: {
     fontSize: 10,
-    marginBottom: 5,
+    marginBottom: 8,
     fontFamily: "Helvetica-Bold",
   },
   servingSize: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
-    paddingVertical: 3,
-    borderBottom: "4px solid #000",
+    paddingVertical: 4,
+    borderBottomWidth: 3,
+    borderBottomColor: "#000",
+    borderBottomStyle: "solid",
+    marginBottom: 5,
   },
   tableHeader: {
     flexDirection: "row",
-    borderBottom: "2px solid #000",
-    paddingVertical: 3,
+    borderBottomWidth: 2,
+    borderBottomColor: "#000",
+    borderBottomStyle: "solid",
+    paddingVertical: 4,
     backgroundColor: "#f0f0f0",
+  },
+  tableHeaderText: {
     fontSize: 8,
+    fontFamily: "Helvetica-Bold",
   },
   tableRow: {
     flexDirection: "row",
-    borderBottom: "1px solid #ccc",
-    paddingVertical: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    borderBottomStyle: "solid",
+    paddingVertical: 4,
+  },
+  tableRowText: {
     fontSize: 9,
   },
   colLabel: {
@@ -56,12 +68,9 @@ const styles = StyleSheet.create({
     width: "30%",
     textAlign: "center",
   },
-  bold: {
-    fontFamily: "Helvetica-Bold",
-  },
   description: {
     fontSize: 8,
-    marginTop: 5,
+    marginTop: 8,
     fontStyle: "italic",
   },
 });
@@ -81,23 +90,33 @@ export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
           <Text style={styles.header}>Información Nutricional</Text>
           <Text style={styles.subHeader}>{producto.nombreComercial}</Text>
 
-          <View style={styles.servingSize}>
-            <Text>Porción: {pesoPorPorcion}g | Base: 100g</Text>
-          </View>
+          <Text style={styles.servingSize}>
+            Porción: {pesoPorPorcion}g | Base: 100g
+          </Text>
 
-          {/* Encabezado de tabla */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.colLabel, styles.bold]}>Composición</Text>
-            <Text style={[styles.colValue, styles.bold]}>Por Porción</Text>
-            <Text style={[styles.colValue, styles.bold]}>Por 100g</Text>
+            <Text style={[styles.colLabel, styles.tableHeaderText]}>
+              Composición
+            </Text>
+            <Text style={[styles.colValue, styles.tableHeaderText]}>
+              Por Porción
+            </Text>
+            <Text style={[styles.colValue, styles.tableHeaderText]}>
+              Por 100g
+            </Text>
           </View>
 
-          {/* Filas de datos */}
           {rowsPerPortion.map((row, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={styles.colLabel}>{row.label}</Text>
-              <Text style={styles.colValue}>{row.value}</Text>
-              <Text style={styles.colValue}>{rowsPer100g[index]?.value}</Text>
+              <Text style={[styles.colLabel, styles.tableRowText]}>
+                {row.label}
+              </Text>
+              <Text style={[styles.colValue, styles.tableRowText]}>
+                {row.value}
+              </Text>
+              <Text style={[styles.colValue, styles.tableRowText]}>
+                {rowsPer100g[index]?.value || "-"}
+              </Text>
             </View>
           ))}
 
