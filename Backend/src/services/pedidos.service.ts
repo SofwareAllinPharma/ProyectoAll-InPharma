@@ -208,6 +208,29 @@ export class PedidosService {
     return updated;
   }
 
+  async iniciarElaboracion(numPedido: number) {
+    const pedido = await this.detail(numPedido);
+    if (pedido.cambioActual?.estado?.nombre !== ESTADOS.CREADO) {
+      throw new Error("Solo pedidos en Creado pueden iniciarse");
+    }
+    const estadoEnElabId = await this.getEstadoId(ESTADOS.EN_ELAB);
+    return this.repo.transition(numPedido, estadoEnElabId, {});
+  }
+
+  async aprobar(numPedido: number) {
+    // Nota: la lógica de 'aprobar' no está definida en el servicio actualmente.
+    // Se deja una implementación mínima que informa que la operación no está
+    // implementada en el backend para evitar fallos de compilación.
+    throw new Error("Operación 'aprobar' no implementada en el backend");
+  }
+
+  async rechazar(numPedido: number) {
+    // Nota: la lógica de 'rechazar' no está definida en el servicio actualmente.
+    // Se deja una implementación mínima que informa que la operación no está
+    // implementada en el backend para evitar fallos de compilación.
+    throw new Error("Operación 'rechazar' no implementada en el backend");
+  }
+
   async cancelar(numPedido: number) {
     const pedido = await this.detail(numPedido);
     const estado = pedido.cambioActual?.estado?.nombre;
