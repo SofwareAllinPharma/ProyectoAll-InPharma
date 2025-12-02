@@ -16,6 +16,7 @@ async function main() {
 		{ id: 1, nombre: 'tecnico', 	descripcion: 'tecnico' },
 		{ id: 2, nombre: 'adminfab', descripcion: 'administrador de fabrica' },
 		{ id: 3, nombre: 'adminsis', descripcion: 'administrador del sistema' },
+        { id: 4, nombre: 'encptoventa', descripcion: 'encargado de punto de venta' },
 	]
 	for (const p of perfiles) {
 		await prisma.perfil.upsert({
@@ -35,16 +36,13 @@ async function main() {
 
 	const hash = await bcrypt.hash(plain, 10);
 	const usuarios = [
-		{ mail: 'adminfab@aip.com', 			 idPerfil: 2 },
-		{ mail: 'adminsis@aip.com', 			 idPerfil: 3 },
 		{ mail: 'softwareallinpharma@gmail.com', idPerfil: 3 },
-		{ mail: 'tecnico@aip.com', 			 idPerfil: 1 },
 	]
 
     for (const u of usuarios) {
         await prisma.usuario.upsert({
             where: { mail: u.mail },
-            update: { contrasena: hash }, // Prisma -> columna "contraseña"
+            update: { contrasena: hash },
             create: { mail: u.mail, contrasena: hash },
         });
     }

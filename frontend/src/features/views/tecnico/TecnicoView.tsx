@@ -1,44 +1,22 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { PedidosPage } from "../../pedidos";
+import PedidoDetailPage from "../../pedidos/pages/PedidoDetailPage";
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
+import TecnicoDashboard from "../../dashboard/components/TecnicoDashboard";
 
-// Secciones (placeholders por ahora)
-const OperacionesComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Operaciones</h2>
-    <p>Operaciones técnicas y mantenimiento.</p>
-  </div>
-);
-
-const MantenimientoComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Mantenimiento</h2>
-    <p>Programación y seguimiento de mantenimiento.</p>
-  </div>
-);
-
-const ReportesComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Reportes</h2>
-    <p>Reportes técnicos y análisis de datos.</p>
-  </div>
-);
-
-export default function TecnicoDashboard() {
+export default function TecnicoDashboardView() {
   return (
     <Routes>
-      {/* Home del módulo técnico */}
-      <Route index element={<OperacionesComponent />} />
+      <Route index element={<TecnicoDashboard />} />
 
-      <Route path="mantenimiento" element={<MantenimientoComponent />} />
       <Route path="pedidos" element={<PedidosPage />} />
-  <Route path="formulas" element={<FormulasPage />} />
-  <Route path="productos" element={<ProductosPage />} />
-      <Route path="reportes" element={<ReportesComponent />} />
+      <Route path="pedidos/:id" element={<PedidoDetailPage />} />
+      <Route path="formulas" element={<FormulasPage />} />
+      <Route path="productos" element={<ProductosPage />} />
 
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />

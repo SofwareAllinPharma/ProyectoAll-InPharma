@@ -22,8 +22,13 @@ export default function SelectProfile() {
         ? ROLES
         : ROLES.filter(r => roles.includes(r.roleCode));
 
-    // Usar grid responsivo con columnas automáticas para que las cards se distribuyan proporcionalmente
-    // usando minmax para adaptarse al ancho de pantalla.
+    const handleSelectProfile = (roleKey: string, path: string) => {
+        localStorage.setItem('activeRole', roleKey.toUpperCase());
+        // navigate(path); // El componente ProfileCard usa Link internamente, pero si queremos forzar la navegación podemos hacerlo aquí.
+        // Sin embargo, ProfileCard usa 'to' prop que renderiza un Link.
+        // Para interceptar el click, ProfileCard debería aceptar onClick.
+    };
+
     return (
         <section className="mx-auto max-w-7xl px-4 py-10 text-[#5d5448] mt-2">
             <div className="text-center mb-10">
@@ -41,14 +46,15 @@ export default function SelectProfile() {
                                                 style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', justifyContent: 'center' }}
                                 >
                                     {visible.map((r) => (
-                                        <ProfileCard
-                                            key={r.key}
-                                            role={r.key as "tecnico" | "adminfab" | "adminsis" | "encptoventa"}
-                                            title={r.label}
-                                            description={r.description}
-                                            to={r.path}
-                                            icon={r.icon}
-                                        />
+                                        <div key={r.key} onClick={() => handleSelectProfile(r.key, r.path)}>
+                                            <ProfileCard
+                                                role={r.key as "tecnico" | "adminfab" | "adminsis" | "encptoventa"}
+                                                title={r.label}
+                                                description={r.description}
+                                                to={r.path}
+                                                icon={r.icon}
+                                            />
+                                        </div>
                                     ))}
                                 </div>
                             )}

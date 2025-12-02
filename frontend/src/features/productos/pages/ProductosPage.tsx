@@ -12,9 +12,14 @@ import type {
   ProductoSearchFilters,
   ProductoModalAction,
 } from '../types/producto.types';
+import { useAuth } from '../../../lib/auth';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 
 const ProductosPage: React.FC = () => {
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
+  const canManageProductos = !isTecnico;
+
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,8 +81,16 @@ const ProductosPage: React.FC = () => {
       // abrir vista/consultar -> mostramos modal nutricional
       setModals(s => ({ ...s, nutr: true }));
     } else if (action.type === 'edit') {
+      if (!canManageProductos) {
+        show({ type: 'error', message: 'No tienes permisos para editar productos' });
+        return;
+      }
       setModals(s => ({ ...s, form: true }));
     } else if (action.type === 'delete') {
+      if (!canManageProductos) {
+        show({ type: 'error', message: 'No tienes permisos para eliminar productos' });
+        return;
+      }
       setModals(s => ({ ...s, del: true }));
     }
   };
@@ -135,7 +148,7 @@ const ProductosPage: React.FC = () => {
     <PageShell
       title="Productos"
       subtitle="Gestiona los productos"
-      onCreate={openCreateForm}
+      onCreate={canManageProductos ? openCreateForm : undefined}
       createLabel="Nuevo Producto"
       loading={loading}
       noContainer

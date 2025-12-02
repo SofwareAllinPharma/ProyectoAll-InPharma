@@ -3,6 +3,7 @@ import Button from '../../../components/ui/Button';
 import ConfirmModal from '../../../components/ui/modales/ConfirmModal';
 import { PedidoService } from '../services/pedido.service';
 import type { Pedido } from '../types/pedido.types';
+import { useAuth } from '../../../lib/auth';
 
 type Props = {
   pedido: Pedido;
@@ -19,6 +20,10 @@ const normalizeEstado = (s?: string) =>
     .toLowerCase();
 
 export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props) {
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
+  const canCancel = !isTecnico;
+
   const [busy, setBusy] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -86,23 +91,25 @@ export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props)
               Tomar pedido
             </Button>
 
-            <Button
-              onClick={() =>
-                openConfirm(
-                  'Cancelar pedido',
-                  '¿Está seguro que desea cancelar este pedido? Esta acción no se puede deshacer.',
-                  () => {
-                    closeConfirm();
-                    void runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado');
-                  }
-                )
-              }
-              disabled={busy}
-              variant="outline"
-              ariaLabel="Cancelar pedido"
-            >
-              Cancelar pedido
-            </Button>
+            {canCancel && (
+              <Button
+                onClick={() =>
+                  openConfirm(
+                    'Cancelar pedido',
+                    '¿Está seguro que desea cancelar este pedido? Esta acción no se puede deshacer.',
+                    () => {
+                      closeConfirm();
+                      void runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado');
+                    }
+                  )
+                }
+                disabled={busy}
+                variant="outline"
+                ariaLabel="Cancelar pedido"
+              >
+                Cancelar pedido
+              </Button>
+            )}
           </>
         )}
 
@@ -124,23 +131,25 @@ export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props)
             >
               Finalizar elaboración
             </Button>
-            <Button
-              onClick={() =>
-                openConfirm(
-                  'Cancelar pedido',
-                  '¿Está seguro que desea cancelar este pedido? Esta acción no se puede deshacer.',
-                  () => {
-                    closeConfirm();
-                    void runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado');
-                  }
-                )
-              }
-              disabled={busy}
-              variant="outline"
-              ariaLabel="Cancelar pedido"
-            >
-              Cancelar pedido
-            </Button>
+            {canCancel && (
+              <Button
+                onClick={() =>
+                  openConfirm(
+                    'Cancelar pedido',
+                    '¿Está seguro que desea cancelar este pedido? Esta acción no se puede deshacer.',
+                    () => {
+                      closeConfirm();
+                      void runAndRefresh(() => PedidoService.cancelar(pedido.numPedido), 'Pedido cancelado');
+                    }
+                  )
+                }
+                disabled={busy}
+                variant="outline"
+                ariaLabel="Cancelar pedido"
+              >
+                Cancelar pedido
+              </Button>
+            )}
           </>
         )}
       </div>

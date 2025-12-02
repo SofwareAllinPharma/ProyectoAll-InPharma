@@ -9,9 +9,11 @@ import TipBox from '../../../components/ui/TipBox';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 import { FormulaService } from '../services/formula.service';
 import type { Formula, CreateFormulaRequest } from '../types/formula.types';
+import { useAuth } from '../../../lib/auth';
 
 const FormulasPage: React.FC = () => {
   const { show } = useToast() as any;
+  const { user } = useAuth();
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const formulasRef = useRef<Formula[]>([]);
   const [filtered, setFiltered] = useState<Formula[]>([]);
@@ -24,6 +26,10 @@ const FormulasPage: React.FC = () => {
   const [isCopy, setIsCopy] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
+  const canEditProtected = user?.roles.includes('ADMINSIS');
+  const isTecnico = user?.roles.includes('TECNICO');
+  const canCreateOrEdit = !isTecnico;
+
   const syncFormulas = (data: Formula[]) => { setFormulas(data); formulasRef.current = data; setFiltered(data); };
   const reloadFormulas = async () => { const data = await FormulaService.getAllFormulas(); syncFormulas(data); };
   useEffect(() => { (async () => { setLoading(true); try { await reloadFormulas(); } catch { show({ message: 'Error cargando fórmulas', type: 'error' }); } finally { setLoading(false); } })(); }, []);
@@ -33,11 +39,29 @@ const FormulasPage: React.FC = () => {
   useEffect(() => {}, [filtered]);
 
   const openEdit = (f: Formula) => {
+    if (!canCreateOrEdit) {
+      show({ type: 'error', title: 'Acceso denegado', message: 'No tienes permisos para editar fórmulas' });
+      return;
+    }
+    if (f.esProtegida && !canEditProtected) {
+      show({ type: 'error', title: 'Funcionalidad restringida', message: 'No tienes permisos para editar fórmulas protegidas' });
+      return;
+    }
     setSelected(f);
     setIsCopy(false);
     f.esProtegida ? setProtectedOpen(true) : setFormOpen(true);
   };
-  const openDelete = (f: Formula) => { setSelected(f); setDeleteOpen(true); };
+  const openDelete = (f: Formula) => { 
+    if (!canCreateOrEdit) {
+      show({ type: 'error', title: 'Acceso denegado', message: 'No tienes permisos para eliminar fórmulas' });
+      return;
+    }
+    if (f.esProtegida && !canEditProtected) {
+      show({ type: 'error', title: 'Acceso denegado', message: 'No tienes permisos para eliminar fórmulas protegidas' });
+      return;
+    }
+    setSelected(f); setDeleteOpen(true); 
+  };
 
   const createCopy = (base?: Formula) => { const b = base ?? selected; if (!b) return; const nameBase = b.nombre; let max = 0; for (const e of formulas) if (e.nombre.startsWith(nameBase) && e.nombre.includes('Copia')) { const n = parseInt(e.nombre.replace(nameBase, '').replace(/[^0-9]/g, ' ').trim().split(/\s+/).pop() || '', 10); if (!isNaN(n) && n > max) max = n; } setSelected({ ...b, nombre: `${nameBase}Copia_${max + 1}` } as Formula); setIsCopy(true); setProtectedOpen(false); setFormOpen(true); };
 
@@ -90,12 +114,36 @@ const FormulasPage: React.FC = () => {
   };
 
   return (
-    <PageShell title="Fórmulas" subtitle="Gestiona las fórmulas nutricionales de la fábrica" onCreate={() => { setSelected(null); setIsCopy(false); setFormOpen(true); }} createLabel="Agregar Fórmula" loading={loading} noContainer searchNode={(
-      <>
-        <div className="mb-6"><SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." /></div>
-      </>
-  )} helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} modals={(<><FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} existingNames={formulas.map(f => f.nombre)} /><ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} /><DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} /></>)}>
-      {loading ? <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" /></div> : <FormulasTable formulas={filtered} onEdit={openEdit} onDelete={openDelete} />}
+    <PageShell 
+      title="Fórmulas" 
+      subtitle="Gestiona las fórmulas nutricionales de la fábrica" 
+      onCreate={canCreateOrEdit ? () => { setSelected(null); setIsCopy(false); setFormOpen(true); } : undefined} 
+      createLabel="Agregar Fórmula" 
+      loading={loading} 
+      noContainer 
+      searchNode={(
+        <>
+          <div className="mb-6"><SearchBar onSearch={handleSearch} placeholder="Buscar fórmulas por nombre..." /></div>
+        </>
+      )} 
+      helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} 
+      modals={(
+        <>
+          <FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} existingNames={formulas.map(f => f.nombre)} />
+          <ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} />
+          <DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} />
+        </>
+      )}
+    >
+      {loading ? (
+        <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6a55]" /></div>
+      ) : (
+        <FormulasTable 
+          formulas={filtered} 
+          onEdit={canCreateOrEdit ? openEdit : undefined} 
+          onDelete={canCreateOrEdit ? openDelete : undefined} 
+        />
+      )}
     </PageShell>
   );
 };

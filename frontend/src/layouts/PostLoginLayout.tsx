@@ -3,17 +3,7 @@ import { useState, useEffect } from "react";
 import NavbarPostLogin from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import type { SidebarItem } from "../components/Sidebar";
-import {
-  FaThLarge,
-  FaBoxOpen,
-  FaClipboardList,
-  FaFlask,
-  FaUsers,
-  FaCog,
-  FaWarehouse,
-  FaBox,
-  FaTruck,
-} from "react-icons/fa";
+import { ROLE_NAV_ITEMS } from "../config/navigation";
 
 export default function PostLoginLoyout() {
   const location = useLocation();
@@ -22,52 +12,11 @@ export default function PostLoginLoyout() {
   );
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
-      if (pathname.startsWith('/adminsis')) {
-      return [
-        { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
-        { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
-        { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
-        { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBox /> },
-        { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },
-        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
-        { id: 'usuarios', label: 'Gestión de Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
-  // TODO_RECUPERAR: ocultado temporalmente hasta completar módulo de configuración
-  // { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
-      ];
-    }
-    if (pathname.startsWith("/tecnico")) {
-      return [
-        { id: 'resumen', label: 'Resumen', to: '/tecnico', icon: <FaThLarge /> },
-        { id: 'formulas', label: 'Fórmulas', to: '/tecnico/formulas', icon: <FaFlask /> },
-        { id: 'productos', label: 'Productos', to: '/tecnico/productos', icon: <FaBox /> },
-        { id: 'pedidos', label: 'Pedidos', to: '/tecnico/pedidos', icon: <FaClipboardList /> },
-        { id: 'depositos', label: 'Depósitos', to: '/tecnico/depositos', icon: <FaWarehouse /> },
-        { id: 'movimientos', label: 'Movimientos', to: '/tecnico/movimientos', icon: <FaTruck /> },
-      ];
-    }
-    if (pathname.startsWith("/adminfab")) {
-      return [
-        { id: 'resumen', label: 'Resumen', to: '/adminfab', icon: <FaThLarge /> },
-        { id: 'formulas', label: 'Fórmulas', to: '/adminfab/formulas', icon: <FaFlask /> },
-        { id: 'productos', label: 'Productos', to: '/adminfab/productos', icon: <FaBox /> },
-        { id: 'pedidos', label: 'Pedidos', to: '/adminfab/pedidos', icon: <FaClipboardList /> },
-        { id: 'depositos', label: 'Depósitos', to: '/adminfab/depositos', icon: <FaWarehouse /> },
-  { id: 'movimientos', label: 'Movimientos', to: '/adminfab/movimientos', icon: <FaTruck /> },
-      ];
-    }
-
-    // Encargado Punto de Venta
-    if (pathname.startsWith('/puntoventa')) {
-      return [
-        { id: 'resumen', label: 'Resumen', to: '/puntoventa', icon: <FaThLarge /> },
-        { id: 'productos', label: 'Productos', to: '/puntoventa/productos', icon: <FaBox /> },
-        { id: 'pedidos', label: 'Pedidos', to: '/puntoventa/pedidos', icon: <FaClipboardList /> },
-        { id: 'depositos', label: 'Depósitos', to: '/puntoventa/depositos', icon: <FaWarehouse /> },
-        { id: 'movimientos', label: 'Movimientos', to: '/puntoventa/movimientos', icon: <FaTruck /> },
-      ];
-    }
-
-    // Default: empty
+    if (pathname.startsWith('/adminsis')) return ROLE_NAV_ITEMS.ADMINSIS;
+    if (pathname.startsWith("/tecnico")) return ROLE_NAV_ITEMS.TECNICO;
+    if (pathname.startsWith("/adminfab")) return ROLE_NAV_ITEMS.ADMINFAB;
+    if (pathname.startsWith("/puntoventa")) return ROLE_NAV_ITEMS.ENCPTOVENTA;
+    
     return [];
   };
 

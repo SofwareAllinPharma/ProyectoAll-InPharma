@@ -7,18 +7,12 @@ import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
 import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
-
-const ResumenAdminFab = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Resumen - Administrador de Fábrica</h2>
-    <p className="mb-4">Panel rápido con indicadores para la gestión de la fábrica.</p>
-  </div>
-);
+import Dashboard from "../../dashboard";
 
 export default function AdminFabDashboard() {
   return (
     <Routes>
-      <Route index element={<ResumenAdminFab />} />
+      <Route index element={<Dashboard />} />
 
       <Route path="pedidos" element={<PedidosPage />} />
       <Route path="pedidos/:id" element={<PedidoDetailPage />} />

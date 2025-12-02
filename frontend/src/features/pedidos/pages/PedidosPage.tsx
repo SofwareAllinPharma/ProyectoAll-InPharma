@@ -11,10 +11,15 @@ import PedidosFilters from '../components/PedidosFilters';
 import { usePedidosData } from '../hooks/usePedidosData';
 import { usePedidosFilters } from '../hooks/usePedidosFilters';
 import { usePedidosTableColumns } from '../components/table/PedidosTableColumns';
+import { useAuth } from '../../../lib/auth';
 
 const PedidosPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
+  const canCreatePedidos = !isTecnico;
+
   const { pedidos, loading, reload } = usePedidosData();
   const [modals, setModals] = useState({ form: false });
   
@@ -32,7 +37,11 @@ const PedidosPage: React.FC = () => {
 
   const handleViewDetail = (pedido: Pedido) => {
     // Navegar a la página de detalle del pedido
-    navigate(`/adminsis/pedidos/${pedido.numPedido}`);
+    if (isTecnico) {
+      navigate(`/tecnico/pedidos/${pedido.numPedido}`);
+    } else {
+      navigate(`/adminsis/pedidos/${pedido.numPedido}`);
+    }
   };
 
   const columns = usePedidosTableColumns({
@@ -78,8 +87,6 @@ const PedidosPage: React.FC = () => {
       throw e;
     }
   };
-
-  const canCreatePedidos = true;
 
   return (
     <PageShell
