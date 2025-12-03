@@ -31,9 +31,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copiamos package.json / lock para instalar solo prod deps
+# Copiamos package.json / lock para instalar TODAS las deps
+# (incluye prisma CLI, tsx, etc. para poder correr migrate/seed)
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Copiar dist compilado
 COPY --from=builder /app/dist ./dist
@@ -41,7 +42,7 @@ COPY --from=builder /app/dist ./dist
 # Copiar Prisma client (engines) generado en build
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# 👉 Copiamos también schema + migrations para poder hacer migrate/seed en runtime
+# Copiamos también schema + archivos de prisma para migrate/seed en runtime
 COPY --from=builder /app/src/prisma ./src/prisma
 
 # El backend escucha en el puerto 4000 (según tu .env)
