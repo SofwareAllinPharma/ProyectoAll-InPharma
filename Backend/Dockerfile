@@ -4,23 +4,25 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# (opcional pero ayuda a Prisma en build)
 ENV NODE_ENV=development
 
-# Copiamos archivos de configuración
+# Copiamos configuraciones
 COPY package.json package-lock.json* tsconfig.json ./
 
-# Copiamos el código fuente (incluye src/prisma)
+# Copiamos código fuente
 COPY src ./src
 
-# Instalar dependencias (respeta package-lock)
+# Instalamos todas las dependencias (incluye tsx, typescript, prisma)
 RUN npm ci
 
-# Generar cliente de Prisma (usa schema en src/prisma)
+# Generamos Prisma Client
 RUN npx prisma generate
 
-# Compilar TypeScript
+# Compilamos el proyecto
 RUN npm run build
+
+# Compilamos también el seed (TS → JS)
+RUN npx tsc src/prisma/seed.ts --outDir dist/prisma
 
 
 # =========================
@@ -31,22 +33,23 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copiamos package.json / lock para instalar TODAS las deps
-# (incluye prisma CLI, tsx, etc. para poder correr migrate/seed)
+# Copiamos package.json para instalar solo dependencias de producción
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --omit=dev
 
-# Copiar dist compilado
+# Copiamos el dist compilado (incluye index.js)
 COPY --from=builder /app/dist ./dist
 
-# Copiar Prisma client (engines) generado en build
+# Copiamos Prisma engines
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Copiamos también schema + archivos de prisma para migrate/seed en runtime
+# Copiamos migrations + schema
 COPY --from=builder /app/src/prisma ./src/prisma
 
-# El backend escucha en el puerto 4000 (según tu .env)
+# Copiamos seed ya compilado
+COPY --from=builder /app/dist/prisma ./dist/prisma
+
 EXPOSE 4000
 
-# Comando de arranque (usa PORT del entorno si lo seteás)
+# Arranque del servidor
 CMD ["node", "dist/index.js"]
