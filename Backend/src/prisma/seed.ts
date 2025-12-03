@@ -35,9 +35,12 @@ async function main() {
     }
 
 	const hash = await bcrypt.hash(plain, 10);
-	const usuarios = [
-		{ mail: 'softwareallinpharma@gmail.com', idPerfil: 3 },
-	]
+    const usuarios = [
+        { mail: 'softwareallinpharma@gmail.com', idPerfil: 3 },
+        // Usuarios necesarios para seed de pedidos y otros ejemplos
+        { mail: 'tecnico@aip.com', idPerfil: 1 },
+        { mail: 'adminfab@aip.com', idPerfil: 2 },
+    ]
 
     for (const u of usuarios) {
         await prisma.usuario.upsert({
