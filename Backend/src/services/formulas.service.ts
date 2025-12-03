@@ -40,7 +40,7 @@ export class FormulasService {
     const nombreExistente = await prisma.formula.findFirst({
       where: {
         nombre: { equals: dto.nombre, mode: "insensitive" },
-        activo: true,
+        activo: true, // Solo valida contra fórmulas activas
       },
     });
     if (nombreExistente) throw new Error("El nombre de la fórmula ya existe");
@@ -139,7 +139,7 @@ export class FormulasService {
     const nombreExistente = await prisma.formula.findFirst({
       where: {
         nombre: { equals: dto.nombre, mode: "insensitive" },
-        activo: true,
+        activo: true, // Solo valida contra fórmulas activas
         NOT: { id: id },
       },
     });
