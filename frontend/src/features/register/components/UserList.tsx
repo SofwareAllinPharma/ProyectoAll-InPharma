@@ -6,6 +6,7 @@ import LoadingPanel from '../../../components/LoadingPanel';
 import SearchBar from '../../../components/ui/SearchBar';
 import { FaSort, FaSortUp, FaSortDown, FaEdit } from 'react-icons/fa';
 import IconButton from '../../../components/ui/IconButton';
+import { ROLE_LABEL } from '../../../constants/roles';
 
 type SortConfig = {
   key: 'nombre' | 'mail';
@@ -20,6 +21,7 @@ export default function UserList({ onEdit }: Props) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const { show } = useToast();
 
@@ -53,10 +55,17 @@ export default function UserList({ onEdit }: Props) {
     // Filter
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
-      result = result.filter(u => 
+      result = result.filter(u =>
         (u.nombre?.toLowerCase() || '').includes(lower) ||
         (u.apellido?.toLowerCase() || '').includes(lower) ||
         (u.mail?.toLowerCase() || '').includes(lower)
+      );
+    }
+
+    // Filter by role (case insensitive comparison)
+    if (selectedRole) {
+      result = result.filter(u => 
+        u.roles.some(role => role.toUpperCase() === selectedRole.toUpperCase())
       );
     }
 
@@ -81,10 +90,10 @@ export default function UserList({ onEdit }: Props) {
     }
 
     return result;
-  }, [users, searchTerm, sortConfig]);
+  }, [users, searchTerm, selectedRole, sortConfig]);
 
   const renderSortableHeader = (label: string, key: 'nombre' | 'mail') => (
-    <div 
+    <div
       className="flex items-center gap-2 cursor-pointer hover:text-gray-200 select-none"
       onClick={() => handleSort(key)}
     >
@@ -136,8 +145,8 @@ export default function UserList({ onEdit }: Props) {
       title: 'Acciones',
       align: 'center',
       render: (user) => (
-        <IconButton 
-          onClick={() => onEdit(user)} 
+        <IconButton
+          onClick={() => onEdit(user)}
           aria-label="Editar usuario"
           className="text-blue-600 hover:text-blue-800"
         >
@@ -154,12 +163,26 @@ export default function UserList({ onEdit }: Props) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-[#5d5448]">Usuarios Registrados</h2>
       </div>
-      
-      <div className="mb-4 max-w-md">
-        <SearchBar 
-          placeholder="Buscar por nombre, apellido o email..." 
-          onSearch={setSearchTerm} 
+
+      <div className="mb-4">
+        <SearchBar
+          placeholder="Buscar por nombre, apellido o email..."
+          onSearch={setSearchTerm}
           debounceMs={300}
+          rightNode={
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5d5448] text-sm bg-white"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              <option value="">Todos los roles</option>
+              {Object.keys(ROLE_LABEL).map((key) => (
+                <option key={key} value={key}>
+                  {ROLE_LABEL[key]}
+                </option>
+              ))}
+            </select>
+          }
         />
       </div>
 
