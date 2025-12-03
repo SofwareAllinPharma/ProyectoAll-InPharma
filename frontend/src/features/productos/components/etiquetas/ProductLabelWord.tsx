@@ -1,3 +1,4 @@
+// @ts-ignore: external module without types in this project
 import {
   Document,
   Paragraph,
@@ -10,6 +11,7 @@ import {
   TextRun,
   Packer,
 } from "docx";
+// @ts-ignore: external module without types in this project
 import { saveAs } from "file-saver";
 import type { Producto } from "../../types/producto.types";
 import { computeNutrition } from "../../hooks/useNutrition";

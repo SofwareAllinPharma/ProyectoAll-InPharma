@@ -1,6 +1,6 @@
 import type { Insumo } from '../../../../insumos/types/insumo.types';
 import type { FormulaInsumo } from '../../../types/formula.types';
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import SearchSelect from '../../../../../components/ui/SearchSelect';
 
 interface Props {
