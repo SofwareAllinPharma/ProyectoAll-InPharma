@@ -247,6 +247,20 @@ export class FormulasService {
   }
 
   async softDeleteFormula(id: number) {
+    // 1. Validar si existen productos asociados a esta fórmula
+    const productosAsociados = await prisma.producto.count({
+      where: {
+        idFormula: id,
+      },
+    });
+
+    if (productosAsociados > 0) {
+      throw new Error(
+        "No se puede eliminar la fórmula porque tiene productos asociados."
+      );
+    }
+
+    // 2. Si no hay productos, proceder con la eliminación lógica
     return this.repo.softDelete(id);
   }
 }
