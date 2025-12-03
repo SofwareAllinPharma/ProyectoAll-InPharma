@@ -202,7 +202,7 @@ model Deposito {
 model Producto {
   idProducto             Int          @id @default(autoincrement())
   idFormula              Int
-  nombreComercial        String       @unique
+  nombreComercial        String       
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)
