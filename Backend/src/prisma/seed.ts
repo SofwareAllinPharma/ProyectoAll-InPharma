@@ -11,6 +11,7 @@ try {
 const prisma = new PrismaClient();
 
 async function main() {
+  // 1. PERFILES
   const perfiles = [
     { id: 1, nombre: "tecnico", descripcion: "tecnico" },
     { id: 2, nombre: "adminfab", descripcion: "administrador de fabrica" },
@@ -30,6 +31,7 @@ async function main() {
   }
   console.log("✔ Seed de PERFILES ejecutado OK");
 
+  // 2. USUARIOS
   const plain = process.env.SEED_DEFAULT_PASSWORD ?? "admin2025";
   if (!process.env.SEED_DEFAULT_PASSWORD) {
     console.log(
@@ -54,6 +56,7 @@ async function main() {
   });
   console.log("✔ Seed de USUARIOS y USUARIOxPERFIL ejecutado OK");
 
+  // 3. INSUMOS
   const insumos = [
     {
       nombre: "Aceite de Coco",
@@ -626,6 +629,8 @@ async function main() {
     skipDuplicates: true,
   });
   console.log("✔ Seed de INSUMOS ejecutado OK");
+
+  // 4. DEPOSITOS
   const depositos = [
     {
       nombre: "Depósito Central",
@@ -654,6 +659,7 @@ async function main() {
   }
   console.log("Seed de DEPOSITOS ejecutado OK (2 en total)");
 
+  // 5. PREPARACIÓN PARA FÓRMULAS Y PRODUCTOS
   const insumosNecesariosGlobal = [
     "Concentrado de Suero de Queso",
     "Cacao Amargo Fenix 54",
@@ -701,6 +707,7 @@ async function main() {
       );
   }
 
+  // FUNCIÓN PRINCIPAL DE SEED DE PRODUCTOS (MODIFICADA PARA NO USAR UPSERT)
   const seedProduct = async (
     formulaName: string,
     insumos: { nombre: string; cantidad: number }[],
@@ -710,7 +717,7 @@ async function main() {
     porciones: number,
     productName: string
   ) => {
-    // CAMBIO: Usar findFirst en lugar de upsert para la fórmula
+    // A) FÓRMULA: Buscar primero, luego crear o actualizar
     const existingFormula = await prisma.formula.findFirst({
       where: {
         nombre: formulaName,
@@ -764,22 +771,41 @@ async function main() {
       });
     }
 
-    const productoData = await prisma.producto.upsert({
-      where: { nombreComercial: productName },
-      update: {
-        idFormula: formulaData.id,
-        pesoNeto: peso,
-        cantPorcionesAportadas: porciones,
-      },
-      create: {
-        idFormula: formulaData.id,
+    // B) PRODUCTO: Buscar primero, luego crear o actualizar
+    const existingProducto = await prisma.producto.findFirst({
+      where: {
         nombreComercial: productName,
-        pesoNeto: peso,
-        cantPorcionesAportadas: porciones,
+        estaActivo: true,
       },
     });
+
+    let productoData;
+
+    if (existingProducto) {
+      productoData = await prisma.producto.update({
+        where: { idProducto: existingProducto.idProducto },
+        data: {
+          idFormula: formulaData.id,
+          pesoNeto: peso,
+          cantPorcionesAportadas: porciones,
+          // No tocamos nombreComercial ni estaActivo
+        },
+      });
+    } else {
+      productoData = await prisma.producto.create({
+        data: {
+          idFormula: formulaData.id,
+          nombreComercial: productName,
+          pesoNeto: peso,
+          cantPorcionesAportadas: porciones,
+          estaActivo: true,
+        },
+      });
+    }
+
     return productoData;
   };
+
   const productosParaInventario = [];
   productosParaInventario.push(
     await seedProduct(
@@ -987,6 +1013,7 @@ async function main() {
     `Seed de FORMULAS (${productosParaInventario.length} en total) y PRODUCTOS ejecutado OK`
   );
 
+  // 6. INVENTARIO
   const deps = await prisma.deposito.findMany({
     where: { nombre: { in: ["Depósito Central", "Fábrica"] } },
   });
@@ -1001,7 +1028,7 @@ async function main() {
     const qtyCentral = Math.min(initialQtyBase * 3, umbralMaxLimite - 50);
     const umbralMaxCentral = umbralMaxLimite;
     const qtyFabrica = Math.min(initialQtyBase * 5, umbralMaxLimite);
-    const umbralMaxFabrica = umbralMaxLimite; // Depósito Central
+    const umbralMaxFabrica = umbralMaxLimite;
 
     inventarioData.push({
       idDeposito: depId["Depósito Central"],
@@ -1030,6 +1057,7 @@ async function main() {
     `Seed de INVENTARIO (23 productos configurados en 2 depósitos con Umbral Max <= ${umbralMaxLimite}) ejecutado OK`
   );
 
+  // 7. ESTADOS Y TIPOS DE MOVIMIENTO
   const estadoCreado = await prisma.estadoMovimiento.upsert({
     where: { nombre: "Creado" },
     update: {},
@@ -1064,6 +1092,7 @@ async function main() {
   });
   console.log("Seed de TIPOS_MOVIMIENTO ejecutado OK (Egreso y Traslado)");
 
+  // 8. LIMPIEZA DE MOVIMIENTOS DE EJEMPLO
   const existingMovs = await prisma.movimientoProducto.count();
   if (existingMovs > 0) {
     console.log(
@@ -1077,174 +1106,8 @@ async function main() {
       "No se encontraron movimientos de ejemplo, omitiendo eliminación."
     );
   }
-  /*
-    // ======================
-    // MOVIMIENTOS HISTÓRICOS
-    // ======================
-    const centralId = depId['Depósito Central'];
-    const fabricaId = depId['Fábrica'];
-    const tiposMov = { traslado: tipoTraslado.idTipoMovimiento, egreso: tipoEgreso.idTipoMovimiento };
 
-    function daysAgo(n: number) {
-        const d = new Date();
-        d.setDate(d.getDate() - n);
-        d.setHours(12, 0, 0, 0); // mediodía para evitar problemas de timezone
-        return d;
-    }
-
-    async function crearMovimientoHistorico(opts: {
-        tipo: 'Traslado' | 'Egreso';
-        idProducto: number;
-        cantidad: number;
-        idDepositoOrigen: number;
-        idDepositoDestino?: number | null;
-        responsable?: string;
-        observaciones?: string | null;
-        fechas: { creado: Date; enCamino: Date; final: Date };
-        finalEstado: 'Entregado' | 'Cancelado';
-    }) {
-        const {
-            tipo,
-            idProducto,
-            cantidad,
-            idDepositoOrigen,
-            idDepositoDestino,
-            responsable,
-            observaciones,
-            fechas,
-            finalEstado,
-        } = opts;
-
-        // Crear movimiento con fechaHoraActualizacion en la fecha final
-        const mov = await prisma.movimientoProducto.create({
-            data: {
-                idDepositoOrigen,
-                idProducto,
-                idDepositoDestino: tipo === 'Traslado' ? (idDepositoDestino ?? null) : null,
-                cantidad,
-                responsable: responsable ?? 'Alberto Gómez',
-                observaciones: observaciones ?? null,
-                idTipoMovimiento: tipo === 'Traslado' ? tiposMov.traslado : tiposMov.egreso,
-                fechaHoraActualizacion: fechas.final,
-            },
-        });
-
-        // Historial de estados: Creado -> En Camino -> (Entregado|Cancelado)
-        await prisma.cambioEstadoMovimiento.create({
-            data: {
-                idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
-                fechaHoraInicio: fechas.creado,
-                fechaHoraFin: fechas.enCamino,
-                idMovimiento: mov.idMovimiento,
-            },
-        });
-        await prisma.cambioEstadoMovimiento.create({
-            data: {
-                idEstadoMovimiento: estadoEnCamino.idEstadoMovimiento,
-                fechaHoraInicio: fechas.enCamino,
-                fechaHoraFin: fechas.final,
-                idMovimiento: mov.idMovimiento,
-            },
-        });
-        await prisma.cambioEstadoMovimiento.create({
-            data: {
-                idEstadoMovimiento:
-                    finalEstado === 'Entregado'
-                        ? estadoEntregado.idEstadoMovimiento
-                        : estadoCancelado.idEstadoMovimiento,
-                fechaHoraInicio: fechas.final,
-                fechaHoraFin: null,
-                idMovimiento: mov.idMovimiento,
-            },
-        });
-
-        // Ajustar inventarios para entregados (consistencia mínima con la regla de negocio)
-        if (finalEstado === 'Entregado') {
-            // Origen: restar
-            await prisma.inventario.update({
-                where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
-                data: { cantidadProducto: { decrement: cantidad } },
-            });
-            // Traslado: sumar en destino
-            if (tipo === 'Traslado' && idDepositoDestino) {
-                const invDest = await prisma.inventario.findFirst({
-                    where: { idDeposito: idDepositoDestino, idProducto },
-                });
-                if (invDest) {
-                    await prisma.inventario.update({
-                        where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
-                        data: { cantidadProducto: { increment: cantidad } },
-                    });
-                } else {
-                    await prisma.inventario.create({
-                        data: { idDeposito: idDepositoDestino, idProducto, cantidadProducto: cantidad },
-                    });
-                }
-            }
-        }
-
-        return mov.idMovimiento;
-    }
-
-    // Elegir algunos productos para los movimientos de ejemplo
-    const productosLista = productosParaInventario.slice(0, 5);
-    if (productosLista.length < 3) {
-        throw new Error('No hay suficientes productos para crear movimientos de ejemplo');
-    }
-
-    // 1) Traslado ENTREGADO hace ~57 días (creado 60d, en camino 58d, final 57d)
-    await crearMovimientoHistorico({
-        tipo: 'Traslado',
-        idProducto: productosLista[0].idProducto,
-        cantidad: 2,
-        idDepositoOrigen: fabricaId,
-        idDepositoDestino: centralId,
-        fechas: { creado: daysAgo(60), enCamino: daysAgo(58), final: daysAgo(57) },
-        finalEstado: 'Entregado',
-        observaciones: 'Seed: traslado histórico entregado',
-    });
-
-    // 2) Egreso ENTREGADO hace ~13 días (creado 15d, en camino 14d, final 13d)
-    await crearMovimientoHistorico({
-        tipo: 'Egreso',
-        idProducto: productosLista[1].idProducto,
-        cantidad: 3,
-        idDepositoOrigen: centralId,
-        fechas: { creado: daysAgo(15), enCamino: daysAgo(14), final: daysAgo(13) },
-        finalEstado: 'Entregado',
-        observaciones: 'Seed: egreso histórico entregado',
-    });
-
-    // 3) Traslado CANCELADO hace ~5 días (creado 10d, en camino 9d, final 5d)
-    await crearMovimientoHistorico({
-        tipo: 'Traslado',
-        idProducto: productosLista[2].idProducto,
-        cantidad: 1,
-        idDepositoOrigen: centralId,
-        idDepositoDestino: fabricaId,
-        fechas: { creado: daysAgo(10), enCamino: daysAgo(9), final: daysAgo(5) },
-        finalEstado: 'Cancelado',
-        observaciones: 'Seed: traslado histórico cancelado',
-    });
-
-    // 4) Egreso ENTREGADO ayer (creado 2d, en camino 1d, final 1d)
-    await crearMovimientoHistorico({
-        tipo: 'Egreso',
-        idProducto: productosLista[3].idProducto,
-        cantidad: 2,
-        idDepositoOrigen: fabricaId,
-        fechas: { creado: daysAgo(2), enCamino: daysAgo(1), final: daysAgo(1) },
-        finalEstado: 'Entregado',
-        observaciones: 'Seed: egreso reciente entregado',
-    });
-
-    console.log('Seed de MOVIMIENTOS históricos ejecutado OK');
-	*/
-
-  // ======================
-  // ESTADOS DE PEDIDO
-  // ======================
-
+  // 9. ESTADOS DE PEDIDO
   const estadosPedido = [
     { nombre: "Creado" },
     { nombre: "EnElaboración" },
@@ -1286,12 +1149,13 @@ async function main() {
     throw new Error("Faltan estados de pedido para el seed");
   }
 
-  const productoAFull = await prisma.producto.findUniqueOrThrow({
-    where: { nombreComercial: "Prote A 900g" },
+  // 10. PEDIDOS DE EJEMPLO
+  const productoAFull = await prisma.producto.findFirstOrThrow({
+    where: { nombreComercial: "Prote A 900g", estaActivo: true },
     include: { formula: true },
   });
-  const productoBFull = await prisma.producto.findUniqueOrThrow({
-    where: { nombreComercial: "Colágeno Plus 300g" },
+  const productoBFull = await prisma.producto.findFirstOrThrow({
+    where: { nombreComercial: "Colágeno Plus 300g", estaActivo: true },
     include: { formula: true },
   });
 
