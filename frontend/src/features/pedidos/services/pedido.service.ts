@@ -1,102 +1,76 @@
+import { api } from '../../../lib/api';
 import type {
   Pedido,
   CreatePedidoRequest,
   TomarPedidoRequest,
 } from "../types/pedido.types";
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 class PedidoServiceClass {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options?.headers,
-      },
-      ...options,
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      const msg = err?.error || err?.message || `Error ${res.status}`;
-      throw new Error(msg);
-    }
-    return res.json();
-  }
-
   async list(pagina = 1, pageSize = 50): Promise<Pedido[]> {
     const q = `?pagina=${pagina}&pageSize=${pageSize}`;
-    const res = await this.request<any>(`/pedidos${q}`);
-    if (res && Array.isArray(res.items)) return res.items as Pedido[];
-    if (Array.isArray(res)) return res as Pedido[];
+    const { data } = await api.get(`/pedidos${q}`);
+    if (data && Array.isArray(data.items)) return data.items as Pedido[];
+    if (Array.isArray(data)) return data as Pedido[];
     return [] as Pedido[];
   }
 
   async detail(id: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${id}`);
+    const { data } = await api.get(`/pedidos/${id}`);
+    return data;
   }
 
   async create(dto: CreatePedidoRequest): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos`, {
-      method: "POST",
-      body: JSON.stringify(dto),
-    });
+    const { data } = await api.post('/pedidos', dto);
+    return data;
   }
 
   async tomar(id: number, dto: TomarPedidoRequest): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${id}/tomar`, {
-      method: "POST",
-      body: JSON.stringify(dto),
-    });
+    const { data } = await api.post(`/pedidos/${id}/tomar`, dto);
+    return data;
   }
 
   async tomarPedido(numPedido: number): Promise<Pedido> {
+    // Nota: Idealmente el backend debería saber quién es el usuario por el token,
+    // pero si tu endpoint requiere estos campos en el body, los enviamos.
+    // Si el backend ya usa req.user, esto podría simplificarse.
     const userMail = localStorage.getItem("userMail") || "tecnico@aip.com";
     const userPerfil = Number(localStorage.getItem("userPerfil")) || 1;
 
-    return this.request<Pedido>(`/pedidos/${numPedido}/tomar`, {
-      method: "POST",
-      body: JSON.stringify({
-        mailUsuarioCocinero: userMail,
-        idPerfilCocinero: userPerfil,
-      }),
+    const { data } = await api.post(`/pedidos/${numPedido}/tomar`, {
+      mailUsuarioCocinero: userMail,
+      idPerfilCocinero: userPerfil,
     });
+    return data;
   }
 
   async iniciarElaboracion(numPedido: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${numPedido}/iniciar-elaboracion`, {
-      method: "POST",
-    });
+    const { data } = await api.post(`/pedidos/${numPedido}/iniciar-elaboracion`);
+    return data;
   }
 
   async finalizarElaboracion(numPedido: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${numPedido}/finalizar-elaboracion`, {
-      method: "POST",
-    });
+    const { data } = await api.post(`/pedidos/${numPedido}/finalizar-elaboracion`);
+    return data;
   }
 
   async aprobarPedido(numPedido: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${numPedido}/aprobar`, {
-      method: "POST",
-    });
+    const { data } = await api.post(`/pedidos/${numPedido}/aprobar`);
+    return data;
   }
 
   async rechazarPedido(numPedido: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${numPedido}/rechazar`, {
-      method: "POST",
-    });
+    const { data } = await api.post(`/pedidos/${numPedido}/rechazar`);
+    return data;
   }
 
   async finalizar(id: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${id}/finalizar`, { method: "POST" });
+    const { data } = await api.post(`/pedidos/${id}/finalizar`);
+    return data;
   }
 
   async cancelar(id: number): Promise<Pedido> {
-    return this.request<Pedido>(`/pedidos/${id}/cancelar`, { method: "POST" });
+    const { data } = await api.post(`/pedidos/${id}/cancelar`);
+    return data;
   }
 }
 

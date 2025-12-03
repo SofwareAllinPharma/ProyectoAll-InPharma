@@ -31,16 +31,17 @@ export default function PuntoVentaDashboard() {
       const lowStock = inventory.filter(i => i.estado === 'CRITICO' || i.estado === 'BAJO');
       setLowStockItems(lowStock);
 
-      // 3. Get Incoming Transfers
-      // We fetch all movements and filter client side for now as the API filter might be limited
-      const movimientos = await MovimientoService.getAllMovimientos(); 
+      // 3. Get Movements involving deposit 1 (origin or destination)
+      // Fetch movements with idDeposito filter (backend filters by origin OR destination)
+      const movimientos = await MovimientoService.getAllMovimientos({ 
+        idDeposito: FARMACIA_ID 
+      }); 
       
-      const incoming = movimientos.filter(m => 
-        (m.idDepositoDestino === FARMACIA_ID) && 
-        (m.tipo === 'TRASLADO') &&
+      // Filter for 'Creado' and 'En Camino' states
+      const pendingMovements = movimientos.filter(m => 
         (m.estado === 'CREADO' || m.estado === 'EN_CAMINO')
       );
-      setIncomingTransfers(incoming);
+      setIncomingTransfers(pendingMovements);
 
     } catch (error) {
       console.error(error);
@@ -81,34 +82,52 @@ export default function PuntoVentaDashboard() {
                </ul>
             </div>
           )}
-          <button onClick={() => navigate('/puntoventa/stock')} className="mt-4 text-sm text-blue-600 hover:underline">Ver todo el stock</button>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-blue-600 flex items-center gap-2">
-              <FaTruck /> Traslados Entrantes
+              <FaTruck /> Movimientos Pendientes
             </h2>
             <span className="text-sm text-gray-500">{incomingTransfers.length} pendientes</span>
           </div>
            {incomingTransfers.length === 0 ? (
-            <p className="text-gray-500">No hay traslados pendientes.</p>
+            <p className="text-gray-500">No hay movimientos pendientes.</p>
           ) : (
              <div className="max-h-60 overflow-y-auto">
                <ul className="space-y-2">
-                 {incomingTransfers.map(t => (
-                   <li key={t.id} className="flex justify-between items-center p-2 bg-blue-50 rounded cursor-pointer hover:bg-blue-100" onClick={() => navigate(`/puntoventa/movimientos/${t.id}`)}>
-                     <div>
-                       <div className="font-medium">De: {t.depositoOrigen?.nombre}</div>
+                 {incomingTransfers.map(t => {
+                   const isIncoming = t.idDepositoDestino === 1;
+                   const isOutgoing = t.idDepositoOrigen === 1;
+                   const direction = isIncoming ? 'Entrada' : isOutgoing ? 'Salida' : 'Movimiento';
+                   const directionColor = isIncoming ? 'bg-green-50' : 'bg-orange-50';
+                   const badgeColor = isIncoming ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800';
+                   
+                   return (
+                   <li key={t.id} className={`flex justify-between items-center p-2 ${directionColor} rounded cursor-pointer hover:opacity-80`} onClick={() => navigate(`/puntoventa/movimientos/${t.id}`)}>
+                     <div className="flex-1">
+                       <div className="flex items-center gap-2">
+                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badgeColor}`}>
+                           {direction}
+                         </span>
+                         <span className="font-medium text-sm">{t.tipo}</span>
+                       </div>
+                       <div className="text-xs text-gray-600 mt-1">
+                         {isIncoming && `Desde: ${t.depositoOrigen?.nombre}`}
+                         {isOutgoing && t.depositoDestino && `Hacia: ${t.depositoDestino.nombre}`}
+                         {isOutgoing && !t.depositoDestino && 'Egreso'}
+                       </div>
                        <div className="text-xs text-gray-500">{t.producto?.nombreComercial} x {t.cantidad}</div>
                      </div>
-                     <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs">{t.estado}</span>
+                     <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs ml-2">
+                       {t.estado.replace('_', ' ')}
+                     </span>
                    </li>
-                 ))}
+                   );
+                 })}
                </ul>
             </div>
           )}
-          <button onClick={() => navigate('/puntoventa/solicitudes')} className="mt-4 text-sm text-blue-600 hover:underline">Gestionar solicitudes</button>
         </div>
       </div>
     </div>
