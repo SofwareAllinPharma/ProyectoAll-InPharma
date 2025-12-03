@@ -2,15 +2,15 @@
 GET http://localhost:4000/insumos
 
 ### Obtener un insumo por ID
-GET http://localhost:4000/insumos/4
+GET http://localhost:4000/insumos/145
 
 ### Crear un nuevo insumo
 POST http://localhost:4000/insumos
 Content-Type: application/json
 
 {
-  "nombre": "Nuevo insumo",
-  "cal_100g": 100,
+  "nombre": "AAInsumoPruebaA",
+  "cal_100g": 200,
   "grasasTotales_100g": 5,
   "grasasTrans_100g": 0,
   "grasasSaturadas_100g": 2,
@@ -39,4 +39,4 @@ Content-Type: application/json
 }
 
 ### Eliminar un insumo
-DELETE http://localhost:4000/insumos/1
+DELETE http://localhost:4000/insumos/142

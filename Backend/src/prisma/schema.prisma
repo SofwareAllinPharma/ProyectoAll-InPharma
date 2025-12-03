@@ -78,7 +78,7 @@ model PasswordReset {
 
 model Insumo {
   id                   Int             @id @default(autoincrement())
-  nombre               String          @unique
+  nombre               String          
   cal_100g             Float
   grasasTotales_100g   Float
   grasasTrans_100g     Float
