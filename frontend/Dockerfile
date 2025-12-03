@@ -4,19 +4,24 @@ WORKDIR /app
 
 # Archivos de config principales
 COPY package.json package-lock.json* ./
+
+# ⬇️ IMPORTANTE: copiamos configs de TS, Vite, Tailwind y PostCSS
 COPY tsconfig.json tsconfig.*.json ./
 COPY vite.config.* ./
+COPY tailwind.config.* ./
+COPY postcss.config.* ./
+
+# HTML y estáticos
 COPY index.html ./
+COPY public ./public
 
 # Código fuente
 COPY src ./src
-# (si tenés public/, descomentá)
-# COPY public ./public
 
-# Instalar deps
+# Instalar dependencias
 RUN npm ci
 
-# Build de producción
+# Build de producción (Vite + Tailwind + PostCSS)
 RUN npm run build
 
 
@@ -24,11 +29,8 @@ RUN npm run build
 FROM nginx:alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
-# Copiamos el build de Vite
 COPY --from=builder /app/dist ./
 
-# Configuración básica para SPA (fallback a index.html)
-# (opcional pero recomendable)
 RUN rm -f /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
