@@ -1,22 +1,26 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// =====================
+// BASE URL
+// =====================
+const API_BASE = import.meta.env.VITE_API_URL;
 
-if (!import.meta.env.VITE_API_URL) {
-  console.warn(
-    '[WARN] No se pudo resolver VITE_API_URL en el build; usando http://localhost:4000 como fallback'
+if (!API_BASE) {
+  console.error(
+    '[ERROR] VITE_API_URL no está definida. Se está usando http://localhost:4000 como fallback.'
   );
 }
-console.log('[API] baseURL usada por frontend:', API_BASE);
 
 export const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE ?? 'http://localhost:4000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor de REQUEST: Inyectar token
+// =====================
+// REQUEST interceptor
+// =====================
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token && config.headers) {
@@ -25,7 +29,9 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor de RESPONSE…
+// =====================
+// RESPONSE interceptor
+// =====================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
