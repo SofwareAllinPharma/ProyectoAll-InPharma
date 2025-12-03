@@ -22,26 +22,26 @@ export default function ProductNutritionCollapse({
     const kjPorPorcion = formula.kjPorPorcion || kcalPorPorcion * 4.184;
 
     return {
-      kcal: (kcalPorPorcion * cantPorciones).toFixed(1),
-      kj: (kjPorPorcion * cantPorciones).toFixed(1),
+      kcal: (kcalPorPorcion * cantPorciones).toFixed(4),
+      kj: (kjPorPorcion * cantPorciones).toFixed(4),
       grasaTotal: ((formula.grasaTotalPorPorcion || 0) * cantPorciones).toFixed(
-        2
+        4
       ),
       grasaTrans: ((formula.grasaTransPorPorcion || 0) * cantPorciones).toFixed(
-        2
+        4
       ),
       grasaSaturada: (
         (formula.grasaSaturadaPorPorcion || 0) * cantPorciones
-      ).toFixed(2),
+      ).toFixed(4),
       proteinas: ((formula.proteinasPorPorcion || 0) * cantPorciones).toFixed(
-        2
+        4
       ),
       carbohidratos: (
         (formula.carbohidratosPorPorcion || 0) * cantPorciones
-      ).toFixed(2),
+      ).toFixed(4),
       sodio: ((formula.sodioPorPorcion || 0) * cantPorciones).toFixed(2),
       fibra: ((formula.fibraPorPorcion || 0) * cantPorciones).toFixed(2),
-      otros: (0).toFixed(2),
+      otros: (0).toFixed(4),
     };
   }, [formula, cantPorciones]);
 

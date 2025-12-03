@@ -45,7 +45,7 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcion }) => {
                 {item.label}:
               </span>
               <span className="font-roboto">
-                {item.value.toFixed(1)} {item.unit}
+                {item.value.toFixed(4)} {item.unit}
               </span>
             </div>
           ))}

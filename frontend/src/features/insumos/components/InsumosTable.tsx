@@ -60,7 +60,7 @@ export default function InsumosTable({
       );
   }, [insumos, searchTerm]);
 
-  const fmt = (v: number) => (v % 1 === 0 ? String(v) : v.toFixed(2));
+  const fmt = (v: number) => v.toFixed(4);
 
   const columns: Column<Insumo>[] = [
     {

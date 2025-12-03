@@ -82,81 +82,81 @@ export function computeNutrition(producto: Producto) {
   };
 
   const rowsPerPortion = [
-    { label: "Kcalorías", value: nutritionPerPortion.kcalorias.toFixed(1) },
-    { label: "kJ", value: nutritionPerPortion.kjuls.toFixed(1) },
+    { label: "Kcalorías", value: nutritionPerPortion.kcalorias.toFixed(4) },
+    { label: "kJ", value: nutritionPerPortion.kjuls.toFixed(4) },
     {
       label: "Proteínas",
-      value: `${nutritionPerPortion.proteinas.toFixed(1)}g`,
+      value: `${nutritionPerPortion.proteinas.toFixed(4)}g`,
     },
     {
       label: "Grasas Totales",
-      value: `${nutritionPerPortion.grasaTotal.toFixed(1)}g`,
+      value: `${nutritionPerPortion.grasaTotal.toFixed(4)}g`,
     },
     {
       label: "Grasas Trans",
-      value: `${nutritionPerPortion.grasaTrans.toFixed(1)}g`,
+      value: `${nutritionPerPortion.grasaTrans.toFixed(4)}g`,
     },
     {
       label: "Grasas Saturadas",
-      value: `${nutritionPerPortion.grasaSaturada.toFixed(1)}g`,
+      value: `${nutritionPerPortion.grasaSaturada.toFixed(4)}g`,
     },
     {
       label: "Carbohidratos",
-      value: `${nutritionPerPortion.carbohidratos.toFixed(1)}g`,
+      value: `${nutritionPerPortion.carbohidratos.toFixed(4)}g`,
     },
-    { label: "Sodio", value: `${nutritionPerPortion.sodio.toFixed(1)}g` },
-    { label: "Fibra", value: `${nutritionPerPortion.fibra.toFixed(1)}g` },
-    { label: "Otros", value: `${nutritionPerPortion.otros.toFixed(1)}g` },
+    { label: "Sodio", value: `${nutritionPerPortion.sodio.toFixed(4)}g` },
+    { label: "Fibra", value: `${nutritionPerPortion.fibra.toFixed(4)}g` },
+    { label: "Otros", value: `${nutritionPerPortion.otros.toFixed(4)}g` },
   ];
 
   const rowsPer100g = [
-    { label: "Kcalorías", value: nutritionPer100g.kcalorias.toFixed(1) },
-    { label: "kJ", value: nutritionPer100g.kjuls.toFixed(1) },
-    { label: "Proteínas", value: `${nutritionPer100g.proteinas.toFixed(1)}g` },
+    { label: "Kcalorías", value: nutritionPer100g.kcalorias.toFixed(4) },
+    { label: "kJ", value: nutritionPer100g.kjuls.toFixed(4) },
+    { label: "Proteínas", value: `${nutritionPer100g.proteinas.toFixed(4)}g` },
     {
       label: "Grasas Totales",
-      value: `${nutritionPer100g.grasaTotal.toFixed(1)}g`,
+      value: `${nutritionPer100g.grasaTotal.toFixed(4)}g`,
     },
     {
       label: "Grasas Trans",
-      value: `${nutritionPer100g.grasaTrans.toFixed(1)}g`,
+      value: `${nutritionPer100g.grasaTrans.toFixed(4)}g`,
     },
     {
       label: "Grasas Saturadas",
-      value: `${nutritionPer100g.grasaSaturada.toFixed(1)}g`,
+      value: `${nutritionPer100g.grasaSaturada.toFixed(4)}g`,
     },
     {
       label: "Carbohidratos",
-      value: `${nutritionPer100g.carbohidratos.toFixed(1)}g`,
+      value: `${nutritionPer100g.carbohidratos.toFixed(4)}g`,
     },
-    { label: "Sodio", value: `${nutritionPer100g.sodio.toFixed(1)}g` },
-    { label: "Fibra", value: `${nutritionPer100g.fibra.toFixed(1)}g` },
-    { label: "Otros", value: `${nutritionPer100g.otros.toFixed(1)}g` },
+    { label: "Sodio", value: `${nutritionPer100g.sodio.toFixed(4)}g` },
+    { label: "Fibra", value: `${nutritionPer100g.fibra.toFixed(4)}g` },
+    { label: "Otros", value: `${nutritionPer100g.otros.toFixed(4)}g` },
   ];
 
   const rowsTotal = [
-    { label: "Kcalorías", value: nutritionTotal.kcalorias.toFixed(1) },
-    { label: "kJ", value: nutritionTotal.kjuls.toFixed(1) },
-    { label: "Proteínas", value: `${nutritionTotal.proteinas.toFixed(1)}g` },
+    { label: "Kcalorías", value: nutritionTotal.kcalorias.toFixed(4) },
+    { label: "kJ", value: nutritionTotal.kjuls.toFixed(4) },
+    { label: "Proteínas", value: `${nutritionTotal.proteinas.toFixed(4)}g` },
     {
       label: "Grasas Totales",
-      value: `${nutritionTotal.grasaTotal.toFixed(1)}g`,
+      value: `${nutritionTotal.grasaTotal.toFixed(4)}g`,
     },
     {
       label: "Grasas Trans",
-      value: `${nutritionTotal.grasaTrans.toFixed(1)}g`,
+      value: `${nutritionTotal.grasaTrans.toFixed(4)}g`,
     },
     {
       label: "Grasas Saturadas",
-      value: `${nutritionTotal.grasaSaturada.toFixed(1)}g`,
+      value: `${nutritionTotal.grasaSaturada.toFixed(4)}g`,
     },
     {
       label: "Carbohidratos",
-      value: `${nutritionTotal.carbohidratos.toFixed(1)}g`,
+      value: `${nutritionTotal.carbohidratos.toFixed(4)}g`,
     },
-    { label: "Sodio", value: `${nutritionTotal.sodio.toFixed(1)}g` },
-    { label: "Fibra", value: `${nutritionTotal.fibra.toFixed(1)}g` },
-    { label: "Otros", value: `${nutritionTotal.otros.toFixed(1)}g` },
+    { label: "Sodio", value: `${nutritionTotal.sodio.toFixed(4)}g` },
+    { label: "Fibra", value: `${nutritionTotal.fibra.toFixed(4)}g` },
+    { label: "Otros", value: `${nutritionTotal.otros.toFixed(4)}g` },
   ];
 
   return {

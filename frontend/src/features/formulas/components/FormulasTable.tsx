@@ -45,12 +45,7 @@ interface FormulasTableProps {
 }
 
 const formatNumber = (value?: number): string => {
-  if (value === null || value === undefined || Number.isNaN(value)) return "0";
-  if (value === 0) return "0";
-  if (value < 0.01) return value.toFixed(4);
-  if (value < 1) return value.toFixed(2);
-  if (value < 10) return value.toFixed(1);
-  return Math.round(value).toString();
+  return (value || 0).toFixed(4);
 };
 
 // alias used in table renders

@@ -120,27 +120,27 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="font-medium">Kcalorías:</span>{" "}
-                  {nutritionValues.kcaloriasPorPorcion.toFixed(1)}
+                  {nutritionValues.kcaloriasPorPorcion.toFixed(4)}
                 </div>
                 <div>
                   <span className="font-medium">Proteínas:</span>{" "}
-                  {nutritionValues.proteinasPorPorcion.toFixed(1)}g
+                  {nutritionValues.proteinasPorPorcion.toFixed(4)}g
                 </div>
                 <div>
                   <span className="font-medium">Grasas Tot.:</span>{" "}
-                  {nutritionValues.grasaTotalPorPorcion.toFixed(1)}g
+                  {nutritionValues.grasaTotalPorPorcion.toFixed(4)}g
                 </div>
                 <div>
                   <span className="font-medium">Carbohidratos:</span>{" "}
-                  {nutritionValues.carbohidratosPorPorcion.toFixed(1)}g
+                  {nutritionValues.carbohidratosPorPorcion.toFixed(4)}g
                 </div>
                 <div>
                   <span className="font-medium">Sodio:</span>{" "}
-                  {nutritionValues.sodioPorPorcion.toFixed(1)}g
+                  {nutritionValues.sodioPorPorcion.toFixed(4)}g
                 </div>
                 <div>
                   <span className="font-medium">Fibra:</span>{" "}
-                  {nutritionValues.fibraPorPorcion.toFixed(1)}g
+                  {nutritionValues.fibraPorPorcion.toFixed(4)}g
                 </div>
               </div>
             </div>
