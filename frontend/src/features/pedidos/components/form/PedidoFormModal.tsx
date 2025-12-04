@@ -174,7 +174,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
         const next = Math.ceil(paquetesFloat);
         const missingPaquetes = next - paquetesFloat;
         const missingGramos = +(next * pesoPaquete - conv.gramos).toFixed(4);
-        const msg = `Cantidad en gramos no completa paquetes enteros. Faltan ${missingPaquetes.toFixed(4)} pqt (~${missingGramos} g) para llegar a ${next} pqt.`;
+        const paqLabel = Math.round(missingPaquetes) === 1 ? 'paquete' : 'paquetes';
+        const nextLabel = next === 1 ? 'paquete' : 'paquetes';
+        const msg = `Cantidad en gramos no completa paquetes enteros. Faltan ${missingPaquetes.toFixed(4)} ${paqLabel} (~${missingGramos} g) para llegar a ${next} ${nextLabel}.`;
         setErrors((s) => ({ ...s, cantidad: msg }));
         return;
       }
@@ -238,71 +240,73 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     <Modal
       open={isOpen}
       onClose={handleClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col"
     >
       <ModalHeader>Crear Pedido</ModalHeader>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void handleSubmit();
-        }}
-        className="space-y-4 px-6 py-4"
-      >
-          <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
+      <div className="overflow-y-auto px-6 py-4 flex-1">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSubmit();
+          }}
+          className="space-y-4"
+        >
+            <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
-          <div className="border-t border-gray-100 pt-4">
-            <div className="mb-2 text-sm text-gray-500"><span className="font-medium text-gray-700">Paquetes</span></div>
-            <QuantityControl
-              mode={mode}
-              value={value}
-              setValue={setValue}
-              selected={selected}
-              disabled={!selected}
-            />
-            {conv && (
-              <div className="mt-2 p-2 bg-[#F5F3EB] rounded-md text-xs text-gray-700 text-center border border-gray-200">
-                <span className="text-xs text-gray-500 mr-1">Equivalencias:</span>
-                <span className="font-medium text-[#5d5448]">{formatQty(conv.gramos)} g</span>
-                <span className="mx-1 text-gray-400">•</span>
-                <span className="font-medium text-[#5d5448]">{Math.round(conv.paquetes)} pqt</span>
-                <span className="mx-1 text-gray-400">•</span>
-                <span className="font-medium text-[#5d5448]">{formatQty(conv.porciones)} porciones</span>
-              </div>
-            )}
-            {validationError && (
-              <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{validationError}</div>
-            )}
-            {errors.cantidad && <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{errors.cantidad}</p>}
-          </div>
-
-          <div className="border-t border-gray-100 pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Observación
-            </label>
-            <textarea
-              className="block w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#5d5448] focus:border-[#5d5448] text-sm transition-colors"
-              rows={2}
-              maxLength={256}
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-              placeholder="Notas adicionales…"
-            />
-            <div className="mt-1 text-xs text-gray-400 text-right">
-              {observacion.length}/256
+            <div className="border-t border-gray-100 pt-4">
+              <div className="mb-2 text-sm text-gray-500"><span className="font-medium text-gray-700">Paquetes</span></div>
+              <QuantityControl
+                mode={mode}
+                value={value}
+                setValue={setValue}
+                selected={selected}
+                disabled={!selected}
+              />
+              {conv && (
+                <div className="mt-2 p-2 bg-[#F5F3EB] rounded-md text-xs text-gray-700 text-center border border-gray-200">
+                  <span className="text-xs text-gray-500 mr-1">Equivalencias:</span>
+                  <span className="font-medium text-[#5d5448]">{formatQty(conv.gramos)} g</span>
+                  <span className="mx-1 text-gray-400">•</span>
+                  <span className="font-medium text-[#5d5448]">{Math.round(conv.paquetes)} {Math.round(conv.paquetes) === 1 ? 'paquete' : 'paquetes'}</span>
+                  <span className="mx-1 text-gray-400">•</span>
+                  <span className="font-medium text-[#5d5448]">{formatQty(conv.porciones)} porciones</span>
+                </div>
+              )}
+              {validationError && (
+                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{validationError}</div>
+              )}
+              {errors.cantidad && <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{errors.cantidad}</p>}
             </div>
-          </div>
-          
-          <div className="border-t border-gray-100 pt-4">
-            <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
-          </div>
 
-          <div className="border-t border-gray-100 pt-4">
-            <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
-          </div>
-      </form>
+            <div className="border-t border-gray-100 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Observación
+              </label>
+              <textarea
+                className="block w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#5d5448] focus:border-[#5d5448] text-sm transition-colors"
+                rows={2}
+                maxLength={256}
+                value={observacion}
+                onChange={(e) => setObservacion(e.target.value)}
+                placeholder="Notas adicionales…"
+              />
+              <div className="mt-1 text-xs text-gray-400 text-right">
+                {observacion.length}/256
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-100 pt-4">
+              <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
+            </div>
 
-      <div className="border-t border-gray-100 px-6 py-4">
+            <div className="border-t border-gray-100 pt-4">
+              <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
+            </div>
+        </form>
+      </div>
+
+      <div className="border-t border-gray-100 px-6 py-4 flex-none bg-white">
         <div className="flex gap-3 justify-center sm:justify-end">
           <Button variant="outline" onClick={handleClose} className="px-6 py-2">
             Cancelar

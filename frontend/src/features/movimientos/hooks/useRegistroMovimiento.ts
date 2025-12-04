@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../lib/auth';
 import { MovimientoService } from '../services/movimiento.service';
 import type { TipoMovimiento } from '../types/movimiento.types';
 import { formatFecha } from '../../inventario/utils/formatters';
@@ -35,7 +36,24 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
   const [depDestino, setDepDestino] = useState<DepositoMin>(null);
   const [producto, setProducto] = useState<ProductoInv>(() => args?.initial?.producto ? { idProducto: args.initial.producto.idProducto, nombreComercial: args.initial.producto.nombreComercial, cantidadProducto: args.initial.producto.cantidadProducto } : null);
   const [cantidad, setCantidad] = useState<number | ''>(0);
-  const [responsable, setResponsable] = useState('');
+  const { user } = useAuth();
+  // Prefill responsable with persona.nombre + persona.apellido if available, otherwise fallback to user.name or email
+  const computeUserFullName = () => {
+    try {
+      const u: any = user as any;
+      if (u?.persona) {
+        const n = (u.persona.nombre || '').trim();
+        const a = (u.persona.apellido || '').trim();
+        const full = `${n} ${a}`.trim();
+        if (full) return full;
+      }
+    } catch (_) {}
+    // If only email is available, return local-part (before @) to avoid long strings
+    if (user?.name) return user.name;
+    if (user?.mail) return String(user.mail).split('@')[0];
+    return '';
+  };
+  const [responsable, setResponsable] = useState(() => computeUserFullName());
   const [observaciones, setObservaciones] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -176,6 +194,8 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
       onCreated?.();
       setSummaryOpen(false);
       onClose?.();
+      // Asegurarnos de limpiar el estado interno del hook cuando se cierra el modal
+      reset();
     } catch (err) {
       console.error(err);
       show({ type: 'error', title: 'Error', message: 'No se pudo crear el movimiento. Intenta nuevamente.' });
@@ -193,12 +213,20 @@ export function useRegistroMovimiento(args?: { onCreated?: () => void; onClose?:
     setDepDestino(null);
     setProducto(null);
     setCantidad(0);
-    setResponsable('');
+    setResponsable(computeUserFullName());
     setObservaciones('');
     setSummaryOpen(false);
     setSummaryData(null);
     setSubmitting(false);
   };
+
+  // If user info is loaded/changes after mount, update responsable default (don't override non-empty if user typed, but field is disabled in modal)
+  useEffect(() => {
+    const name = computeUserFullName();
+    if (!responsable || responsable.trim() === '') {
+      setResponsable(name);
+    }
+  }, [user]);
 
   return {
     errors, touched, submitted,

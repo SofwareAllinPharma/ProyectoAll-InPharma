@@ -137,7 +137,8 @@ export class PedidosService {
 
   async tomarPedido(
     numPedido: number,
-    dto: { mailUsuarioCocinero: string; idPerfilCocinero: number }
+    dto: { mailUsuarioCocinero: string; idPerfilCocinero: number },
+    responsable?: string
   ) {
     if (!dto.mailUsuarioCocinero || !dto.idPerfilCocinero)
       throw new Error("Datos del cocinero obligatorios");
@@ -167,10 +168,11 @@ export class PedidosService {
       estaAsignado: true,
       mailUsuarioCocinero: dto.mailUsuarioCocinero,
       idPerfilCocinero: dto.idPerfilCocinero,
+      responsable: responsable ?? null,
     });
   }
 
-  async finalizarElaboracion(numPedido: number) {
+  async finalizarElaboracion(numPedido: number, responsable?: string) {
     const pedido = await this.detail(numPedido);
     if (pedido.cambioActual?.estado?.nombre !== ESTADOS.EN_ELAB) {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
@@ -193,7 +195,7 @@ export class PedidosService {
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
 
     // Transition state first (this will update cambioActual) then add stock to inventario.
-    const updated = await this.repo.transition(numPedido, estadoElabFabId, { estaAsignado: false });
+    const updated = await this.repo.transition(numPedido, estadoElabFabId, { estaAsignado: false, responsable: responsable ?? null });
 
     // Añadir stock al inventario del depósito Fábrica (cantidad en paquetes)
     const qty = Math.round(pedido.cantAProducir_paquetes || 0);
@@ -208,13 +210,13 @@ export class PedidosService {
     return updated;
   }
 
-  async iniciarElaboracion(numPedido: number) {
+  async iniciarElaboracion(numPedido: number, responsable?: string) {
     const pedido = await this.detail(numPedido);
     if (pedido.cambioActual?.estado?.nombre !== ESTADOS.CREADO) {
       throw new Error("Solo pedidos en Creado pueden iniciarse");
     }
     const estadoEnElabId = await this.getEstadoId(ESTADOS.EN_ELAB);
-    return this.repo.transition(numPedido, estadoEnElabId, {});
+    return this.repo.transition(numPedido, estadoEnElabId, { responsable: responsable ?? null });
   }
 
   async aprobar(numPedido: number) {
@@ -231,7 +233,7 @@ export class PedidosService {
     throw new Error("Operación 'rechazar' no implementada en el backend");
   }
 
-  async cancelar(numPedido: number) {
+  async cancelar(numPedido: number, responsable?: string) {
     const pedido = await this.detail(numPedido);
     const estado = pedido.cambioActual?.estado?.nombre;
     if (estado !== ESTADOS.CREADO && estado !== ESTADOS.EN_ELAB) {
@@ -242,6 +244,7 @@ export class PedidosService {
     const estadoCanceladoId = await this.getEstadoId(ESTADOS.CANCELADO);
     return this.repo.transition(numPedido, estadoCanceladoId, {
       estaAsignado: false,
+      responsable: responsable ?? null,
     });
   }
 }

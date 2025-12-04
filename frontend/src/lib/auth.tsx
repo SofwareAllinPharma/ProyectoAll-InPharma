@@ -37,6 +37,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // api ya tiene el interceptor, así que envía el token solo
         const { data } = await api.get('/auth/me'); 
         setUser(data.user);
+        // Mantener claves legacy en localStorage para compatibilidad
+        try {
+          if (data?.user?.mail) localStorage.setItem('userMail', data.user.mail);
+          const roles: string[] = data?.user?.roles ?? [];
+          // Mapear roles a id de perfil usados en el frontend (1=tecnico,2=adminfab,3=adminsis)
+          let perfil = '2';
+          if (roles.includes('TECNICO')) perfil = '1';
+          else if (roles.includes('ADMINFAB')) perfil = '2';
+          else if (roles.includes('ADMINSIS')) perfil = '3';
+          localStorage.setItem('userPerfil', perfil);
+        } catch (e) {
+          // no crítico: seguir si falla el intento de persistir en localStorage
+        }
       } catch (error) {
         console.error("Sesión expirada o inválida", error);
         logout(); // Si falla /me, borramos token local
@@ -64,11 +77,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Si tu backend login devuelve user sin roles, fuerza una llamada a /me:
     const meRes = await api.get('/auth/me');
     setUser(meRes.data.user);
+    // Guardar en localStorage para compatibilidad con componentes que aún leen las claves
+    try {
+      if (meRes?.data?.user?.mail) localStorage.setItem('userMail', meRes.data.user.mail);
+      const roles: string[] = meRes?.data?.user?.roles ?? [];
+      let perfil = '2';
+      if (roles.includes('TECNICO')) perfil = '1';
+      else if (roles.includes('ADMINFAB')) perfil = '2';
+      else if (roles.includes('ADMINSIS')) perfil = '3';
+      localStorage.setItem('userPerfil', perfil);
+    } catch (e) {
+      // ignore
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('accessToken');
     setUser(null);
+    localStorage.removeItem('userMail');
+    localStorage.removeItem('userPerfil');
     // Opcional: window.location.href = '/login';
   };
 

@@ -42,11 +42,11 @@ export default function SelectProfile() {
                                 <div className="text-center text-lg opacity-80">No tienes perfiles asignados.</div>
                             ) : (
                                 <div
-                                    className="grid gap-6"
+                                    className="grid gap-6 items-stretch"
                                                 style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', justifyContent: 'center' }}
                                 >
                                     {visible.map((r) => (
-                                        <div key={r.key} onClick={() => handleSelectProfile(r.key, r.path)}>
+                                        <div key={r.key} className="h-full" onClick={() => handleSelectProfile(r.key, r.path)}>
                                             <ProfileCard
                                                 role={r.key as "tecnico" | "adminfab" | "adminsis" | "encptoventa"}
                                                 title={r.label}

@@ -5,8 +5,11 @@ import TextField from '../../../components/form/TextField';
 import NumberField from '../../../components/form/NumberField';
 import { Controller } from 'react-hook-form';
 import ModalHeader from '../../../components/ui/modales/ModalHeader';
+import SearchSelect from '../../../components/ui/SearchSelect';
+import { api } from '../../../lib/api';
 import { validateUniqueName, minCapacityValidator } from '../utils/validators';
 import FormActions from '../../../components/form/FormActions';
+import { useEffect, useState } from 'react';
 
 export type DepositoFormValues = {
   nombre: string;
@@ -29,6 +32,20 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
   const isEdit = !!deposito;
   const methods = useDepositoForm(deposito, open);
   const { register, handleSubmit, formState: { errors, isValid }, control } = methods;
+
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoadingUsers(true);
+    api.get('/personas')
+      .then(r => r.data)
+      .then(list => { if (!mounted) return; setUsers(list || []); })
+      .catch(() => { if (!mounted) return; setUsers([]); })
+      .finally(() => { if (!mounted) return; setLoadingUsers(false); });
+    return () => { mounted = false; };
+  }, []);
 
   if (!open) return null;
 
@@ -66,7 +83,38 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
               )}
             />
 
-            <TextField label="Responsable" disabled={loading} {...{ inputProps: { ...register('responsable', { required: 'Requerido', minLength: { value: 3, message: 'Mínimo 3 caracteres' }, }) }, error: errors.responsable?.message as string | undefined }} />
+            <Controller
+              name="responsable"
+              control={control}
+              rules={{ required: 'Requerido' }}
+              render={({ field }) => {
+                const selected = users.find(u => {
+                  const label = `${(u.nombre || '').trim()} ${(u.apellido || '').trim()}`.trim() || ((u.mail || '').split('@')[0] || u.mail);
+                  return label === field.value;
+                }) || null;
+                return (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Responsable</label>
+                    <SearchSelect
+                      items={users}
+                      value={selected}
+                      getKey={(u: any) => u.mail}
+                      getLabel={(u: any) => `${(u.nombre || '').trim()} ${(u.apellido || '').trim()}`.trim() || ((u.mail || '').split('@')[0] || u.mail)}
+                      getSearchString={(u: any) => `${(u.nombre || '').trim()} ${(u.apellido || '').trim()} ${(u.apellido || '').trim()} ${(u.nombre || '').trim()} ${(u.mail || '').split('@')[0] || u.mail}`}
+                      onSelect={(u: any) => {
+                        const label = `${(u.nombre || '').trim()} ${(u.apellido || '').trim()}`.trim() || ((u.mail || '').split('@')[0] || u.mail);
+                        field.onChange(label);
+                      }}
+                      placeholder="Seleccionar responsable..."
+                      noResultsText={loadingUsers ? 'Cargando usuarios…' : 'No se encontraron usuarios'}
+                      onClear={() => field.onChange('')}
+                      disabled={loading || loadingUsers}
+                    />
+                    {errors.responsable ? <p className="text-red-600 text-sm mt-1">{errors.responsable.message}</p> : null}
+                  </div>
+                );
+              }}
+            />
           </div>
 
           <FormActions onCancel={onCancel} submitting={loading} disabled={!isValid} submitLabel={isEdit ? 'Guardar cambios' : 'Crear Depósito'} />

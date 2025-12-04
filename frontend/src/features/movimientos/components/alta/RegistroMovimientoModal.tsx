@@ -99,9 +99,10 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
               onBlurCantidad={rm.handleCantidadBlur}
               responsable={rm.responsable}
               onResponsableChange={rm.handleResponsableChange}
-              onBlurResponsable={rm.handleResponsableBlur}
               errorCantidad={(rm.errors.cantidad && (rm.touched.cantidad || rm.submitted)) ? rm.errors.cantidad : undefined}
               errorResponsable={(rm.errors.responsable && (rm.touched.responsable || rm.submitted)) ? rm.errors.responsable : undefined}
+              onBlurResponsable={rm.handleResponsableBlur}
+              disabledResponsable={true}
             />
           </div>
 

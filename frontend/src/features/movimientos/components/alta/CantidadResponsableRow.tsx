@@ -10,9 +10,10 @@ type Props = {
   errorResponsable?: string | null;
   onBlurCantidad?: () => void;
   onBlurResponsable?: () => void;
+  disabledResponsable?: boolean;
 };
 
-export default function CantidadResponsableRow({ stock, cantidad, onCantidadChange, responsable, onResponsableChange, errorCantidad, errorResponsable, onBlurCantidad, onBlurResponsable }: Props) {
+export default function CantidadResponsableRow({ stock, cantidad, onCantidadChange, responsable, onResponsableChange, errorCantidad, errorResponsable, onBlurCantidad, onBlurResponsable, disabledResponsable }: Props) {
   return (
     <div className="flex flex-wrap sm:flex-nowrap items-center gap-1">
       <div className="flex items-center whitespace-nowrap">
@@ -45,7 +46,9 @@ export default function CantidadResponsableRow({ stock, cantidad, onCantidadChan
             onBlur={() => onBlurResponsable?.()}
             placeholder="Nombre del responsable"
             maxLength={20}
-            className="w-45 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm"
+            readOnly={!!disabledResponsable}
+            disabled={!!disabledResponsable}
+            className={`w-45 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] text-sm ${disabledResponsable ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           />
           {errorResponsable ? <p className="text-red-600 text-sm mt-1">{errorResponsable}</p> : null}
         </div>

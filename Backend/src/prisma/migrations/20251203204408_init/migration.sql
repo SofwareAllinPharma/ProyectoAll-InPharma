@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "CAMBIO_ESTADO_PEDIDO" ADD COLUMN     "responsable" VARCHAR(255);

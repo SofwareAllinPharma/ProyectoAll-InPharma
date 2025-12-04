@@ -89,6 +89,7 @@ export class MovimientoService {
         if (norm.includes('creado') || norm.includes('cread')) return 'CREADO';
         if (norm.includes('encamino') || norm.includes('encam')) return 'EN_CAMINO';
         if (norm.includes('entregado')) return 'ENTREGADO';
+        if (norm.includes('vend') || norm.includes('vendido')) return 'VENDIDO';
         if (norm.includes('cancelado')) return 'CANCELADO';
         return 'EN_CAMINO';
       };
@@ -151,7 +152,7 @@ export class MovimientoService {
           idDepositoDestino: it.idDepositoDestino ?? null,
           referencia: buildReferencia(it),
           observaciones: it.observaciones ?? null,
-          estado: estadoNorm as 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO',
+          estado: estadoNorm as 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO' | 'VENDIDO',
           fechaCreacion: it.fechaCreacion ?? '',
           fechaActualizacion: it.fechaHoraActualizacion ?? null,
           horaActualizacion: toHour(it.fechaHoraActualizacion),
@@ -241,10 +242,22 @@ export class MovimientoService {
         observaciones: data.observaciones ?? undefined,
       };
 
+      // DEBUG: log payload to help track 400 errors from backend
+      // (remove or change to a proper logger after debugging)
+      // eslint-disable-next-line no-console
+      console.log('Creating movimiento payload:', payload);
       const { data: responseData } = await api.put<Movimiento>('/movimientos', payload);
       return responseData;
     } catch (error) {
+      // Intentar mostrar respuesta del servidor si existe
+      // eslint-disable-next-line no-console
       console.error('Error creando movimiento:', error);
+      try {
+        // @ts-ignore
+        const resp = error?.response?.data;
+        // eslint-disable-next-line no-console
+        if (resp) console.error('Error response data:', resp);
+      } catch (_) {}
       throw error;
     }
   }

@@ -162,7 +162,7 @@ export class MovimientoService {
         idDepositoDestino?: number | null;
         responsable?: string;
         observaciones?: string | null;
-    }) {
+    }, userMail?: string) {
         const {
             idTipoMovimiento,
             nombreTipoMovimiento,
@@ -228,32 +228,80 @@ export class MovimientoService {
         const now = new Date();
 
         
-    // Buscar el estado 'Creado' de forma case-insensitive para mayor tolerancia con la BD
+    // Buscar los estados necesarios de forma case-insensitive
     const estadoCreado = await prisma.estadoMovimiento.findFirst({ where: { nombre: { equals: 'Creado', mode: 'insensitive' } } });
-        if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
+    const estadoVendido = await prisma.estadoMovimiento.findFirst({ where: { nombre: { equals: 'Vendido', mode: 'insensitive' } } });
+    if (!estadoCreado) throw new Error('Estado "Creado" no existe en la base de datos, configuración inválida del sistema');
+    if (!estadoVendido) {
+        // No hacemos throw aquí for backward compat; mejor informar claramente
+        throw new Error('Estado "Vendido" no existe en la base de datos, por favor agregue el estado VENDIDO');
+    }
 
         // Realizamos la transacción para crear el movimiento
         const result = await prisma.$transaction(async (tx) => {
-            const mov = await tx.movimientoProducto.create({
-                data: {
-                    idDepositoOrigen,
-                    idProducto,
-                    idDepositoDestino: idDepositoDestino ?? null,
-                    cantidad,
-                    responsable: responsable ?? 'system',
-                    observaciones: observaciones ?? null,
-                    idTipoMovimiento: tipoMov.idTipoMovimiento
+            // Si es traslado, asegurar que exista un registro de Inventario para el depósito destino y producto
+            if (isTraslado && depositoDestino) {
+                const invDestExist = await tx.inventario.findUnique({ where: { idDeposito_idProducto: { idDeposito: idDepositoDestino!, idProducto } } });
+                if (!invDestExist) {
+                    await tx.inventario.create({ data: { idDeposito: idDepositoDestino!, idProducto, cantidadProducto: 0 } });
                 }
-            });
+            }
 
-            await tx.cambioEstadoMovimiento.create({
-                data: {
-                    idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
-                    fechaHoraInicio: now,
-                    fechaHoraFin: null,
-                    idMovimiento: mov.idMovimiento
+                // Determinar nombre del responsable: si llega userMail, intentar usar persona asociada
+                let nombreResponsable = responsable ?? 'system';
+                if (userMail) {
+                    try {
+                        const p = await tx.persona.findUnique({ where: { mail: userMail } });
+                        if (p) {
+                            const n = (p.nombre || '').trim();
+                            const a = (p.apellido || '').trim();
+                            const full = `${n} ${a}`.trim();
+                            if (full) nombreResponsable = full;
+                            else nombreResponsable = p.mail;
+                        }
+                    } catch (_) {}
                 }
-            });
+
+                const mov = await tx.movimientoProducto.create({
+                    data: {
+                        idDepositoOrigen,
+                        idProducto,
+                        idDepositoDestino: idDepositoDestino ?? null,
+                        cantidad,
+                        responsable: nombreResponsable ?? 'system',
+                        observaciones: observaciones ?? null,
+                        idTipoMovimiento: tipoMov.idTipoMovimiento
+                    }
+                });
+
+            // Si es Traslado -> crear cambio 'Creado'
+            if (isTraslado) {
+                await tx.cambioEstadoMovimiento.create({
+                    data: {
+                        idEstadoMovimiento: estadoCreado.idEstadoMovimiento,
+                        fechaHoraInicio: now,
+                        fechaHoraFin: null,
+                        idMovimiento: mov.idMovimiento,
+                        responsable: mov.responsable ?? null
+                    }
+                });
+            }
+
+            // Si es Egreso -> crear cambio 'Vendido' inmediatamente con responsable igual al usuario creador
+            if (isEgreso) {
+                await tx.cambioEstadoMovimiento.create({
+                    data: {
+                        idEstadoMovimiento: estadoVendido.idEstadoMovimiento,
+                        fechaHoraInicio: now,
+                        fechaHoraFin: null,
+                        idMovimiento: mov.idMovimiento,
+                        responsable: mov.responsable ?? null,
+                        responsableEntrega: mov.responsable ?? null,
+                        responsableRecepcion: null,
+                        observaciones: observaciones ?? null
+                    }
+                });
+            }
 
             // NUEVA LÓGICA (2024-11): Descontar stock del depósito origen al CREAR el movimiento
             // (antes se descontaba al pasar a ENTREGADO). Esto permite reflejar disponibilidad real inmediata.
@@ -353,17 +401,28 @@ export class MovimientoService {
             } : (mov.idDepositoDestino ? { id: mov.idDepositoDestino } : null),
             tipoMovimiento: mov.tipoMovimiento ? { idTipoMovimiento: mov.tipoMovimiento.idTipoMovimiento, nombre: mov.tipoMovimiento.nombre } : null,
             observaciones: mov.observaciones || null,
-            cambiosDeEstado: mov.cambiosDeEstado.map(c => ({
-                idCambioEstadoMovimiento: c.idCambioEstadoMovimiento,
-                idEstadoMovimiento: c.idEstadoMovimiento,
-                nombreEstado: c.estadoMovimiento?.nombre || null,
-                fechaHoraInicio: formatDateTimeArg(c.fechaHoraInicio),
-                fechaHoraFin: formatDateTimeArg(c.fechaHoraFin),
-                responsable: c.responsable ?? null,
-                responsableEntrega: (c as any).responsableEntrega ?? null,
-                responsableRecepcion: (c as any).responsableRecepcion ?? null,
-                observaciones: c.observaciones ?? null
-            }))
+            cambiosDeEstado: mov.cambiosDeEstado.map(c => {
+                const nombreEstado = c.estadoMovimiento?.nombre || null;
+                const normalize = (s?: string | null) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, '');
+                const estadoNorm = normalize(nombreEstado);
+
+                // Para estados 'Entregado' queremos mostrar responsableEntrega y responsableRecepcion.
+                // Si no están seteados en la BD y el estado es 'entregado', mostrar '-' en recepcion.
+                const responsableEntregaVal = (c as any).responsableEntrega ?? null;
+                const responsableRecepcionVal = (c as any).responsableRecepcion ?? null;
+
+                return {
+                    idCambioEstadoMovimiento: c.idCambioEstadoMovimiento,
+                    idEstadoMovimiento: c.idEstadoMovimiento,
+                    nombreEstado: nombreEstado,
+                    fechaHoraInicio: formatDateTimeArg(c.fechaHoraInicio),
+                    fechaHoraFin: formatDateTimeArg(c.fechaHoraFin),
+                    responsable: (estadoNorm === 'entregado' || estadoNorm === 'vendido') ? (responsableEntregaVal ?? c.responsable ?? null) : (c.responsable ?? null),
+                    responsableEntrega: (estadoNorm === 'entregado' || estadoNorm === 'vendido') ? (responsableEntregaVal ?? c.responsable ?? null) : responsableEntregaVal ?? null,
+                    responsableRecepcion: (estadoNorm === 'entregado' || estadoNorm === 'vendido') ? (responsableRecepcionVal ?? '-') : responsableRecepcionVal ?? null,
+                    observaciones: c.observaciones ?? null
+                };
+            })
         };
 
         return detalle;
@@ -396,17 +455,24 @@ export class MovimientoService {
         const actualNorm = normalize(nombreActual);
         const destinoNorm = normalize(nombreEstadoDestino);
 
-        if (['cancelado', 'entregado'].includes(actualNorm)) {
+        if (actualNorm === 'cancelado') {
             throw new Error('Estado final, no puede modificarse');
         }
 
         const allowedFrom: Record<string, string[]> = {
             encamino: ['cancelado', 'entregado'],
-            creado: ['cancelado', 'encamino']
+            creado: ['cancelado', 'encamino'],
+            vendido: ['cancelado']
         };
 
+        const tipoNombreMov = (mov.tipoMovimiento?.nombre || '').toString().trim().toLowerCase();
+        const isTrasladoMov = tipoNombreMov === 'traslado';
+        const isEgresoMov = tipoNombreMov === 'egreso';
+
         const allowed = allowedFrom[actualNorm] ?? [];
-        if (!allowed.includes(destinoNorm)) {
+        const canCancelFromVendido = destinoNorm === 'cancelado' && actualNorm === 'vendido' && isEgresoMov;
+        const canCancelFromEntregado = destinoNorm === 'cancelado' && actualNorm === 'entregado' && isEgresoMov;
+        if (!allowed.includes(destinoNorm) && !canCancelFromVendido && !canCancelFromEntregado) {
             throw new Error(`Transición no permitida desde '${nombreActual ?? 'indefinido'}' a '${nombreEstadoDestino}'`);
         }
 
@@ -477,6 +543,48 @@ export class MovimientoService {
                 // Egreso: no hay acción adicional (ya se restó el origen al crear)
 
                 // Actualizar marca de tiempo global de stock para el producto (impacto final del movimiento)
+                await tx.producto.update({ where: { idProducto }, data: ({ lastStockUpdatedAt: now } as any) });
+            }
+
+            // Si pasa a CANCELADO, debemos devolver/el revertir los impactos aplicados al crear/entregar
+            if (destinoNorm === 'cancelado') {
+                const cantidad = mov.cantidad;
+                const idProducto = mov.idProducto;
+                const idDepositoOrigen = mov.idDepositoOrigen;
+                const idDepositoDestino = mov.idDepositoDestino ?? null;
+
+                // Revertir SIEMPRE el impacto en el origen (se descontó al crear)
+                await tx.inventario.update({
+                    where: { idDeposito_idProducto: { idDeposito: idDepositoOrigen, idProducto } },
+                    data: { cantidadProducto: { increment: cantidad } }
+                });
+
+                const depOri = await tx.deposito.findUnique({ where: { id: idDepositoOrigen } });
+                if (depOri) {
+                    await tx.deposito.update({
+                        where: { id: idDepositoOrigen },
+                        data: { capacidadUsada: (depOri.capacidadUsada || 0) + cantidad }
+                    });
+                }
+
+                // Si era TRASLADO y ya estaba ENTREGADO, revertir también el destino (se le agregó stock al entregar)
+                if (isTrasladoMov && idDepositoDestino && actualNorm === 'entregado') {
+                    const invDestino = await tx.inventario.findFirst({ where: { idDeposito: idDepositoDestino, idProducto } });
+                    if (invDestino) {
+                        const nuevaCant = Math.max(0, (invDestino.cantidadProducto || 0) - cantidad);
+                        await tx.inventario.update({
+                            where: { idDeposito_idProducto: { idDeposito: idDepositoDestino, idProducto } },
+                            data: { cantidadProducto: nuevaCant }
+                        });
+                    }
+                    const depDes = await tx.deposito.findUnique({ where: { id: idDepositoDestino } });
+                    if (depDes) {
+                        const nuevaCap = Math.max(0, (depDes.capacidadUsada || 0) - cantidad);
+                        await tx.deposito.update({ where: { id: idDepositoDestino }, data: { capacidadUsada: nuevaCap } });
+                    }
+                }
+
+                // Actualizar marca de tiempo global de stock para el producto
                 await tx.producto.update({ where: { idProducto }, data: ({ lastStockUpdatedAt: now } as any) });
             }
 

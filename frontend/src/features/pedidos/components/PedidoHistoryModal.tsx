@@ -160,8 +160,7 @@ const PedidoHistoryModal: React.FC<Props> = ({
             </div>
             <div>
               <span className="font-medium">Cantidad:</span>{" "}
-              {pedido.cantAProducir_gramos}g / {pedido.cantAProducir_paquetes}{" "}
-              pqt / {pedido.cantAProducir_porciones} por
+              {pedido.cantAProducir_gramos} g / {pedido.cantAProducir_paquetes ? Math.round(pedido.cantAProducir_paquetes) : 0} {Math.round(pedido.cantAProducir_paquetes || 0) === 1 ? 'paquete' : 'paquetes'} / {pedido.cantAProducir_porciones ?? 0} porciones
             </div>
             <div>
               <span className="font-medium">Creado por:</span>{" "}
@@ -209,6 +208,7 @@ const PedidoHistoryModal: React.FC<Props> = ({
                   <div className={`w-3 h-3 mt-1 rounded-full ${color}`} />
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">{label.toUpperCase()}</div>
+                    <div className="text-xs text-gray-500"><span className="font-medium">Responsable:</span> {c.responsable ?? '-'}</div>
                     <div className="text-xs text-gray-500">Inicio: {new Date(c.fechaHoraInicio).toLocaleString()}</div>
                     {c.fechaHoraFin && (
                       <div className="text-xs text-gray-500">Fin: {new Date(c.fechaHoraFin).toLocaleString()}</div>

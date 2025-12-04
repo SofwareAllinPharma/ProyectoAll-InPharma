@@ -66,18 +66,18 @@ export default function TecnicoDashboard() {
     {
       key: 'elaborador',
       title: 'ELABORADOR',
-      render: (r) => formatUserName(r.mailUsuarioCocinero) ?? '-',
+      render: (r) => (
+        r.cocinero?.usuario?.persona
+          ? `${(r.cocinero.usuario.persona.nombre || '').trim()} ${(r.cocinero.usuario.persona.apellido || '').trim()}`.trim()
+          : formatUserName(r.mailUsuarioCocinero) ?? '-'
+      ),
     },
     {
       key: 'cantidad',
       title: 'CANTIDAD A PRODUCIR',
       render: (r) => formatCantidad(r),
     },
-    {
-      key: 'usuarioElaborador',
-      title: 'USUARIO ELABORADOR',
-      render: (r) => formatUserName(r.mailUsuarioCocinero) ?? '-',
-    },
+    // columna 'USUARIO ELABORADOR' removida por solicitud
     {
       key: 'estado',
       title: 'ESTADO',
