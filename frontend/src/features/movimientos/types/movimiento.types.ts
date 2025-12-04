@@ -2,7 +2,7 @@
 export type TipoMovimiento = 'EGRESO' | 'TRASLADO' | 'INGRESO';
 
 // Estados según documento
-export type EstadoMovimiento = 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';
+export type EstadoMovimiento = 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO' | 'VENDIDO';
 
 // Interface principal del movimiento
 export interface Movimiento {

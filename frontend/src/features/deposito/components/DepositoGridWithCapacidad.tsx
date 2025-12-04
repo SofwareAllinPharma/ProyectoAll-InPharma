@@ -12,6 +12,7 @@ interface Props {
 export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete }: Props) {
   // Estado para mapear idDeposito -> suma de productos
   const [capacidadPorDeposito, setCapacidadPorDeposito] = useState<Record<number, number>>({});
+  const [userLabelByMail, setUserLabelByMail] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -37,6 +38,9 @@ export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete
       isMounted = false;
     };
   }, [items]);
+
+  // No necesitamos mapear mails -> label porque `deposito.responsable` ahora contiene el label (Nombre Apellido)
+  useEffect(() => { setUserLabelByMail({}); }, []);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

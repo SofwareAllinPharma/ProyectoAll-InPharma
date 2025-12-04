@@ -110,7 +110,7 @@ export default function MovimientoDetailPage() {
   const isIngreso = detalle.tipo === 'INGRESO';
   const estado = detalle.estado;
   const puedeEntregar = estado === 'EN_CAMINO';
-  const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO';
+  const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO' || (estado === 'ENTREGADO' && isEgreso) || (estado === 'VENDIDO' && isEgreso);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -212,7 +212,7 @@ export default function MovimientoDetailPage() {
         {/* Historial de estados */}
         <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Historial de Estados</h3>
-          <MovimientoHistory events={detalle.historial} />
+          <MovimientoHistory events={detalle.historial} creador={detalle.responsable} />
         </section>
 
         {/* Botones de acción */}
@@ -244,6 +244,7 @@ export default function MovimientoDetailPage() {
         }}
         from={estado.replace(/_/g, ' ')}
         to={(showConfirm?.to || '').replace(/_/g, ' ')}
+        tipo={detalle.tipo}
         errorMessage={capacityError ?? undefined}
         onConfirm={async (args) => {
           try {

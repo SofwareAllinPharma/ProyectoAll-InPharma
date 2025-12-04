@@ -35,12 +35,13 @@ async function main() {
     }
 
 	const hash = await bcrypt.hash(plain, 10);
-    const usuarios = [
-        { mail: 'softwareallinpharma@gmail.com', idPerfil: 3 },
-        // Usuarios necesarios para seed de pedidos y otros ejemplos
-        { mail: 'tecnico@aip.com', idPerfil: 1 },
-        { mail: 'adminfab@aip.com', idPerfil: 2 },
-    ]
+	const usuarios = [
+		{ mail: 'softwareallinpharma@gmail.com', idPerfil: 3, dni: '20123456', nombre: 'Santiago', apellido: 'García', telefono: '+5491123456789' },
+		{ mail: 'adminfab@aip.com', idPerfil: 2, dni: '27345678', nombre: 'Lucía', apellido: 'Pérez', telefono: '+5491165432100' },
+		{ mail: 'tecnico@aip.com', idPerfil: 1, dni: '31234567', nombre: 'Martín', apellido: 'Rodríguez', telefono: '+5491177778888' },
+		{ mail: 'encptoventa@aip.com', idPerfil: 4, dni: '29876543', nombre: 'Camila', apellido: 'Fernández', telefono: '+5491144466622' },
+	]
+
 
     for (const u of usuarios) {
         await prisma.usuario.upsert({
@@ -48,6 +49,23 @@ async function main() {
             update: { contrasena: hash },
             create: { mail: u.mail, contrasena: hash },
         });
+
+		// Asegurar que exista una Persona asociada al Usuario (usar mail como unique)
+		await prisma.persona.upsert({
+			where: { mail: u.mail },
+			update: {
+				nombre: u.nombre ?? null,
+				apellido: u.apellido ?? null,
+				telefono: u.telefono ?? null,
+			},
+			create: {
+				dni: u.dni,
+				mail: u.mail,
+				nombre: u.nombre ?? null,
+				apellido: u.apellido ?? null,
+				telefono: u.telefono ?? null,
+			},
+		});
     }
 
 	await prisma.usuarioPerfil.createMany({
@@ -113,11 +131,13 @@ async function main() {
 	})
 	console.log('✔ Seed de INSUMOS ejecutado OK');
     
+    // Asignar responsables de depósitos a partir de los usuarios seed (usar mail como identificador)
     const depositos = [
         {
             nombre: "Depósito Central",
             direccion: "Av. Siempre Viva 123",
-            responsable: "Juan Pérez",
+            // guardar como 'Nombre Apellido' para que sea el identificador mostrado
+            responsable: `${usuarios[0].nombre} ${usuarios[0].apellido}`,
             capacidadTotal: 2000,
             capacidadUsada: 0,
             estado: true,
@@ -125,7 +145,7 @@ async function main() {
         {
             nombre: "Fábrica",
             direccion: "No especificada",
-            responsable: "Alberto Gómez",
+            responsable: `${usuarios[1].nombre} ${usuarios[1].apellido}`,
             capacidadTotal: 5000,
             capacidadUsada: 0,
             estado: true,
@@ -359,6 +379,12 @@ async function main() {
 		update: {},
 		create: { nombre: 'Cancelado' },
 	});
+    const estadoVendido = await prisma.estadoMovimiento.upsert({
+        where: { nombre: 'Vendido' },
+        update: {},
+        create: { nombre: 'Vendido' },
+    });
+    console.log('Seed de ESTADO "Vendido" ejecutado OK');
 	console.log('Seed de ESTADOS_MOVIMIENTO ejecutado OK');
 
     const tipoTraslado = await prisma.tiposMovimiento.upsert({

@@ -6,6 +6,8 @@ type SearchSelectProps<T> = {
   value?: T | null;
   getKey: (item: T) => string | number;
   getLabel: (item: T) => string;
+  // optional: separate function to compute the searchable string (defaults to getLabel)
+  getSearchString?: (item: T) => string;
   onSelect: (item: T) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -26,6 +28,7 @@ export default function SearchSelect<T>({
   value = null,
   getKey,
   getLabel,
+  getSearchString,
   onSelect,
   placeholder = 'Buscar...',
   disabled = false,
@@ -68,10 +71,12 @@ export default function SearchSelect<T>({
     };
   }, []);
 
+  const getSearch = (it: T) => (typeof getSearchString === 'function' ? getSearchString(it) : getLabel(it));
+
   const filtered = disableTyping
     ? items
     : (query.trim()
-      ? items.filter(i => getLabel(i).toLowerCase().includes(query.toLowerCase()))
+      ? items.filter(i => getSearch(i).toLowerCase().includes(query.toLowerCase()))
       : items);
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -116,7 +121,7 @@ export default function SearchSelect<T>({
   }, [open, inputRef.current]);
 
   const dropdown = (
-    <div style={rect ? { position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px' } : undefined} className="z-[10010] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+    <div style={rect ? { position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px' } : undefined} className="z-[12000] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
       {filtered.length === 0 ? (
         <div className="p-3 text-sm text-gray-500">{noResultsText}</div>
       ) : (

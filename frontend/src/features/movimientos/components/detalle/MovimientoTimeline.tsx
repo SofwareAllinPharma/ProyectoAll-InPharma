@@ -10,6 +10,7 @@ export default function MovimientoTimeline({ events }: { events: MovimientoHisto
     CREADO: 'text-blue-600',
     EN_CAMINO: 'text-yellow-600',
     ENTREGADO: 'text-green-600',
+    VENDIDO: 'text-green-600',
     CANCELADO: 'text-red-600',
   };
 
@@ -20,10 +21,11 @@ export default function MovimientoTimeline({ events }: { events: MovimientoHisto
           key={e.id}
           title={e.estado.replace(/_/g, ' ')}
           subtitle={
-            e.estado === 'ENTREGADO'
+            (e.estado === 'ENTREGADO' || e.estado === 'VENDIDO')
               ? [
-                  e.responsableEntrega ? `Entrega: ${e.responsableEntrega}` : null,
-                  e.responsableRecepcion ? `Recepción: ${e.responsableRecepcion}` : null,
+                  e.responsableEntrega ? `Responsable de entrega: ${e.responsableEntrega}` : null,
+                  // show '-' when null
+                  `Responsable de recepción: ${e.responsableRecepcion ? e.responsableRecepcion : '-'}`,
                   e.responsable ? `Responsable: ${e.responsable}` : null,
                 ]
                   .filter(Boolean)

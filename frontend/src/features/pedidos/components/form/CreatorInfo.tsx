@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { api } from '../../../../lib/api';
 
 interface Props {
   creatorMail: string;
   creationDate: string;
 }
 
-const formatUserName = (email?: string | null) => {
+const formatUserNameFromEmail = (email?: string | null) => {
   if (!email) return '-';
   const special: Record<string, string> = {
     'tecnico@aip.com': 'Técnico',
@@ -18,6 +19,33 @@ const formatUserName = (email?: string | null) => {
 };
 
 const CreatorInfo: React.FC<Props> = ({ creatorMail, creationDate }) => {
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      if (!creatorMail) {
+        setDisplayName('-');
+        return;
+      }
+      try {
+        const { data } = await api.get('/personas');
+        const found = Array.isArray(data) ? data.find((p: any) => p.mail === creatorMail) : null;
+        if (mounted) {
+          if (found && (found.nombre || found.apellido)) {
+            setDisplayName(`${(found.nombre || '').trim()} ${(found.apellido || '').trim()}`.trim());
+          } else {
+            setDisplayName(formatUserNameFromEmail(creatorMail));
+          }
+        }
+      } catch (e) {
+        if (mounted) setDisplayName(formatUserNameFromEmail(creatorMail));
+      }
+    };
+    void load();
+    return () => { mounted = false; };
+  }, [creatorMail]);
+
   return (
     <div className="bg-gray-50 rounded-md p-3 border border-gray-200">
       <div className="grid grid-cols-2 gap-3">
@@ -27,7 +55,7 @@ const CreatorInfo: React.FC<Props> = ({ creatorMail, creationDate }) => {
             <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            {formatUserName(creatorMail)}
+            {displayName ?? '-'}
           </div>
         </div>
         <div>
