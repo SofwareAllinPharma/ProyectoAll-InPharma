@@ -20,9 +20,9 @@ export default function SelectProfile() {
     // Si el usuario tiene ADMINSIS, muestra todas. Sino muestra sólo las que coinciden con sus roles.
     const visible = roles.includes('ADMINSIS')
         ? ROLES
-        : ROLES.filter(r => roles.includes(r.roleCode));
+            : ROLES.filter(r => roles.includes(r.roleCode as unknown as any));
 
-    const handleSelectProfile = (roleKey: string, path: string) => {
+        const handleSelectProfile = (roleKey: string, _path: string) => {
         localStorage.setItem('activeRole', roleKey.toUpperCase());
         // navigate(path); // El componente ProfileCard usa Link internamente, pero si queremos forzar la navegación podemos hacerlo aquí.
         // Sin embargo, ProfileCard usa 'to' prop que renderiza un Link.

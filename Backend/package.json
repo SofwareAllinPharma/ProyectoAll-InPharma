@@ -45,8 +45,8 @@
     "db:sync": "prisma generate && prisma migrate dev --skip-seed && prisma db seed"
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma",
-    "seed": "tsx src/prisma/seed.ts"
+   "schema": "src/prisma/schema.prisma",
+    "seed": "node dist/prisma/seed.js"
   },
   "keywords": [],
   "author": "",
