@@ -54,7 +54,30 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
       // fetch personas for selects (we fetch regardless; UI will decide whether to show selects)
       setUsers([]);
       api.get('/personas').then(r => r.data).then((list) => {
-        setUsers(list || []);
+        const personas = list || [];
+        setUsers(personas);
+        // Si el usuario actual no tiene persona en /auth/me, buscarla aquí y sustituir el responsable mostrado
+        try {
+          const u: any = user as any;
+          if (u && (!u.persona || !u.persona.nombre) && u?.mail) {
+            const match = personas.find((p: any) => (p.mail || '').toLowerCase() === String(u.mail || '').toLowerCase());
+            if (match) {
+              const full = `${(match.nombre || '').trim()} ${(match.apellido || '').trim()}`.trim();
+              if (full) {
+                // Solo ajustar campos cuando no es flujo ENTREGADO (que inicializa vacíos)
+                if (!isEntregado) {
+                  // Si actualmente mostramos un email o está vacío, reemplazar
+                  setResponsable((prev) => {
+                    if (!prev || prev.includes('@') || prev === (u.mail || '').split('@')[0]) return full;
+                    return prev;
+                  });
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
         // eslint-disable-next-line no-console
         console.log('[ConfirmarCambioEstadoModal] personas cargadas:', Array.isArray(list) ? list.length : 0, { open, to, tipo, isEntregado, isTraslado });
       }).catch((e) => {

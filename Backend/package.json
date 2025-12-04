@@ -46,7 +46,7 @@
   },
   "prisma": {
    "schema": "src/prisma/schema.prisma",
-    "seed": "node dist/prisma/seed.js"
+    "seed": "tsx src/prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
