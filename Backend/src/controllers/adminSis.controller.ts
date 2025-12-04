@@ -153,6 +153,7 @@ export async function getAllUsers(req: Request, res: Response) {
 
     const formattedUsers = users.map(u => ({
       mail: u.mail,
+      activo: u.activo,
       dni: u.persona?.dni,
       nombre: u.persona?.nombre,
       apellido: u.persona?.apellido,
@@ -164,5 +165,35 @@ export async function getAllUsers(req: Request, res: Response) {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+}
+
+export async function deactivateUser(req: Request, res: Response) {
+  try {
+    const { mail } = req.params;
+
+    const user = await prisma.usuario.findUnique({ where: { mail } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await prisma.usuario.update({ where: { mail }, data: { activo: false } });
+    return res.json({ message: 'Usuario dado de baja (activo=false)' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error al dar de baja al usuario' });
+  }
+}
+
+export async function activateUser(req: Request, res: Response) {
+  try {
+    const { mail } = req.params;
+
+    const user = await prisma.usuario.findUnique({ where: { mail } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await prisma.usuario.update({ where: { mail }, data: { activo: true } });
+    return res.json({ message: 'Usuario reactivado (activo=true)' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error al reactivar al usuario' });
   }
 }

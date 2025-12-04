@@ -10,6 +10,7 @@ datasource db {
 model Usuario {
   mail       String  @id @db.VarChar(255)
   contrasena String  @map("contraseña") @db.VarChar(255)
+  activo     Boolean @default(true)
   persona    Persona?
   sesiones   Sesion[]
   perfiles   UsuarioPerfil[]

@@ -24,7 +24,7 @@ export default function PasswordField({ id, label, error, helperText, ...inputPr
         />
         <button
           type="button"
-          className="absolute right-2 top-1/3 -translate-y-1/2 flex items-center text-gray-500 focus:outline-none"
+          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center text-gray-500 focus:outline-none"
           onClick={() => setVisible(v => !v)}
           tabIndex={-1}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}

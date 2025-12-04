@@ -41,7 +41,8 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
     path.startsWith("/tecnico") ||
     path.startsWith("/adminfab") ||
     path.startsWith("/adminsis") ||
-    path.startsWith("/puntoventa")
+    path.startsWith("/puntoventa") ||
+    path.startsWith("/mis-datos")
   )
     variant = "dashboard";
 
