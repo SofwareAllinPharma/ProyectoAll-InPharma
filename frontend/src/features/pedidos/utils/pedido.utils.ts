@@ -21,8 +21,10 @@ export const formatCantidad = (pedido: {
   const paquetes = Number(pedido.cantAProducir_paquetes) || 0;
   const porciones = Number(pedido.cantAProducir_porciones) || 0;
   const gramos = Number(pedido.cantAProducir_gramos) || 0;
-  
-  if (paquetes >= 1) return `${Math.round(paquetes)} pqt`;
+  if (paquetes >= 1) {
+    const n = Math.round(paquetes);
+    return `${n} ${n === 1 ? 'paquete' : 'paquetes'}`;
+  }
   if (porciones >= 1) return `${Math.round(porciones)} porciones`;
   return `${Math.round(gramos)} g`;
 };

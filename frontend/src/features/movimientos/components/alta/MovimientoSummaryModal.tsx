@@ -83,13 +83,18 @@ export default function MovimientoSummaryModal({ open, onClose, onConfirm, submi
             <div className="text-gray-700">Fecha:</div>
             <div className="text-right text-gray-800">{data.fecha}</div>
 
-            <div className="text-gray-700">Responsable:</div>
-            <div className="text-right text-gray-800">{data.responsable ?? '-'}</div>
+                <div className="text-gray-700">Responsable:</div>
+                <div className="text-right font-semibold text-gray-900">{(function(){
+                  const r = data.responsable ?? '';
+                  if (!r) return '-';
+                  try { if (String(r).includes('@')) return String(r).split('@')[0]; } catch(_) {}
+                  return r;
+                })()}</div>
           </div>
 
-          <div className="mt-3">
+          <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
             <div className="text-sm text-gray-700">Observaciones</div>
-            <div className="mt-1 text-sm text-gray-800">{data.observaciones ?? '-'}</div>
+            <div className="mt-0 text-sm text-right text-gray-800">{data.observaciones ?? '-'}</div>
           </div>
         </div>
 

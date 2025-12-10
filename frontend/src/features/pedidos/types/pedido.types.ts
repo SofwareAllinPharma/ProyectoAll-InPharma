@@ -9,6 +9,7 @@ export type CambioEstado = {
   idEstadoPedido: number;
   fechaHoraInicio: string | Date;
   fechaHoraFin?: string | Date | null;
+  responsable?: string | null;
   estado?: EstadoPedido;
 };
 
@@ -39,6 +40,15 @@ export type Pedido = {
   updatedAt: string;
   cambioActual?: CambioEstado | null;
   cambios?: CambioEstado[];
+  // Relaciones opcionales incluidas cuando el backend las retorna mediante include
+  creador?: {
+    usuario?: { persona?: { nombre?: string | null; apellido?: string | null } | null } | null;
+    perfil?: { id?: number; nombre?: string } | null;
+  } | null;
+  cocinero?: {
+    usuario?: { persona?: { nombre?: string | null; apellido?: string | null } | null } | null;
+    perfil?: { id?: number; nombre?: string } | null;
+  } | null;
 };
 
 export type CreatePedidoRequest = {

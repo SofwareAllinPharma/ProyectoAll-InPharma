@@ -6,12 +6,14 @@ import CapacityBar from "./CapacityBar";
 export default function DepositCard({
   d,
   onOpenDetail,
-  productosEnDeposito
+  productosEnDeposito,
+  responsableLabel,
 }: {
   d: Deposito;
   onOpenDetail?: (id: number) => void;
   onDelete?: (deposito: Deposito) => void;
   productosEnDeposito?: number;
+  responsableLabel?: string | undefined;
 }) {
   const navigate = useNavigate();
 
@@ -71,7 +73,7 @@ export default function DepositCard({
         />
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Responsable:</span>
-          <span className="font-semibold text-gray-900">{d.responsable}</span>
+          <span className="font-semibold text-gray-900">{responsableLabel || d.responsable}</span>
         </div>
       </div>
     </div>

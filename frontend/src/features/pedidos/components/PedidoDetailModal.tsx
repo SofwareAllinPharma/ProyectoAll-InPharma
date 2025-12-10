@@ -181,7 +181,11 @@ const PedidoDetailModal: React.FC<Props> = ({
                 <div>
                   <div className="text-sm text-gray-600">Cant. paquetes</div>
                   <div className="font-medium">
-                    {pedido.cantAProducir_paquetes} pqt
+                    {(() => {
+                      const n = Number(pedido.cantAProducir_paquetes) || 0;
+                      if (!n) return "-";
+                      return `${n} ${n === 1 ? "paquete" : "paquetes"}`;
+                    })()}
                   </div>
                 </div>
                 <div>
@@ -205,8 +209,11 @@ const PedidoDetailModal: React.FC<Props> = ({
               </div>
               <div className="mt-4 text-sm">Creador</div>
               <div className="mt-1">
-                {formatUserName(pedido.mailUsuarioCreador)}
+                {pedido.creador?.usuario?.persona
+                  ? `${(pedido.creador.usuario.persona.nombre || "").trim()} ${(pedido.creador.usuario.persona.apellido || "").trim()}`.trim()
+                  : formatUserName(pedido.mailUsuarioCreador)}
               </div>
+>>>>>>> modifCata
               <div className="mt-2 text-sm">Técnico asignado</div>
               <div className="mt-1">
                 {formatUserName(pedido.mailUsuarioCocinero ?? undefined)}
@@ -252,6 +259,10 @@ const PedidoDetailModal: React.FC<Props> = ({
             {(pedido.cambios || []).map((c) => (
               <div key={c.idCambioEstado} className="p-2 bg-gray-50 rounded">
                 <div className="text-sm font-medium">{c.estado?.nombre}</div>
+                <div className="text-xs text-gray-500">
+                  <span className="font-medium">Responsable:</span>{" "}
+                  {c.responsable ?? "-"}
+                </div>
                 <div className="text-xs text-gray-500">
                   Inicio: {new Date(c.fechaHoraInicio).toLocaleString()}
                 </div>

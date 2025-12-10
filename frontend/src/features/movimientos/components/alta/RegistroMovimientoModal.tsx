@@ -32,7 +32,7 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
       const nombre = defaultDepDestino.nombre || depositos.find(d => d.id === defaultDepDestino.id)?.nombre || '';
       rm.setDepDestino({ id: defaultDepDestino.id, nombre });
       // Si hay destino por defecto, asumimos que es un traslado si no está seteado
-      if (!rm.tipo) rm.handleTipoChange({ value: 'TRASLADO', label: 'Traslado' });
+      if (!rm.tipo) rm.handleTipoChange({ key: 'TRASLADO', value: 'TRASLADO', label: 'Traslado' });
     }
   }, [open, defaultDepDestino?.id, defaultDepDestino?.nombre, depositos, rm.depDestino?.id, rm.tipo]);
 
@@ -99,9 +99,10 @@ export default function RegistroMovimientoModal({ open, onClose, onCreated, defa
               onBlurCantidad={rm.handleCantidadBlur}
               responsable={rm.responsable}
               onResponsableChange={rm.handleResponsableChange}
-              onBlurResponsable={rm.handleResponsableBlur}
               errorCantidad={(rm.errors.cantidad && (rm.touched.cantidad || rm.submitted)) ? rm.errors.cantidad : undefined}
               errorResponsable={(rm.errors.responsable && (rm.touched.responsable || rm.submitted)) ? rm.errors.responsable : undefined}
+              onBlurResponsable={rm.handleResponsableBlur}
+              disabledResponsable={true}
             />
           </div>
 

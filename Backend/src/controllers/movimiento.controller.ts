@@ -106,7 +106,8 @@ export class MovimientoController {
                 observaciones?: string | null;
             };
 
-            const created = await service.registrarMovimiento(payload);
+            const userMail = (req as any).user?.mail as string | undefined;
+            const created = await service.registrarMovimiento(payload, userMail);
             res.status(201).json(created);
         } catch (err: any) {
             const msg = err?.message || String(err || 'Error');

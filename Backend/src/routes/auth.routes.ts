@@ -5,7 +5,6 @@ import { requireAuth } from '../middleware/auth';
 const router = Router();
 
 router.post('/login', login);
-//router.post('/register', register); //no se usa por ahora
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/me', requireAuth, me);

@@ -18,7 +18,7 @@ interface Props {
 export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  useAuth();
   const {
     movimientos,
     resumen, 

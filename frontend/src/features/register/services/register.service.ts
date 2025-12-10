@@ -22,6 +22,7 @@ export interface User {
   nombre?: string;
   apellido?: string;
   telefono?: string;
+  activo?: boolean;
   roles: string[];
 }
 
@@ -51,6 +52,21 @@ export const registerService = {
 
   getUsers: async () => {
     const response = await api.get<User[]>("/admin-sis/users");
+    return response.data;
+  }
+  ,
+
+  deactivateUser: async (mail: string) => {
+    // NOTE: backend needs to expose an endpoint to logically deactivate a user.
+    // We call a dedicated endpoint here; if your backend uses a different path/method,
+    // adjust accordingly.
+    const response = await api.post(`/admin-sis/users/${encodeURIComponent(mail)}/deactivate`);
+    return response.data;
+  }
+  ,
+
+  activateUser: async (mail: string) => {
+    const response = await api.post(`/admin-sis/users/${encodeURIComponent(mail)}/activate`);
     return response.data;
   }
 };

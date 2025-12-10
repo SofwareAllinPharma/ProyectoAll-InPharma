@@ -10,6 +10,7 @@ datasource db {
 model Usuario {
   mail       String  @id @db.VarChar(255)
   contrasena String  @map("contraseña") @db.VarChar(255)
+  activo     Boolean @default(true)
   persona    Persona?
   sesiones   Sesion[]
   perfiles   UsuarioPerfil[]
@@ -250,6 +251,7 @@ model CambioEstadoPedido {
   idEstadoPedido   Int
   fechaHoraInicio  DateTime
   fechaHoraFin     DateTime?
+  responsable      String?      @db.VarChar(255)
   pedido           Pedido       @relation("Pedido_Historial", fields: [idPedido], references: [numPedido])
   pedidoActualDe   Pedido?      @relation("Pedido_CambioActual")
   estado           EstadoPedido @relation(fields: [idEstadoPedido], references: [id])

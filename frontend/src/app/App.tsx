@@ -10,6 +10,7 @@ import ResetPassword from "../features/auth/pages/ResetPassword";
 
 // privado
 import SelectProfile from "../features/profiles/pages/SelectProfile";
+import MyDataPage from "../features/profile/pages/MyDataPage";
 import TecnicoDashboard from "../features/views/tecnico/TecnicoView";
 import AdminFabDashboard from "../features/views/adminFab/AdminFabricaView";
 import AdminSisDashboard from "../features/views/adminSis/AdminSistemaView";
@@ -33,6 +34,7 @@ export default function App() {
           element={<RequireAuth><PostLoginLayout /></RequireAuth>}
         >
           <Route path="/perfiles" element={<SelectProfile />} />
+          <Route path="/mis-datos" element={<MyDataPage />} />
           <Route path="/tecnico/*" element={<TecnicoDashboard />} />
           <Route path="/adminfab/*" element={<AdminFabDashboard />} />
           <Route path="/puntoventa/*" element={<PuntoDashboard />} />

@@ -18,6 +18,10 @@ export default function MovimientosEstadoCell({ estado }: Props) {
       color: 'bg-green-100 text-green-800',
       label: 'Entregado'
     },
+    VENDIDO: {
+      color: 'bg-green-100 text-green-800',
+      label: 'Vendido'
+    },
     CANCELADO: {
       color: 'bg-red-100 text-red-800',
       label: 'Cancelado'

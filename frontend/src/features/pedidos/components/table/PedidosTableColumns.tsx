@@ -54,23 +54,23 @@ export const usePedidosTableColumns = ({
     {
       key: 'creador',
       title: 'Creador',
-      render: (r) => formatUserName(r.mailUsuarioCreador) ?? '-',
+      render: (r) => (r.creador?.usuario?.persona ? `${(r.creador.usuario.persona.nombre || '').trim()} ${(r.creador.usuario.persona.apellido || '').trim()}`.trim() : formatUserName(r.mailUsuarioCreador)) ?? '-',
     },
     {
       key: 'elaborador',
       title: 'Elaborador',
-      render: (r) => formatUserName(r.mailUsuarioCocinero) ?? '-',
+      render: (r) => (
+        r.cocinero?.usuario?.persona
+          ? `${(r.cocinero.usuario.persona.nombre || '').trim()} ${(r.cocinero.usuario.persona.apellido || '').trim()}`.trim()
+          : formatUserName(r.mailUsuarioCocinero) ?? '-'
+      ),
     },
     {
       key: 'cantidad',
       title: 'Cantidad a producir',
       render: (r) => formatCantidad(r),
     },
-    {
-      key: 'tecnico',
-      title: 'Usuario elaborador',
-      render: (r) => formatUserName(r.mailUsuarioCocinero) ?? '-',
-    },
+    // columna 'Usuario elaborador' removida a pedido del usuario
     {
       key: 'estado',
       title: 'Estado',

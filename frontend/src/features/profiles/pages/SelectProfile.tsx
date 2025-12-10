@@ -20,9 +20,9 @@ export default function SelectProfile() {
     // Si el usuario tiene ADMINSIS, muestra todas. Sino muestra sólo las que coinciden con sus roles.
     const visible = roles.includes('ADMINSIS')
         ? ROLES
-        : ROLES.filter(r => roles.includes(r.roleCode));
+            : ROLES.filter(r => roles.includes(r.roleCode as unknown as any));
 
-    const handleSelectProfile = (roleKey: string, path: string) => {
+        const handleSelectProfile = (roleKey: string, _path: string) => {
         localStorage.setItem('activeRole', roleKey.toUpperCase());
         // navigate(path); // El componente ProfileCard usa Link internamente, pero si queremos forzar la navegación podemos hacerlo aquí.
         // Sin embargo, ProfileCard usa 'to' prop que renderiza un Link.
@@ -42,11 +42,11 @@ export default function SelectProfile() {
                                 <div className="text-center text-lg opacity-80">No tienes perfiles asignados.</div>
                             ) : (
                                 <div
-                                    className="grid gap-6"
+                                    className="grid gap-6 items-stretch"
                                                 style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', justifyContent: 'center' }}
                                 >
                                     {visible.map((r) => (
-                                        <div key={r.key} onClick={() => handleSelectProfile(r.key, r.path)}>
+                                        <div key={r.key} className="h-full" onClick={() => handleSelectProfile(r.key, r.path)}>
                                             <ProfileCard
                                                 role={r.key as "tecnico" | "adminfab" | "adminsis" | "encptoventa"}
                                                 title={r.label}

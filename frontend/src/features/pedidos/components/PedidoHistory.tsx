@@ -58,7 +58,7 @@ export default function PedidoHistory({ cambios }: { cambios: CambioEstado[] }) 
     const label = mapEstadoLabel(estadoNormalizado);
     return {
       title: label.toUpperCase(),
-      lines: [],
+      lines: [`Responsable: ${c.responsable ?? '-'}`],
       start: formatFechaHora(c.fechaHoraInicio),
       end: formatFechaHora(c.fechaHoraFin),
       colorClass: colorForLabel(label),
