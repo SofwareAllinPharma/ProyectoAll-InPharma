@@ -40,13 +40,39 @@ async function main() {
   }
 
   const hash = await bcrypt.hash(plain, 10);
-  const usuarios = [{ mail: "softwareallinpharma@gmail.com", idPerfil: 3 }];
+  const usuarios = [
+    { 
+      mail: "softwareallinpharma@gmail.com", 
+      idPerfil: 3,
+      nombre: "Software",
+      apellido: "AllInPharma",
+      dni: "00000000",
+      telefono: "+54911234567"
+    }
+  ];
 
   for (const u of usuarios) {
     await prisma.usuario.upsert({
       where: { mail: u.mail },
       update: { contrasena: hash },
       create: { mail: u.mail, contrasena: hash },
+    });
+
+    // Crear o actualizar Persona
+    await prisma.persona.upsert({
+      where: { mail: u.mail },
+      update: {
+        nombre: u.nombre,
+        apellido: u.apellido,
+        telefono: u.telefono,
+      },
+      create: {
+        mail: u.mail,
+        dni: u.dni,
+        nombre: u.nombre,
+        apellido: u.apellido,
+        telefono: u.telefono,
+      },
     });
   }
 
@@ -1338,6 +1364,8 @@ async function main() {
     });
   }
 
+  // Pedidos de ejemplo deshabilitados hasta que existan los usuarios necesarios
+  /*
   await crearPedidoConEstado({
     producto: productoA,
     cantidades: { gramos: 300 },
@@ -1374,6 +1402,7 @@ async function main() {
   });
 
   console.log("Seed de PEDIDOS de ejemplo ejecutado OK");
+  */
 
   console.log("✔ Seed de FUSIÓN ejecutado OK");
 }
