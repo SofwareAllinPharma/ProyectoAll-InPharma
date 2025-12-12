@@ -1,4 +1,5 @@
 import ActionMenu from '../../../components/ui/ActionMenu';
+import { useAuth } from '../../../lib/auth';
 import CapacityBar from './CapacityBar';
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export default function DepositoDetailHeader({ dep, capacidadUsada, onEdit, onShowUmbrales, onShowDelete }: Props) {
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
   const isProtected = dep?.esProtegido || dep?.nombre === 'Fábrica';
   const items = [
     { key: 'edit', label: 'Modificar depósito', icon: <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>, onClick: onEdit },
@@ -32,10 +35,12 @@ export default function DepositoDetailHeader({ dep, capacidadUsada, onEdit, onSh
           </div>
         </div>
         <div className="flex items-center">
-          <ActionMenu
-            menuWidth={220}
-            items={items}
-          />
+          {!isTecnico && (
+            <ActionMenu
+              menuWidth={220}
+              items={items}
+            />
+          )}
         </div>
       </div>
 

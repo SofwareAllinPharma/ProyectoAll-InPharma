@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Deposito } from "../types/deposito.types";
+import { useRoutePrefix } from "../../../hooks/useRoutePrefix";
 
 import CapacityBar from "./CapacityBar";
 
@@ -16,10 +17,11 @@ export default function DepositCard({
   responsableLabel?: string | undefined;
 }) {
   const navigate = useNavigate();
+  const prefix = useRoutePrefix();
 
   const goDetail = () => {
     if (onOpenDetail) return onOpenDetail(d.id);
-    navigate(`/adminsis/depositos/${d.id}`);
+    navigate(`${prefix}/depositos/${d.id}`);
   };
 
   const used = typeof productosEnDeposito === 'number' ? productosEnDeposito : d.capacidadUsada;

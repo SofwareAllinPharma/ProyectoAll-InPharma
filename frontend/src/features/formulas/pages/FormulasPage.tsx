@@ -129,7 +129,7 @@ const FormulasPage: React.FC = () => {
       helpTip={(<TipBox><><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para editar o eliminar</></TipBox>)} 
       modals={(
         <>
-          <FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} existingNames={formulas.map(f => f.nombre)} />
+          <FormulaFormModal isOpen={formOpen} onClose={closeAll} onSubmit={onSubmit} formula={selected} isLoading={formLoading} isCopyMode={isCopy} existingNames={formulas.map(f => f.nombre)} canEditProtected={canEditProtected} />
           <ProtectedFormulaModal isOpen={protectedOpen} onClose={closeAll} onCreateCopy={createCopy} formula={selected} />
           <DeleteConfirmModal isOpen={deleteOpen} onClose={closeAll} onConfirm={onDelete} formula={selected} isLoading={formLoading} />
         </>
@@ -140,8 +140,8 @@ const FormulasPage: React.FC = () => {
       ) : (
         <FormulasTable 
           formulas={filtered} 
-          onEdit={canCreateOrEdit ? openEdit : undefined} 
-          onDelete={canCreateOrEdit ? openDelete : undefined} 
+          onEdit={openEdit} 
+          onDelete={openDelete} 
         />
       )}
     </PageShell>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
+import { useAuth } from '../../../lib/auth';
 import PageShell from '../../../components/PageShell';
 import DepositoFormModal from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -14,6 +16,9 @@ import MovimientosTab from '../../movimientos/pages/MovimientosTab';
 
 export default function DepositosPage() {
   const navigate = useNavigate();
+  const prefix = useRoutePrefix();
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
   const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
 
   const {
@@ -40,13 +45,15 @@ export default function DepositosPage() {
   subtitle="Gestión de depósitos y su stock"
         loading={loading}
         noContainer={true}
-        onCreate={() => setOpenCreate(true)}
+        onCreate={!isTecnico ? () => setOpenCreate(true) : undefined}
         createLabel="Registrar Depósito"
         extraActions={
-          <DepositosToolbar 
-            onShowTraslado={() => setShowTrasladoModal(true)} 
-            onShowPedido={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })} 
-          />
+          !isTecnico ? (
+            <DepositosToolbar 
+              onShowTraslado={() => setShowTrasladoModal(true)} 
+              onShowPedido={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })} 
+            />
+          ) : undefined
         }
         modals={
           <>
@@ -85,7 +92,7 @@ export default function DepositosPage() {
               ) : (
                 <DepositoGridWithCapacidad
                   items={items}
-                  onOpenDetail={(id: number) => navigate(`/adminsis/depositos/${id}`)}
+                  onOpenDetail={(id: number) => navigate(`${prefix}/depositos/${id}`)}
                   onDelete={(deposito: Deposito) => setDeleteTarget(deposito)}
                 />
               )}
@@ -124,7 +131,7 @@ export default function DepositosPage() {
                     stockGlobal={stockGlobal}
                     loadingGlobal={loadingGlobal}
                     resumenGlobal={resumenGlobal}
-                    onCrearPedido={() => navigate('/adminsis/pedidos', { state: { openCreate: true } })}
+                    onCrearPedido={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })}
                     onMovimientoStock={() => setShowTrasladoModal(true)}
                   />
                 )}
