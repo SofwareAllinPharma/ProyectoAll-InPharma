@@ -83,22 +83,24 @@ async function main() {
         skipDuplicates: true,
             });
         console.log('✔ Seed de INSUMOS ejecutado OK');
-    
-    // Asignar responsables de depósitos a partir de los usuarios seed (usar mail como identificador)
+    
+    // DEPÓSITOS: Farmacia (ID=1) y Fábrica (ID=2) con IDs fijos
     const depositos = [
         {
-            nombre: "Depósito Central",
-            direccion: "Av. Siempre Viva 123",
-            // guardar como 'Nombre Apellido' para que sea el identificador mostrado
-            responsable: `${usuarios[0].nombre} ${usuarios[0].apellido}`,
+            id: 1,
+            nombre: "Farmacia",
+            direccion: "Belgrano 2005",
+            responsable: `${usuarios[3].nombre} ${usuarios[3].apellido}`, // Encargado punto de venta
             capacidadTotal: 2000,
             capacidadUsada: 0,
             estado: true,
+            esProtegido: true,
         },
         {
+            id: 2,
             nombre: "Fábrica",
-            direccion: "No especificada",
-            responsable: `${usuarios[1].nombre} ${usuarios[1].apellido}`,
+            direccion: "Asmar 444",
+            responsable: `${usuarios[1].nombre} ${usuarios[1].apellido}`, // Admin fábrica
             capacidadTotal: 5000,
             capacidadUsada: 0,
             estado: true,
@@ -107,13 +109,20 @@ async function main() {
     ];
     for (const d of depositos) {
         await prisma.deposito.upsert({
-            where: { nombre: d.nombre },
-            update: { ...d },
-            create: { ...d },
+            where: { id: d.id },
+            update: { 
+                nombre: d.nombre,
+                direccion: d.direccion,
+                responsable: d.responsable,
+                capacidadTotal: d.capacidadTotal,
+                capacidadUsada: d.capacidadUsada,
+                estado: d.estado,
+                esProtegido: d.esProtegido,
+            },
+            create: d,
         });
     }
-    console.log("Seed de DEPOSITOS ejecutado OK (2 en total)");
-
+    console.log("✔ Seed de DEPOSITOS ejecutado OK (Farmacia y Fábrica)");
 
 	const insumosNecesariosGlobal = [
 		'Concentrado de Suero de Queso', 'Cacao Amargo Fenix 54', 'Sucralosa', 
@@ -270,7 +279,7 @@ async function main() {
 	console.log(`Seed de FORMULAS (${productosParaInventario.length} en total) y PRODUCTOS ejecutado OK`);
 
     const deps = await prisma.deposito.findMany({
-        where: { nombre: { in: ['Depósito Central', 'Fábrica'] } },
+        where: { nombre: { in: ['Farmacia', 'Fábrica'] } },
     });
 	const depId = Object.fromEntries(deps.map(d => [d.nombre, d.id]));
 
@@ -279,29 +288,28 @@ async function main() {
     let umbralMinBase = 5;
     const umbralMaxLimite = 500; 
 
-    for (const prod of productosParaInventario) {
-        const qtyCentral = Math.min(initialQtyBase * 3, umbralMaxLimite - 50);
-        const umbralMaxCentral = umbralMaxLimite;
+    for (const prod of productosParaInventario) {
+        const qtyFarmacia = Math.min(initialQtyBase * 3, umbralMaxLimite - 50);
+        const umbralMaxFarmacia = umbralMaxLimite;
         const qtyFabrica = Math.min(initialQtyBase * 5, umbralMaxLimite);
-        const umbralMaxFabrica = umbralMaxLimite;
+        const umbralMaxFabrica = umbralMaxLimite;
 
-        // Depósito Central
+        // Farmacia (punto de venta)
         inventarioData.push({	
-            idDeposito: depId['Depósito Central'], 	
+            idDeposito: depId['Farmacia'], 	
             idProducto: prod.idProducto,	
-            cantidadProducto: qtyCentral,	
+            cantidadProducto: qtyFarmacia,	
             umbralMin: umbralMinBase * 2,	
-            umbralMax: umbralMaxCentral 
+            umbralMax: umbralMaxFarmacia 
         });
+        // Fábrica (donde se deposita al finalizar pedidos)
         inventarioData.push({	
             idDeposito: depId['Fábrica'], 	
             idProducto: prod.idProducto,	
             cantidadProducto: qtyFabrica,	
             umbralMin: umbralMinBase * 3,	
             umbralMax: umbralMaxFabrica 
-        });
-
-        initialQtyBase = (initialQtyBase % 20) + 10;
+        });        initialQtyBase = (initialQtyBase % 20) + 10;
         umbralMinBase = (umbralMinBase % 8) + 3;
     }
 
@@ -365,7 +373,7 @@ async function main() {
     // ======================
     // MOVIMIENTOS HISTÓRICOS
     // ======================
-    const centralId = depId['Depósito Central'];
+    const farmaciaId = depId['Farmacia'];
     const fabricaId = depId['Fábrica'];
     const tiposMov = { traslado: tipoTraslado.idTipoMovimiento, egreso: tipoEgreso.idTipoMovimiento };
 
@@ -482,7 +490,7 @@ async function main() {
         idProducto: productosLista[0].idProducto,
         cantidad: 2,
         idDepositoOrigen: fabricaId,
-        idDepositoDestino: centralId,
+        idDepositoDestino: farmaciaId,
         fechas: { creado: daysAgo(60), enCamino: daysAgo(58), final: daysAgo(57) },
         finalEstado: 'Entregado',
         observaciones: 'Seed: traslado histórico entregado',
@@ -493,7 +501,7 @@ async function main() {
         tipo: 'Egreso',
         idProducto: productosLista[1].idProducto,
         cantidad: 3,
-        idDepositoOrigen: centralId,
+        idDepositoOrigen: farmaciaId,
         fechas: { creado: daysAgo(15), enCamino: daysAgo(14), final: daysAgo(13) },
         finalEstado: 'Entregado',
         observaciones: 'Seed: egreso histórico entregado',
@@ -504,7 +512,7 @@ async function main() {
         tipo: 'Traslado',
         idProducto: productosLista[2].idProducto,
         cantidad: 1,
-        idDepositoOrigen: centralId,
+        idDepositoOrigen: farmaciaId,
         idDepositoDestino: fabricaId,
         fechas: { creado: daysAgo(10), enCamino: daysAgo(9), final: daysAgo(5) },
         finalEstado: 'Cancelado',

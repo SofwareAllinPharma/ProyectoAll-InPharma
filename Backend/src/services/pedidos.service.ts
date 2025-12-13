@@ -178,19 +178,13 @@ export class PedidosService {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
     }
 
-    // Asegurar depósito “Fábrica”
-    const dep = await prisma.deposito.upsert({
+    // Obtener depósito "Fábrica" (debe existir con ID=2)
+    const dep = await prisma.deposito.findFirst({
       where: { nombre: "Fábrica" },
-      update: {},
-      create: {
-        nombre: "Fábrica",
-        direccion: "No especificada",
-        responsable: "Sistema",
-        capacidadTotal: 100000,
-        capacidadUsada: 0,
-        estado: true,
-      },
     });
+    if (!dep) {
+      throw new Error("Depósito 'Fábrica' no encontrado. Ejecute el seed de la base de datos.");
+    }
 
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
 

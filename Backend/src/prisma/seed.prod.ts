@@ -122,6 +122,47 @@ async function main() {
   });
   console.log(`✔ INSUMOS cargados (${INSUMOS_BASE.length} registros)`);
 
+  // 5) DEPÓSITOS (Farmacia y Fábrica con IDs fijos)
+  const depositos = [
+    {
+      id: 1,
+      nombre: 'Farmacia',
+      direccion: 'Belgrano 2005',
+      responsable: `${usuarios[3].nombre} ${usuarios[3].apellido}`, // Encargado punto de venta (índice 3)
+      capacidadTotal: 2000,
+      capacidadUsada: 0,
+      estado: true,
+      esProtegido: true,
+    },
+    {
+      id: 2,
+      nombre: 'Fábrica',
+      direccion: 'Asmar 444',
+      responsable: `${usuarios[2].nombre} ${usuarios[2].apellido}`, // Admin fábrica (índice 2)
+      capacidadTotal: 5000,
+      capacidadUsada: 0,
+      estado: true,
+      esProtegido: true,
+    },
+  ];
+
+  for (const d of depositos) {
+    await prisma.deposito.upsert({
+      where: { id: d.id },
+      update: { 
+        nombre: d.nombre,
+        direccion: d.direccion,
+        responsable: d.responsable,
+        capacidadTotal: d.capacidadTotal,
+        capacidadUsada: d.capacidadUsada,
+        estado: d.estado,
+        esProtegido: d.esProtegido,
+      },
+      create: d,
+    });
+  }
+  console.log('✔ DEPÓSITOS listos (Farmacia y Fábrica)');
+
   console.log('=== Seed de PRODUCCIÓN COMPLETADO OK ===');
 }
 
