@@ -5,6 +5,7 @@ import { generateWordLabel } from "./ProductLabelWord";
 import type { Producto } from "../../types/producto.types";
 import Button from "../../../../components/ui/Button";
 import { Printer, ChevronDown } from "lucide-react";
+import { api } from "../../../../lib/api"; // ✅ NUEVO
 
 interface PrintLabelButtonProps {
   producto: Producto;
@@ -15,10 +16,23 @@ export const PrintLabelButton = ({ producto }: PrintLabelButtonProps) => {
   const [isGeneratingWord, setIsGeneratingWord] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
+  // ✅ NUEVO (mínimo): asegurar que el producto tenga fórmula + insumos antes de generar etiqueta
+  const getProductoCompletoParaEtiqueta = async (): Promise<Producto> => {
+    const tieneInsumos = Array.isArray(
+      (producto as any)?.formula?.formulaInsumos
+    );
+    if (tieneInsumos) return producto;
+
+    const id = (producto as any).idProducto ?? (producto as any).id;
+    const { data } = await api.get(`/productos/${id}`);
+    return data as Producto;
+  };
+
   const handleGenerateWord = async () => {
     setIsGeneratingWord(true);
     try {
-      await generateWordLabel(producto);
+      const productoCompleto = await getProductoCompletoParaEtiqueta();
+      await generateWordLabel(productoCompleto);
       setShowMenu(false);
     } catch (error) {
       console.error("Error generando Word:", error);
@@ -30,11 +44,16 @@ export const PrintLabelButton = ({ producto }: PrintLabelButtonProps) => {
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      const blob = await pdf(<ProductLabelPdf producto={producto} />).toBlob();
+      const productoCompleto = await getProductoCompletoParaEtiqueta();
+
+      const blob = await pdf(
+        <ProductLabelPdf producto={productoCompleto} />
+      ).toBlob();
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `etiqueta-${producto.nombreComercial
+      link.download = `etiqueta-${productoCompleto.nombreComercial
         .replace(/\s+/g, "-")
         .toLowerCase()}.pdf`;
       link.click();

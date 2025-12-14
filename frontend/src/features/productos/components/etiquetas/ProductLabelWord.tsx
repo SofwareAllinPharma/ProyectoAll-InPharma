@@ -20,6 +20,15 @@ export const generateWordLabel = async (producto: Producto) => {
   const { pesoPorPorcion, rowsPerPortion, rowsPer100g } =
     computeNutrition(producto);
 
+  // ✅ NUEVO (mínimo): ingredientes desde la fórmula vinculada
+  const formulaInsumos = (producto as any)?.formula?.formulaInsumos;
+  const ingredientes = Array.isArray(formulaInsumos)
+    ? formulaInsumos
+        .map((fi: any) => fi?.insumo?.nombre)
+        .filter(Boolean)
+        .join(", ")
+    : "";
+
   // Borde exterior grueso negro
   const outerBorder = {
     style: BorderStyle.SINGLE,
@@ -135,6 +144,29 @@ export const generateWordLabel = async (producto: Producto) => {
                           bottom: thickBorder,
                         },
                       }),
+
+                      // ✅ NUEVO (mínimo): Ingredientes ANTES de la tabla nutricional
+                      ...(ingredientes
+                        ? [
+                            new Paragraph({
+                              children: [
+                                new TextRun({
+                                  text: "Ingredientes: ",
+                                  bold: true,
+                                  size: 16,
+                                  font: "Helvetica",
+                                }),
+                                new TextRun({
+                                  text: `${ingredientes}.`,
+                                  italics: true,
+                                  size: 16,
+                                  font: "Helvetica",
+                                }),
+                              ],
+                              spacing: { after: 120 }, // pequeño interlineado antes de la tabla
+                            }),
+                          ]
+                        : []),
 
                       // Tabla nutricional
                       new Table({

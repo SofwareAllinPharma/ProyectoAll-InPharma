@@ -73,6 +73,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: "italic",
   },
+  ingredientsTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 4,
+  },
+  ingredientsText: {
+    fontSize: 8,
+    marginTop: 2,
+    marginBottom: 12, // ✅ NUEVO: pequeño espacio antes de la tabla
+  },
 });
 
 interface ProductLabelPdfProps {
@@ -82,6 +92,15 @@ interface ProductLabelPdfProps {
 export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
   const { pesoPorPorcion, rowsPerPortion, rowsPer100g } =
     computeNutrition(producto);
+
+  // ✅ NUEVO (mínimo): ingredientes desde la fórmula vinculada
+  const formulaInsumos = (producto as any)?.formula?.formulaInsumos;
+  const ingredientes = Array.isArray(formulaInsumos)
+    ? formulaInsumos
+        .map((fi: any) => fi?.insumo?.nombre)
+        .filter(Boolean)
+        .join(", ")
+    : "";
 
   return (
     <Document>
@@ -93,6 +112,16 @@ export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
           <Text style={styles.servingSize}>
             Porción: {pesoPorPorcion}g | Base: 100g
           </Text>
+
+          {/* ✅ NUEVO (mínimo): mostrar ingredientes ANTES de la tabla */}
+          {ingredientes ? (
+            <>
+              <Text style={styles.description}>
+                Ingredientes: {ingredientes}.
+              </Text>
+              <View style={{ height: 6 }} /> {/* ✅ NUEVO: interlineado */}
+            </>
+          ) : null}
 
           <View style={styles.tableHeader}>
             <Text style={[styles.colLabel, styles.tableHeaderText]}>
