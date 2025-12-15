@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   ingredientsText: {
     fontSize: 8,
     marginTop: 2,
-    marginBottom: 12, // ✅ NUEVO: pequeño espacio antes de la tabla
+    marginBottom: 12,
   },
 });
 
@@ -93,8 +93,11 @@ export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
   const { pesoPorPorcion, rowsPerPortion, rowsPer100g } =
     computeNutrition(producto);
 
-  // ✅ NUEVO (mínimo): ingredientes desde la fórmula vinculada
-  const formulaInsumos = (producto as any)?.formula?.formulaInsumos;
+  // Ingredientes: soporta ambos nombres de relación (formulaInsumos o insumos)
+  const formulaInsumos =
+    (producto as any)?.formula?.formulaInsumos ??
+    (producto as any)?.formula?.insumos;
+
   const ingredientes = Array.isArray(formulaInsumos)
     ? formulaInsumos
         .map((fi: any) => fi?.insumo?.nombre)
@@ -113,13 +116,12 @@ export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
             Porción: {pesoPorPorcion}g | Base: 100g
           </Text>
 
-          {/* ✅ NUEVO (mínimo): mostrar ingredientes ANTES de la tabla */}
           {ingredientes ? (
             <>
               <Text style={styles.description}>
                 Ingredientes: {ingredientes}.
               </Text>
-              <View style={{ height: 6 }} /> {/* ✅ NUEVO: interlineado */}
+              <View style={{ height: 6 }} />
             </>
           ) : null}
 
@@ -154,9 +156,8 @@ export const ProductLabelPdf = ({ producto }: ProductLabelPdfProps) => {
             Sus valores diarios pueden ser mayores o menores dependiendo de sus
             necesidades energéticas.
           </Text>
-          <Text style={styles.description}>
-            Peso Neto: {producto.pesoNeto}g
-          </Text>
+
+          <Text style={styles.description}>Peso Neto: {producto.pesoNeto}g</Text>
         </View>
       </Page>
     </Document>
