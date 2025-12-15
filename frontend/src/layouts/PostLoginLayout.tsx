@@ -4,6 +4,7 @@ import NavbarPostLogin from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import type { SidebarItem } from "../components/Sidebar";
 import { ROLE_NAV_ITEMS } from "../config/navigation";
+import { ArrowLeft } from "lucide-react";
 
 export default function PostLoginLoyout() {
   const location = useLocation();
@@ -16,6 +17,16 @@ export default function PostLoginLoyout() {
     if (pathname.startsWith("/tecnico")) return ROLE_NAV_ITEMS.TECNICO;
     if (pathname.startsWith("/adminfab")) return ROLE_NAV_ITEMS.ADMINFAB;
     if (pathname.startsWith("/puntoventa")) return ROLE_NAV_ITEMS.ENCPTOVENTA;
+    if (pathname.startsWith("/mis-datos")) {
+      return [
+        {
+          id: "volver",
+          label: "Volver",
+          icon: <ArrowLeft className="w-5 h-5" />,
+          to: "/perfiles"
+        }
+      ];
+    }
     
     return [];
   };
@@ -26,11 +37,16 @@ export default function PostLoginLoyout() {
     pathname.startsWith("/adminsis") ||
     pathname.startsWith("/adminfab") ||
     pathname.startsWith("/tecnico") ||
-  pathname.startsWith('/puntoventa');
+    pathname.startsWith('/puntoventa') ||
+    pathname.startsWith("/mis-datos");
 
   useEffect(() => {
-    if (isDashboard) setSidebarCollapsed(undefined);
-  }, [isDashboard]);
+    if (pathname.startsWith("/mis-datos")) {
+      setSidebarCollapsed(true);
+    } else if (isDashboard) {
+      setSidebarCollapsed(undefined);
+    }
+  }, [isDashboard, pathname]);
 
   console.log(
     "[PostLoginLayout] pathname=",

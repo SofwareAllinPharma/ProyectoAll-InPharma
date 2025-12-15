@@ -10,6 +10,7 @@ datasource db {
 model Usuario {
   mail       String  @id @db.VarChar(255)
   contrasena String  @map("contraseña") @db.VarChar(255)
+  activo     Boolean @default(true)
   persona    Persona?
   sesiones   Sesion[]
   perfiles   UsuarioPerfil[]
@@ -78,7 +79,7 @@ model PasswordReset {
 
 model Insumo {
   id                   Int             @id @default(autoincrement())
-  nombre               String          @unique
+  nombre               String          
   cal_100g             Float
   grasasTotales_100g   Float
   grasasTrans_100g     Float
@@ -96,7 +97,7 @@ model Insumo {
 
 model Formula {
   id             Int             @id @default(autoincrement())
-  nombre         String          @unique
+  nombre         String          
   porcion        Float
   kcalorias      Float
   kjuls          Float
@@ -202,7 +203,7 @@ model Deposito {
 model Producto {
   idProducto             Int          @id @default(autoincrement())
   idFormula              Int
-  nombreComercial        String       @unique
+  nombreComercial        String       
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)

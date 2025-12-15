@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import type { Insumo, CreateInsumoDto } from '../../types/insumo.types';
-import InsumoFormFields from './InsumoFormFields';
-import FormModal from '../../../../components/ui/modales/FormModal';
-import FormActions from '../../../../components/form/FormActions';
+import { useEffect, useRef, useState } from "react";
+import type { Insumo, CreateInsumoDto } from "../../types/insumo.types";
+import InsumoFormFields from "./InsumoFormFields";
+import FormModal from "../../../../components/ui/modales/FormModal";
+import FormActions from "../../../../components/form/FormActions";
 
 interface InsumoFormModalProps {
   open: boolean;
@@ -12,10 +12,16 @@ interface InsumoFormModalProps {
   loading?: boolean;
 }
 
-export default function InsumoFormModal({ open, insumo, onSave, onCancel, loading = false }: InsumoFormModalProps) {
+export default function InsumoFormModal({
+  open,
+  insumo,
+  onSave,
+  onCancel,
+  loading = false,
+}: InsumoFormModalProps) {
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<CreateInsumoDto>({
-    nombre: '',
+    nombre: "",
     cal_100g: 0,
     grasasTotales_100g: 0,
     grasasTrans_100g: 0,
@@ -39,12 +45,23 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
         grasasSaturadas_100g: insumo.grasasSaturadas_100g,
         proteinas_100g: insumo.proteinas_100g,
         carbohidratos_100g: insumo.carbohidratos_100g,
-        sodio_100g: insumo.sodio_100g * 1000,
+        sodio_100g: insumo.sodio_100g,
         fibra_100g: insumo.fibra_100g,
         otro_100g: insumo.otro_100g,
       });
     } else {
-      setFormData({ nombre: '', cal_100g: 0, grasasTotales_100g: 0, grasasTrans_100g: 0, grasasSaturadas_100g: 0, proteinas_100g: 0, carbohidratos_100g: 0, sodio_100g: 0, fibra_100g: 0, otro_100g: 0 });
+      setFormData({
+        nombre: "",
+        cal_100g: 0,
+        grasasTotales_100g: 0,
+        grasasTrans_100g: 0,
+        grasasSaturadas_100g: 0,
+        proteinas_100g: 0,
+        carbohidratos_100g: 0,
+        sodio_100g: 0,
+        fibra_100g: 0,
+        otro_100g: 0,
+      });
     }
 
     setErrors({});
@@ -53,15 +70,23 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido';
+    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido";
 
     const numericFields = [
-      'cal_100g', 'grasasTotales_100g', 'grasasTrans_100g', 'grasasSaturadas_100g',
-      'proteinas_100g', 'carbohidratos_100g', 'sodio_100g', 'fibra_100g', 'otro_100g'
+      "cal_100g",
+      "grasasTotales_100g",
+      "grasasTrans_100g",
+      "grasasSaturadas_100g",
+      "proteinas_100g",
+      "carbohidratos_100g",
+      "sodio_100g",
+      "fibra_100g",
+      "otro_100g",
     ] as const;
 
     numericFields.forEach((field) => {
-      if ((formData as any)[field] < 0) newErrors[field as string] = 'El valor no puede ser negativo';
+      if ((formData as any)[field] < 0)
+        newErrors[field as string] = "El valor no puede ser negativo";
     });
 
     setErrors(newErrors);
@@ -71,33 +96,61 @@ export default function InsumoFormModal({ open, insumo, onSave, onCancel, loadin
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    const dataToSend = { ...formData, sodio_100g: formData.sodio_100g / 1000 };
+    const dataToSend = { ...formData, sodio_100g: formData.sodio_100g };
     onSave(dataToSend);
   };
 
-  const handleInputChange = (field: keyof CreateInsumoDto, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => { const ne = { ...prev }; delete ne[field]; return ne; });
+  const handleInputChange = (
+    field: keyof CreateInsumoDto,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field])
+      setErrors((prev) => {
+        const ne = { ...prev };
+        delete ne[field];
+        return ne;
+      });
   };
 
   if (!open) return null;
   const isEditing = !!insumo;
-  const formId = 'insumo-form';
+  const formId = "insumo-form";
 
   return (
     <FormModal
       open={open}
       onClose={onCancel}
-      title={isEditing ? 'Editar Insumo' : 'Agregar Nuevo Insumo'}
+      title={isEditing ? "Editar Insumo" : "Agregar Nuevo Insumo"}
       formId={formId}
       loading={loading}
-      submitLabel={isEditing ? 'Guardar Insumo' : 'Crear Insumo'}
+      submitLabel={isEditing ? "Guardar Insumo" : "Crear Insumo"}
       cancelLabel="Cancelar"
       containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-         footer={<div className="-mt-6"><FormActions onCancel={onCancel} submitting={loading} disabled={false} submitLabel={isEditing ? 'Guardar Insumos' : 'Crear Insumo'} formId={formId} /></div>}
+      footer={
+        <div className="-mt-6">
+          <FormActions
+            onCancel={onCancel}
+            submitting={loading}
+            disabled={false}
+            submitLabel={isEditing ? "Guardar Insumos" : "Crear Insumo"}
+            formId={formId}
+          />
+        </div>
+      }
     >
-      <form id={formId} onSubmit={handleSubmit} className="pt-3 pb-2 overflow-y-auto max-h-[calc(90vh-120px)]">
-        <InsumoFormFields formData={formData} onChange={handleInputChange} errors={errors} loading={loading} nameRef={nameRef} />
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        className="pt-3 pb-2 overflow-y-auto max-h-[calc(90vh-120px)]"
+      >
+        <InsumoFormFields
+          formData={formData}
+          onChange={handleInputChange}
+          errors={errors}
+          loading={loading}
+          nameRef={nameRef}
+        />
       </form>
     </FormModal>
   );

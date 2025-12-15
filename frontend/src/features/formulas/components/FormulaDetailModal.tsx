@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import Modal from '../../../components/ui/modales/Modal';
-import ModalHeader from '../../../components/ui/modales/ModalHeader';
-import type { Formula } from '../types/formula.types';
-import FormulaNutritionCard from './FormulaNutritionCard';
+import React, { useEffect } from "react";
+import Modal from "../../../components/ui/modales/Modal";
+import ModalHeader from "../../../components/ui/modales/ModalHeader";
+import type { Formula } from "../types/formula.types";
+import FormulaNutritionCard from "./FormulaNutritionCard";
 
 interface Props {
   isOpen: boolean;
@@ -12,16 +12,18 @@ interface Props {
 
 const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = 'unset'; };
+    if (isOpen) document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    if (isOpen) document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    if (isOpen) document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen || !formula) return null;
@@ -56,13 +58,20 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
                   <li key={fi.id || idx} className="flex items-start text-sm">
                     <span className="text-gray-600 mr-2">•</span>
                     <span className="text-gray-700">
-                      <span className="font-medium">{fi.insumo?.nombre || `Insumo #${fi.idInsumo}`}</span>
-                      <span className="text-gray-600"> – {fi.cantidadInsumo}g</span>
+                      <span className="font-medium">
+                        {fi.insumo?.nombre || `Insumo #${fi.idInsumo}`}
+                      </span>
+                      <span className="text-gray-600">
+                        {" "}
+                        – {fi.cantidadInsumo}g
+                      </span>
                     </span>
                   </li>
                 ))
               ) : (
-                <li className="text-gray-500 text-sm italic">No hay insumos registrados</li>
+                <li className="text-gray-500 text-sm italic">
+                  No hay insumos registrados
+                </li>
               )}
             </ul>
           </div>
@@ -73,14 +82,32 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
               title="Por Porción"
               subtitle={`(${formula.porcion}g)`}
               rows={[
-                { label: 'Kcalorías', value: String(formula.kcaloriasPorPorcion) },
-                { label: 'kJ', value: String(formula.kjPorPorcion) },
-                { label: 'Proteínas', value: `${formula.proteinasPorPorcion}g` },
-                { label: 'Grasas Totales', value: `${formula.grasaTotalPorPorcion}g` },
-                { label: 'Grasas Trans', value: `${formula.grasaTransPorPorcion}g` },
-                { label: 'Grasas Saturadas', value: `${formula.grasaSaturadaPorPorcion}g` },
-                { label: 'Carbohidratos', value: `${formula.carbohidratosPorPorcion}g` },
-                { label: 'Sodio', value: `${formula.sodioPorPorcion}mg` },
+                {
+                  label: "Kcalorías",
+                  value: String(formula.kcaloriasPorPorcion),
+                },
+                { label: "kJ", value: String(formula.kjPorPorcion) },
+                {
+                  label: "Proteínas",
+                  value: `${formula.proteinasPorPorcion}g`,
+                },
+                {
+                  label: "Grasas Totales",
+                  value: `${formula.grasaTotalPorPorcion}g`,
+                },
+                {
+                  label: "Grasas Trans",
+                  value: `${formula.grasaTransPorPorcion}g`,
+                },
+                {
+                  label: "Grasas Saturadas",
+                  value: `${formula.grasaSaturadaPorPorcion}g`,
+                },
+                {
+                  label: "Carbohidratos",
+                  value: `${formula.carbohidratosPorPorcion}g`,
+                },
+                { label: "Sodio", value: `${formula.sodioPorPorcion}g` },
               ]}
               colorClass="green"
             />

@@ -1,5 +1,5 @@
-import React from 'react';
-import type { NutritionCalculation } from '../../types/formula.types';
+import React from "react";
+import type { NutritionCalculation } from "../../types/formula.types";
 
 interface Props {
   nutrition: NutritionCalculation;
@@ -9,15 +9,27 @@ interface Props {
 
 export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcion }) => {
   const nutritionItems = [
-    { label: 'Calorías', value: nutrition.kcaloriasPorPorcion, unit: 'kcal' },
-    { label: 'Kilojoules', value: nutrition.kjPorPorcion, unit: 'kJ' },
-    { label: 'Carbohidratos', value: nutrition.carbohidratosPorPorcion, unit: 'g' },
-    { label: 'Proteínas', value: nutrition.proteinasPorPorcion, unit: 'g' },
-    { label: 'Grasas Totales', value: nutrition.grasaTotalPorPorcion, unit: 'g' },
-    { label: 'Grasas Saturadas', value: nutrition.grasaSaturadaPorPorcion, unit: 'g' },
-    { label: 'Grasas Trans', value: nutrition.grasaTransPorPorcion, unit: 'g' },
-    { label: 'Fibra', value: nutrition.fibraPorPorcion, unit: 'g' },
-    { label: 'Sodio', value: nutrition.sodioPorPorcion, unit: 'mg' },
+    { label: "Calorías", value: nutrition.kcaloriasPorPorcion, unit: "kcal" },
+    { label: "Kilojoules", value: nutrition.kjPorPorcion, unit: "kJ" },
+    {
+      label: "Carbohidratos",
+      value: nutrition.carbohidratosPorPorcion,
+      unit: "g",
+    },
+    { label: "Proteínas", value: nutrition.proteinasPorPorcion, unit: "g" },
+    {
+      label: "Grasas Totales",
+      value: nutrition.grasaTotalPorPorcion,
+      unit: "g",
+    },
+    {
+      label: "Grasas Saturadas",
+      value: nutrition.grasaSaturadaPorPorcion,
+      unit: "g",
+    },
+    { label: "Grasas Trans", value: nutrition.grasaTransPorPorcion, unit: "g" },
+    { label: "Fibra", value: nutrition.fibraPorPorcion, unit: "g" },
+    { label: "Sodio", value: nutrition.sodioPorPorcion, unit: "g" },
   ];
 
   return (
@@ -27,11 +39,13 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcion }) => {
       </h3>
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          {nutritionItems.map(item => (
+          {nutritionItems.map((item) => (
             <div key={item.label} className="flex justify-between">
-              <span className="font-medium text-gray-700 font-merriweather">{item.label}:</span>
+              <span className="font-medium text-gray-700 font-merriweather">
+                {item.label}:
+              </span>
               <span className="font-roboto">
-                {item.value.toFixed(1)} {item.unit}
+                {item.value.toFixed(4)} {item.unit}
               </span>
             </div>
           ))}

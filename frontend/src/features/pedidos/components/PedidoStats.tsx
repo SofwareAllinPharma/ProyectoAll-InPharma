@@ -79,9 +79,9 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
       <ResumenCard
         title="Finalizados"
         value={stats.finalizados}
-        icon={<FaCheckCircle className="text-orange-600" size={18} />}
-        borderColor="#ea580c"
-        bgIcon="#FFEDD5"
+        icon={<FaCheckCircle className="text-green-600" size={18} />}
+        borderColor="#16a34a"
+        bgIcon="#D1FAE5"
       />
       <ResumenCard
         title="Cancelados"

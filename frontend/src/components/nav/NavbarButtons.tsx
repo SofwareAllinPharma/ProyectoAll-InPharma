@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import UserAvatar from "./UserAvatar";
+import { useAuth } from "../../lib/auth";
 
 function GhostLink({
   to,
@@ -55,6 +57,12 @@ export default function NavbarButtons({ variant }: { variant:
   | "profiles-item"
   | "dashboard";
 }) {
+  const { user } = useAuth();
+
+  // Mostrar avatar en profiles-root, profiles-item y dashboard
+  const showUserAvatar = variant === "profiles-root" || variant === "profiles-item" || variant === "dashboard";
+  // Mostrar opción de perfiles solo cuando NO estamos en profiles-root
+  const showPerfilesInMenu = variant !== "profiles-root";
   // Map variants to exact button sets requested by the user:
   // - landing-root: '¿Quiénes somos?' and 'Iniciar Sesión'
   // - landing-inner (e.g. /quienes-somos): 'Inicio' and 'Iniciar Sesión'
@@ -92,11 +100,9 @@ export default function NavbarButtons({ variant }: { variant:
 
   if (variant === "profiles-root") {
     return (
-      // Cuando estamos en la pantalla de selección de perfiles (/perfiles)
-      // no mostramos el botón 'Perfiles' en la navbar.
-      // El botón 'Perfiles' sólo debe aparecer cuando ya estamos dentro
-      // de un perfil (dashboard) o en una vista concreta de perfil.
-      <></>
+      <div className="flex items-center gap-6">
+        {showUserAvatar && user && <UserAvatar name={user.name} showPerfilesOption={showPerfilesInMenu} />}
+      </div>
     );
   }
 
@@ -111,7 +117,8 @@ export default function NavbarButtons({ variant }: { variant:
   return (
     <div className="flex items-center gap-3">
       {pedidosPath ? <GhostButton to={pedidosPath}>Pedidos</GhostButton> : null}
-      <GhostButton to="/perfiles">Perfiles</GhostButton>
+      <div className="w-px h-6 bg-gray-300"></div>
+      {showUserAvatar && user && <UserAvatar name={user.name} showPerfilesOption={showPerfilesInMenu} />}
     </div>
   );
 }

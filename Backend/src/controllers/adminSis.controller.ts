@@ -110,14 +110,59 @@ export async function updateUser(req: Request, res: Response) {
         },
       });
 
-      // Update Roles: Delete all and re-create
-      await tx.usuarioPerfil.deleteMany({ where: { mail } });
-      await tx.usuarioPerfil.createMany({
-        data: profilesToAssign.map(p => ({
-          mail,
-          idPerfil: p.id
-        }))
+      // Get current profiles for this user
+      const currentProfiles = await tx.usuarioPerfil.findMany({
+        where: { mail },
       });
+
+      const currentProfileIds = currentProfiles.map(p => p.idPerfil);
+      const newProfileIds = profilesToAssign.map(p => p.id);
+
+      // Find profiles to add
+      const profilesToAdd = newProfileIds.filter(id => !currentProfileIds.includes(id));
+      
+      // Find profiles to remove
+      const profilesToRemove = currentProfileIds.filter(id => !newProfileIds.includes(id));
+
+      // Add new profiles
+      if (profilesToAdd.length > 0) {
+        await tx.usuarioPerfil.createMany({
+          data: profilesToAdd.map(idPerfil => ({
+            mail,
+            idPerfil
+          }))
+        });
+      }
+
+      // Remove old profiles (only if no active orders reference them)
+      if (profilesToRemove.length > 0) {
+        // Check if any active orders reference these profiles
+        const referencedOrders = await tx.pedido.count({
+          where: {
+            OR: [
+              {
+                mailUsuarioCreador: mail,
+                idPerfilCreador: { in: profilesToRemove }
+              },
+              {
+                mailUsuarioCocinero: mail,
+                idPerfilCocinero: { in: profilesToRemove }
+              }
+            ]
+          }
+        });
+
+        if (referencedOrders === 0) {
+          // Safe to remove
+          await tx.usuarioPerfil.deleteMany({
+            where: {
+              mail,
+              idPerfil: { in: profilesToRemove }
+            }
+          });
+        }
+        // If there are referenced orders, we keep the profiles
+      }
     });
 
     return res.json({ message: 'Usuario actualizado exitosamente' });
@@ -153,6 +198,7 @@ export async function getAllUsers(req: Request, res: Response) {
 
     const formattedUsers = users.map(u => ({
       mail: u.mail,
+      activo: u.activo,
       dni: u.persona?.dni,
       nombre: u.persona?.nombre,
       apellido: u.persona?.apellido,
@@ -164,5 +210,35 @@ export async function getAllUsers(req: Request, res: Response) {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+}
+
+export async function deactivateUser(req: Request, res: Response) {
+  try {
+    const { mail } = req.params;
+
+    const user = await prisma.usuario.findUnique({ where: { mail } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await prisma.usuario.update({ where: { mail }, data: { activo: false } });
+    return res.json({ message: 'Usuario dado de baja (activo=false)' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error al dar de baja al usuario' });
+  }
+}
+
+export async function activateUser(req: Request, res: Response) {
+  try {
+    const { mail } = req.params;
+
+    const user = await prisma.usuario.findUnique({ where: { mail } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await prisma.usuario.update({ where: { mail }, data: { activo: true } });
+    return res.json({ message: 'Usuario reactivado (activo=true)' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Error al reactivar al usuario' });
   }
 }

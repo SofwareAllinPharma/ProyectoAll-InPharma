@@ -1,10 +1,10 @@
-import React from 'react';
-import type { Producto, ProductoModalAction } from '../../types/producto.types';
-import DataTable from '../../../../components/ui/DataTable';
-import type { Column } from '../../../../components/ui/DataTable';
-import ProductoNombreCell from './ProductoNombreCell';
-import ProductoFormulaCell from './ProductoFormulaCell';
-import ProductoAccionesCell from './ProductoAccionesCell';
+import React from "react";
+import type { Producto, ProductoModalAction } from "../../types/producto.types";
+import DataTable from "../../../../components/ui/DataTable";
+import type { Column } from "../../../../components/ui/DataTable";
+import ProductoNombreCell from "./ProductoNombreCell";
+import ProductoFormulaCell from "./ProductoFormulaCell";
+import ProductoAccionesCell from "./ProductoAccionesCell";
 
 interface Props {
   productos: Producto[];
@@ -18,22 +18,16 @@ export const ProductosTable: React.FC<Props> = ({
   isLoading = false,
 }) => {
   const formatNumber = (value: number): string => {
-    return value.toFixed(2);
+    return value.toFixed(4);
   };
 
   const formatPorciones = (producto: Producto): string => {
-    if (!producto.formula) return `${formatNumber(producto.cantPorcionesAportadas)} porciones`;
-    
-    const porcionesCompletas = Math.floor(producto.cantPorcionesAportadas);
-    const porcionParcial = producto.cantPorcionesAportadas - porcionesCompletas;
-  const pesoPorPorcion = producto.formula.porcion || 0;
-    const pesoParcial = porcionParcial * pesoPorPorcion;
-    
-    if (pesoParcial < 0.01) {
-      return `${porcionesCompletas} porciones`;
+    // Calculamos el valor real en el momento: Peso Neto / Porción de la fórmula
+    if (producto.formula && producto.formula.porcion > 0) {
+      const valorCalculado = producto.pesoNeto / producto.formula.porcion;
+      return `${valorCalculado.toFixed(2)} porciones`;
     }
-    
-    return `${porcionesCompletas} porciones + ${formatNumber(pesoParcial)}g`;
+    return "N/A";
   };
 
   if (isLoading) {
@@ -49,66 +43,73 @@ export const ProductosTable: React.FC<Props> = ({
 
   const columns: Column<Producto>[] = [
     {
-      key: 'nombreComercial',
-      title: 'Producto',
-      width: '18%',
-      align: 'center',
-      render: r => <ProductoNombreCell producto={r} onAction={onProductoAction} />
+      key: "nombreComercial",
+      title: "Producto",
+      width: "18%",
+      align: "center",
+      render: (r) => (
+        <ProductoNombreCell producto={r} onAction={onProductoAction} />
+      ),
     },
     {
-      key: 'formula',
-      title: 'Fórmula',
-      width: '18%',
-      align: 'center',
-      render: r => <ProductoFormulaCell producto={r} />
-    },
-    { 
-      key: 'pesoNeto', 
-      title: 'Peso Neto', 
-      width: '12%', 
-      align: 'center',
-      render: r => `${formatNumber(r.pesoNeto)}g`
-    },
-    { 
-      key: 'cantPorcionesAportadas', 
-      title: 'Porciones', 
-      width: '20%', 
-      align: 'center',
-      render: r => formatPorciones(r)
+      key: "formula",
+      title: "Fórmula",
+      width: "18%",
+      align: "center",
+      render: (r) => <ProductoFormulaCell producto={r} />,
     },
     {
-      key: 'pesoPorPorcion',
-      title: 'Peso por Porción',
-      width: '14%',
-      align: 'center',
-      render: r => r.formula ? `${formatNumber(r.formula.porcion || 0)}g` : 'N/A'
+      key: "pesoNeto",
+      title: "Peso Neto",
+      width: "12%",
+      align: "center",
+      render: (r) => `${formatNumber(r.pesoNeto)}g`,
     },
     {
-      key: 'acciones',
-      title: 'Acciones',
-      width: '12%',
-      align: 'center',
-      render: r => <ProductoAccionesCell producto={r} onAction={onProductoAction} />
-    }
+      key: "cantPorcionesAportadas",
+      title: "Porciones",
+      width: "20%",
+      align: "center",
+      render: (r) => formatPorciones(r),
+    },
+    {
+      key: "pesoPorPorcion",
+      title: "Peso por Porción",
+      width: "14%",
+      align: "center",
+      render: (r) =>
+        r.formula ? `${formatNumber(r.formula.porcion || 0)}g` : "N/A",
+    },
+    {
+      key: "acciones",
+      title: "Acciones",
+      width: "12%",
+      align: "center",
+      render: (r) => (
+        <ProductoAccionesCell producto={r} onAction={onProductoAction} />
+      ),
+    },
   ];
 
   const emptyState = (
     <div className="text-center text-gray-500 py-4">
       <p className="text-lg mb-2">No se encontraron productos</p>
-      <p className="text-sm">Ajusta los filtros de búsqueda o crea un nuevo producto</p>
+      <p className="text-sm">
+        Ajusta los filtros de búsqueda o crea un nuevo producto
+      </p>
     </div>
   );
 
   return (
-    <DataTable 
-      columns={columns} 
-      data={productos} 
-      rowKey={r => r.idProducto} 
+    <DataTable
+      columns={columns}
+      data={productos}
+      rowKey={(r) => r.idProducto}
       expandable={undefined}
       emptyState={emptyState}
-      pagination 
-      defaultPageSize={10} 
-      pageSizeOptions={[5, 10, 20]} 
+      pagination
+      defaultPageSize={10}
+      pageSizeOptions={[5, 10, 20]}
     />
   );
 };

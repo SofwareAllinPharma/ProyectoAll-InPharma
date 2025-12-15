@@ -4,9 +4,14 @@ import { Insumo } from "@prisma/client";
 export class InsumosRepository {
   async findAll(): Promise<Insumo[]> {
     // Ordenar por nombre ignorando mayúsculas/minúsculas y usando el nombre real de la tabla
-    return prisma.$queryRaw<Insumo[]>`
-      SELECT * FROM "INSUMOS" ORDER BY LOWER(nombre) ASC
-    `;
+    return prisma.insumo.findMany({
+      where: {
+        activo: true, // Asegúrate de filtrar solo los activos
+      },
+      orderBy: {
+        nombre: "asc",
+      },
+    });
   }
 
   async findById(id: number): Promise<Insumo | null> {
@@ -22,6 +27,11 @@ export class InsumosRepository {
   }
 
   async delete(id: number): Promise<Insumo> {
-    return prisma.insumo.delete({ where: { id } });
+    return prisma.insumo.update({
+      where: { id },
+      data: {
+        activo: false,
+      },
+    });
   }
 }
