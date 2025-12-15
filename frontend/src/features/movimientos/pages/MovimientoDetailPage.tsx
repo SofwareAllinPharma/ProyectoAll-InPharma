@@ -69,7 +69,7 @@ export default function MovimientoDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         <button
           onClick={handleBack}
           className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -88,7 +88,7 @@ export default function MovimientoDetailPage() {
 
   if (!detalle) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         <button
           onClick={handleBack}
           className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -111,9 +111,25 @@ export default function MovimientoDetailPage() {
   const estado = detalle.estado;
   const puedeEntregar = estado === 'EN_CAMINO';
   const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO' || (estado === 'ENTREGADO' && isEgreso) || (estado === 'VENDIDO' && isEgreso);
+  
+  // Calcular progreso basado en el estado
+  const getProgreso = () => {
+    switch (estado) {
+      case 'CREADO':
+        return '33%';
+      case 'EN_CAMINO':
+        return '66%';
+      case 'ENTREGADO':
+      case 'VENDIDO':
+      case 'CANCELADO':
+        return '100%';
+      default:
+        return '0%';
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       {/* Header con botón de volver */}
       <button
         onClick={handleBack}
@@ -125,113 +141,152 @@ export default function MovimientoDetailPage() {
         Volver
       </button>
 
-      {/* Contenido principal */}
-      <div className="space-y-6">
-        {/* Información principal */}
-        <section className="relative rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="absolute right-6 top-6">
-            <MovimientosEstadoCell estado={estado} />
-          </div>
-          <div className="flex flex-col items-center text-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
-              <FaTruck size={28} className="text-[#7C6A55]" />
+      {/* Grid principal: 2 columnas izq + 1 columna der */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Columna principal (2/3) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Información principal */}
+          <section className="relative rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+            <div className="absolute right-6 top-6">
+              <MovimientosEstadoCell estado={estado} />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {`${detalle.tipo} de ${detalle.productoNombre ?? 'Producto'}`}
-            </h2>
-            <div className="flex flex-col items-center gap-2 text-base">
-              <div className="text-gray-600">
-                Creado: {formatFecha(detalle.fechaCreacion)}
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                <FaTruck size={28} className="text-[#7C6A55]" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                {`${detalle.tipo} de ${detalle.productoNombre ?? 'Producto'}`}
+              </h2>
+              <div className="flex flex-col items-center gap-2 text-base">
+                <div className="text-gray-600">
+                  Creado: {formatFecha(detalle.fechaCreacion)}
+                </div>
+              </div>
+              <div className="mt-2 flex items-center justify-center text-base text-gray-600">
+                {isTraslado && (
+                  <>
+                    <span className="inline-flex items-center gap-2">
+                      <FaWarehouse size={18} className="text-gray-500" />
+                      <span className="font-medium">{detalle.depositoOrigenNombre ?? '-'}</span>
+                    </span>
+                    <FaArrowRight size={18} className="mx-4 text-gray-400" />
+                    <span className="inline-flex items-center gap-2">
+                      <FaWarehouse size={18} className="text-gray-500" />
+                      <span className="font-medium">{detalle.depositoDestinoNombre ?? '-'}</span>
+                    </span>
+                  </>
+                )}
+                {isEgreso && (
+                  <>
+                    <span className="inline-flex items-center gap-2">
+                      <FaWarehouse size={18} className="text-gray-500" />
+                      <span className="font-medium">{detalle.depositoOrigenNombre ?? '-'}</span>
+                    </span>
+                    <FaArrowRight size={18} className="mx-4 text-gray-400" />
+                    <FaDollarSign size={18} className="text-[#7C6A55]" />
+                  </>
+                )}
+                {isIngreso && (
+                  <>
+                    <FaDollarSign size={18} className="text-[#7C6A55]" />
+                    <FaArrowRight size={18} className="mx-4 text-gray-400" />
+                    <span className="inline-flex items-center gap-2">
+                      <FaWarehouse size={18} className="text-gray-500" />
+                      <span className="font-medium">{detalle.depositoDestinoNombre ?? '-'}</span>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-center text-base text-gray-600">
-              {isTraslado && (
-                <>
-                  <span className="inline-flex items-center gap-2">
-                    <FaWarehouse size={18} className="text-gray-500" />
-                    <span className="font-medium">{detalle.depositoOrigenNombre ?? '-'}</span>
-                  </span>
-                  <FaArrowRight size={18} className="mx-4 text-gray-400" />
-                  <span className="inline-flex items-center gap-2">
-                    <FaWarehouse size={18} className="text-gray-500" />
-                    <span className="font-medium">{detalle.depositoDestinoNombre ?? '-'}</span>
-                  </span>
-                </>
-              )}
-              {isEgreso && (
-                <>
-                  <span className="inline-flex items-center gap-2">
-                    <FaWarehouse size={18} className="text-gray-500" />
-                    <span className="font-medium">{detalle.depositoOrigenNombre ?? '-'}</span>
-                  </span>
-                  <FaArrowRight size={18} className="mx-4 text-gray-400" />
-                  <FaDollarSign size={18} className="text-[#7C6A55]" />
-                </>
-              )}
-              {isIngreso && (
-                <>
-                  <FaDollarSign size={18} className="text-[#7C6A55]" />
-                  <FaArrowRight size={18} className="mx-4 text-gray-400" />
-                  <span className="inline-flex items-center gap-2">
-                    <FaWarehouse size={18} className="text-gray-500" />
-                    <span className="font-medium">{detalle.depositoDestinoNombre ?? '-'}</span>
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Información detallada */}
-        <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Movimiento</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-600 mb-1">Cantidad</span>
-              <span className="text-base text-gray-900">
-                {detalle.cantidad} {detalle.cantidad === 1 ? 'unidad' : 'unidades'}
-              </span>
+          {/* Información detallada */}
+          <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Movimiento</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Cantidad</span>
+                <span className="text-base text-gray-900">
+                  {detalle.cantidad} {detalle.cantidad === 1 ? 'unidad' : 'unidades'}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Referencia</span>
+                <span className="text-base text-gray-900">{detalle.referencia || '-'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Responsable</span>
+                <span className="text-base text-gray-900">{detalle.responsable || '-'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Observaciones</span>
+                <span className="text-base text-gray-900">
+                  {detalle.observaciones?.trim() ? detalle.observaciones : 'No Aplica'}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-600 mb-1">Referencia</span>
-              <span className="text-base text-gray-900">{detalle.referencia || '-'}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-600 mb-1">Responsable</span>
-              <span className="text-base text-gray-900">{detalle.responsable || '-'}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-600 mb-1">Observaciones</span>
-              <span className="text-base text-gray-900">
-                {detalle.observaciones?.trim() ? detalle.observaciones : 'No Aplica'}
-              </span>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
-        {/* Historial de estados */}
-        <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Historial de Estados</h3>
-          <MovimientoHistory events={detalle.historial} creador={detalle.responsable} />
-        </section>
+        {/* Sidebar derecho (1/3) - Bloque unificado */}
+        <div className="lg:col-span-1">
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            {/* Estado Actual */}
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Estado del Movimiento</h3>
+            
+            <div className="mb-4">
+              <div className="text-sm text-gray-500 mb-2">Estado Actual</div>
+              <MovimientosEstadoCell estado={estado} />
+            </div>
 
-        {/* Botones de acción */}
-        <div className="flex gap-3 justify-end flex-wrap">
-          {estado === 'CREADO' && (
-            <Button onClick={() => setShowConfirm({ to: 'EN_CAMINO' })}>
-              Marcar como En camino
-            </Button>
-          )}
-          {puedeEntregar && (
-            <Button onClick={() => setShowConfirm({ to: 'ENTREGADO' })}>
-              Marcar como Entregado
-            </Button>
-          )}
-          {puedeCancelar && (
-            <Button variant="outline" onClick={() => setShowConfirm({ to: 'CANCELADO' })}>
-              Cancelar movimiento
-            </Button>
-          )}
+            {/* Barra de Progreso */}
+            <div className="mb-6">
+              <div className="text-sm text-gray-500 mb-2">Progreso</div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-[#9D977B] h-2 rounded-full transition-all duration-300"
+                  style={{ width: getProgreso() }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Historial de Estados */}
+            <div className="mb-6">
+              <h4 className="text-base font-semibold text-gray-900 mb-3">Historial de Estados</h4>
+              <MovimientoHistory events={detalle.historial} creador={detalle.responsable} />
+            </div>
+
+            {/* Botones de Acción */}
+            {(estado === 'CREADO' || puedeEntregar || puedeCancelar) && (
+              <div className="mb-4 space-y-2">
+                {estado === 'CREADO' && (
+                  <Button onClick={() => setShowConfirm({ to: 'EN_CAMINO' })}>
+                    Marcar como En camino
+                  </Button>
+                )}
+                {puedeEntregar && (
+                  <Button onClick={() => setShowConfirm({ to: 'ENTREGADO' })}>
+                    Marcar como Entregado
+                  </Button>
+                )}
+                {puedeCancelar && (
+                  <Button variant="outline" onClick={() => setShowConfirm({ to: 'CANCELADO' })}>
+                    Cancelar movimiento
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Botón Volver a la Lista */}
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                onClick={handleBack}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5d5448] transition-colors"
+              >
+                Volver a la Lista
+              </button>
+            </div>
+          </section>
         </div>
       </div>
 
