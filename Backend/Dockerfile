@@ -21,6 +21,10 @@ RUN npx prisma generate
 # Compilamos TypeScript (genera dist/**, incluido dist/prisma/seed.js)
 RUN npm run build
 
+# Debug: Listar archivos generados en dist y dist/prisma
+RUN echo "\n==== Archivos en /app/dist ====\n" && ls -l /app/dist && \
+	echo "\n==== Archivos en /app/dist/prisma ====\n" && ls -l /app/dist/prisma || echo "No existe /app/dist/prisma"
+
 
 # =========================
 # Etapa de runtime
@@ -42,6 +46,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copiamos schema + migrations para Prisma
 COPY --from=builder /app/src/prisma ./src/prisma
+
+# Debug: Listar archivos copiados en runtime
+RUN echo "\n==== Archivos en /app/dist (runtime) ====\n" && ls -l /app/dist && \
+	echo "\n==== Archivos en /app/dist/prisma (runtime) ====\n" && ls -l /app/dist/prisma || echo "No existe /app/dist/prisma"
 
 EXPOSE 4000
 
