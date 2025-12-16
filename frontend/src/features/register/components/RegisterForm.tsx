@@ -16,7 +16,7 @@ interface RegisterFormInputs extends CreateUserDto {
   confirmPassword?: string;
 }
 
-export default function RegisterForm({ onSuccess, onCancel }: Props) {
+export default function RegisterForm({ onSuccess }: Props) {
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting }, reset } = useForm<RegisterFormInputs>({
     mode: 'onChange',
     defaultValues: { roles: [] }

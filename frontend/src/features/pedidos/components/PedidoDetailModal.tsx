@@ -213,7 +213,6 @@ const PedidoDetailModal: React.FC<Props> = ({
                   ? `${(pedido.creador.usuario.persona.nombre || "").trim()} ${(pedido.creador.usuario.persona.apellido || "").trim()}`.trim()
                   : formatUserName(pedido.mailUsuarioCreador)}
               </div>
->>>>>>> modifCata
               <div className="mt-2 text-sm">Técnico asignado</div>
               <div className="mt-1">
                 {formatUserName(pedido.mailUsuarioCocinero ?? undefined)}

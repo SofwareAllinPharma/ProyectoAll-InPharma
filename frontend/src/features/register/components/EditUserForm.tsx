@@ -141,7 +141,10 @@ export default function EditUserForm({ user, onSuccess, onCancel }: Props) {
         {errors.roles && <p className="text-red-500 text-xs mt-1">{errors.roles.message}</p>}
       </div>
 
-      <div className="flex justify-end mt-6">
+      <div className="flex justify-end mt-6 space-x-2">
+        <Button type="button" disabled={isSubmitting} onClick={() => onCancel && onCancel()}>
+          Cancelar
+        </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
