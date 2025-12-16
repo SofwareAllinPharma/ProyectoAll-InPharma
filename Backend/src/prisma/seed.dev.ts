@@ -41,13 +41,37 @@ async function main() {
 
   const hash = await bcrypt.hash(plain, 10);
   const usuarios = [
-    { 
-      mail: "softwareallinpharma@gmail.com", 
+    {
+      mail: "softwareallinpharma@gmail.com",
       idPerfil: 3,
       nombre: "Software",
       apellido: "AllInPharma",
       dni: "00000000",
       telefono: "+54911234567"
+    },
+    {
+      mail: "tecnico@gmail.com",
+      idPerfil: 1,
+      nombre: "Tecnico",
+      apellido: "Demo",
+      dni: "11111111",
+      telefono: "+54911111111"
+    },
+    {
+      mail: "adminfab@gmail.com",
+      idPerfil: 2,
+      nombre: "Admin",
+      apellido: "Fabrica",
+      dni: "22222222",
+      telefono: "+54922222222"
+    },
+    {
+      mail: "encptventa@gmail.com",
+      idPerfil: 4,
+      nombre: "Encargado",
+      apellido: "Venta",
+      dni: "33333333",
+      telefono: "+54933333333"
     }
   ];
 
@@ -1252,17 +1276,19 @@ async function main() {
     objetivo,
     cocinero,
     observacion,
+    fecha,
   }: {
     producto: ProductoSeed;
     cantidades: { gramos?: number; paquetes?: number; porciones?: number };
     creador: { mail: string; idPerfil: number };
     objetivo:
-      | "Creado"
-      | "EnElaboración"
-      | "ElaboradoYDepositadoEnFábrica"
-      | "Cancelado";
+    | "Creado"
+    | "EnElaboración"
+    | "ElaboradoYDepositadoEnFábrica"
+    | "Cancelado";
     cocinero?: { mail: string; idPerfil: number };
     observacion?: string;
+    fecha?: Date;
   }) {
     const pedidosAnteriores = await prisma.pedido.findMany({
       where: { idProducto: producto.idProducto, observacion: observacion },
@@ -1276,6 +1302,8 @@ async function main() {
       });
     }
 
+    const fechaBase = fecha ? new Date(fecha) : new Date();
+
     await prisma.$transaction(async (tx) => {
       const conv = convertirCantidades(cantidades, producto);
       const pedido = await tx.pedido.create({
@@ -1286,6 +1314,7 @@ async function main() {
           mailUsuarioCreador: creador.mail,
           idPerfilCreador: creador.idPerfil,
           estaAsignado: false,
+          createdAt: fechaBase,
         },
       });
 
@@ -1293,7 +1322,7 @@ async function main() {
         data: {
           idPedido: pedido.numPedido,
           idEstadoPedido: creadoId,
-          fechaHoraInicio: new Date(),
+          fechaHoraInicio: fechaBase,
         },
       });
       await tx.pedido.update({
@@ -1303,7 +1332,7 @@ async function main() {
 
       if (objetivo === "Creado") return;
 
-      const ahora = new Date();
+      const ahora = new Date(fechaBase.getTime() + 1000 * 60 * 60); // 1 hora despues
       await tx.cambioEstadoPedido.update({
         where: { idCambioEstado: cambioCreado.idCambioEstado },
         data: { fechaHoraFin: ahora },
@@ -1328,7 +1357,7 @@ async function main() {
       if (objetivo === "EnElaboración") return;
 
       if (objetivo === "Cancelado") {
-        const t2 = new Date();
+        const t2 = new Date(ahora.getTime() + 1000 * 60 * 60); // 2 horas despues
         await tx.cambioEstadoPedido.update({
           where: { idCambioEstado: cambioEnElab.idCambioEstado },
           data: { fechaHoraFin: t2 },
@@ -1350,7 +1379,7 @@ async function main() {
         return;
       }
 
-      const t3 = new Date();
+      const t3 = new Date(ahora.getTime() + 1000 * 60 * 60 * 2); // 3 horas despues
       await tx.cambioEstadoPedido.update({
         where: { idCambioEstado: cambioEnElab.idCambioEstado },
         data: { fechaHoraFin: t3 },
@@ -1369,45 +1398,180 @@ async function main() {
     });
   }
 
-  // Pedidos de ejemplo deshabilitados hasta que existan los usuarios necesarios
-  /*
-  await crearPedidoConEstado({
-    producto: productoA,
-    cantidades: { gramos: 300 },
-    creador: { mail: "tecnico@aip.com", idPerfil: 1 },
-    objetivo: "Creado",
-    observacion: "Semilla: pedido creado",
-  });
+  // 10. PEDIDOS SEMANALES (Dinámicos)
+  const hoy = new Date();
+  for (let i = 0; i < 7; i++) {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() - i);
 
-  await crearPedidoConEstado({
-    producto: productoA,
-    cantidades: { paquetes: 10 },
-    creador: { mail: "tecnico@aip.com", idPerfil: 1 },
-    objetivo: "EnElaboración",
-    cocinero: { mail: "adminfab@aip.com", idPerfil: 2 },
-    observacion: "Semilla: en elaboración",
-  });
+    // Si es miercoles (3), saltar
+    if (fecha.getDay() === 3) continue;
 
-  await crearPedidoConEstado({
-    producto: productoB,
-    cantidades: { porciones: 30 },
-    creador: { mail: "tecnico@aip.com", idPerfil: 1 },
-    objetivo: "ElaboradoYDepositadoEnFábrica",
-    cocinero: { mail: "adminfab@aip.com", idPerfil: 2 },
-    observacion: "Semilla: elaborado",
-  });
+    // Variar producto y estado segun el dia
+    const prod = i % 2 === 0 ? productoA : productoB;
+    const estadosPosibles = ["Creado", "EnElaboración", "ElaboradoYDepositadoEnFábrica", "Cancelado"] as const;
+    const estadoObjetivo = estadosPosibles[i % 4];
 
-  await crearPedidoConEstado({
-    producto: productoB,
-    cantidades: { gramos: 150 },
-    creador: { mail: "tecnico@aip.com", idPerfil: 1 },
-    objetivo: "Cancelado",
-    cocinero: { mail: "adminfab@aip.com", idPerfil: 2 },
-    observacion: "Semilla: cancelado",
-  });
+    await crearPedidoConEstado({
+      producto: prod,
+      cantidades: { paquetes: 10 + i * 2 },
+      creador: { mail: "tecnico@gmail.com", idPerfil: 1 },
+      objetivo: estadoObjetivo,
+      cocinero: (estadoObjetivo !== "Creado") ? { mail: "adminfab@gmail.com", idPerfil: 2 } : undefined,
+      observacion: `Pedido automático del día ${fecha.toLocaleDateString()}`,
+      fecha: fecha
+    });
+  }
+  console.log("✔ Seed de PEDIDOS (Semanales) ejecutado OK");
 
-  console.log("Seed de PEDIDOS de ejemplo ejecutado OK");
-  */
+  // 10.1 PEDIDOS FINALIZADOS (Primera semana Diciembre)
+  const fechaInicioDec = new Date(hoy.getFullYear(), 11, 1); // 1 de Dic (mes 11)
+  // Asegurar que no sea futuro (aunque hoy es 15, asi que esta bien)
+
+  // Usaremos productosParaInventario para variar
+  // productosParaInventario tiene 23 items. Usaremos algunos de ellos.
+  const productosVariados = productosParaInventario.slice(2, 9); // Tomar 7 productos distintos, evitando los primeros 2 usados arriba
+
+  for (let i = 0; i < productosVariados.length; i++) {
+    const fechaPedido = new Date(fechaInicioDec);
+    fechaPedido.setDate(fechaInicioDec.getDate() + i);
+
+    const prodInfo = productosVariados[i];
+    // Necesitamos el "formula.porcion" que no viene en productosParaInventario (devuelve Producto)
+    // Pero 'seedProduct' retorna lo creado por prisma.producto.create/update que NO incluye formula por defecto en el return salvo que usemos include.
+    // Sin embargo, seedProduct devuelve productoData que es el resultado de create/update.
+    // Vamos a buscar la formula para obtener la porcion.
+    const prodFull = await prisma.producto.findUniqueOrThrow({
+      where: { idProducto: prodInfo.idProducto },
+      include: { formula: true }
+    });
+
+    const prodSeed: ProductoSeed = {
+      idProducto: prodFull.idProducto,
+      pesoNeto: prodFull.pesoNeto,
+      formula: { porcion: prodFull.formula.porcion }
+    };
+
+    await crearPedidoConEstado({
+      producto: prodSeed,
+      cantidades: { paquetes: 50 + i * 5 }, // Cantidad considerable
+      creador: { mail: "tecnico@gmail.com", idPerfil: 1 },
+      objetivo: "ElaboradoYDepositadoEnFábrica",
+      cocinero: { mail: "adminfab@gmail.com", idPerfil: 2 },
+      observacion: `Pedido histórico Diciembre - ${prodFull.nombreComercial}`,
+      fecha: fechaPedido
+    });
+  }
+  console.log("✔ Seed de PEDIDOS (Históricos Diciembre) ejecutado OK");
+
+
+  // 11. MOVIMIENTOS DE STOCK (Dinámicos)
+  const allTiposMov = await prisma.tiposMovimiento.findMany();
+  const tipoMovMap = Object.fromEntries(allTiposMov.map(t => [t.nombre, t.idTipoMovimiento]));
+  const allEstadosMov = await prisma.estadoMovimiento.findMany();
+  const estadoMovMap = Object.fromEntries(allEstadosMov.map(e => [e.nombre, e.idEstadoMovimiento]));
+
+  const movimientosData = [
+    { estado: "Creado", diasAtras: 5, tipo: "Egreso", producto: productoAFull },
+    { estado: "En Camino", diasAtras: 3, tipo: "Traslado", producto: productoBFull },
+    { estado: "Entregado", diasAtras: 1, tipo: "Traslado", producto: productoAFull },
+    { estado: "Vendido", diasAtras: 0, tipo: "Egreso", producto: productoBFull },
+  ];
+
+  if (tipoMovMap["Egreso"] && tipoMovMap["Traslado"]) {
+    for (const mov of movimientosData) {
+      if (!estadoMovMap[mov.estado]) continue;
+
+      const fechaMov = new Date(hoy);
+      fechaMov.setDate(hoy.getDate() - mov.diasAtras);
+
+      await prisma.$transaction(async (tx) => {
+        // Asignar un depósito origen (Central)
+        const idDeposito = depId["Depósito Central"];
+
+        const m = await tx.movimientoProducto.create({
+          data: {
+            idDepositoOrigen: idDeposito,
+            idProducto: mov.producto.idProducto,
+            idDepositoDestino: mov.tipo === "Traslado" ? depId["Fábrica"] : null,
+            cantidad: 50,
+            responsable: "adminfab@gmail.com",
+            observaciones: `Movimiento generado por seed (${mov.estado})`,
+            idTipoMovimiento: tipoMovMap[mov.tipo],
+            fechaHoraActualizacion: fechaMov,
+          }
+        });
+
+        // Crear cambio de estado inicial
+        await tx.cambioEstadoMovimiento.create({
+          data: {
+            idMovimiento: m.idMovimiento,
+            idEstadoMovimiento: estadoMovMap[mov.estado],
+            fechaHoraInicio: fechaMov,
+            responsable: "adminfab@gmail.com"
+          }
+        });
+      });
+    }
+    console.log("✔ Seed de MOVIMIENTOS DE STOCK ejecutado OK");
+  } else {
+    console.warn("Faltan tipos de movimientos para generar seed de movimientos");
+  }
+
+  // 12. AJUSTE DE STOCK (Crítico y Bajo)
+  // Bajo: Stock <= Umbral + 4
+  // Crítico: Stock < Umbral
+  // Objetivos: 
+  // - Prote A 900g -> Crítico
+  // - Colágeno Plus 300g -> Bajo
+  // - Vegano Salado 1000g -> Bajo
+  // En Depósito "Fábrica" (idDeposito variable local depId["Fábrica"])
+
+  const fabricaId = depId["Fábrica"];
+
+  // Buscar IDs de productos
+  const prodCritico = await prisma.producto.findFirst({ where: { nombreComercial: "Prote A 900g" } });
+  const prodBajo1 = await prisma.producto.findFirst({ where: { nombreComercial: "Colágeno Plus 300g" } });
+  const prodBajo2 = await prisma.producto.findFirst({ where: { nombreComercial: "Vegano Salado 1000g" } });
+
+  if (prodCritico && prodBajo1 && prodBajo2) {
+    // Actualizar Prote A (Crítico: Stock < Umbral)
+    const invCritico = await prisma.inventario.findUnique({
+      where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodCritico.idProducto } }
+    });
+    if (invCritico) {
+      const uMin = invCritico.umbralMin;
+      await prisma.inventario.update({
+        where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodCritico.idProducto } },
+        data: { cantidadProducto: Math.max(0, uMin - 1), umbralMin: uMin }
+      });
+    }
+
+    // Actualizar Colageno (Bajo: Stock <= Umbral + 4)
+    const invBajo1 = await prisma.inventario.findUnique({
+      where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodBajo1.idProducto } }
+    });
+    if (invBajo1) {
+      const uMin = invBajo1.umbralMin;
+      await prisma.inventario.update({
+        where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodBajo1.idProducto } },
+        data: { cantidadProducto: uMin + 2, umbralMin: uMin }
+      });
+    }
+
+    // Actualizar Vegano (Bajo: Stock <= Umbral + 4)
+    const invBajo2 = await prisma.inventario.findUnique({
+      where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodBajo2.idProducto } }
+    });
+    if (invBajo2) {
+      const uMin = invBajo2.umbralMin;
+      await prisma.inventario.update({
+        where: { idDeposito_idProducto: { idDeposito: fabricaId, idProducto: prodBajo2.idProducto } },
+        data: { cantidadProducto: uMin + 4, umbralMin: uMin }
+      });
+    }
+    console.log("✔ Seed de AJUSTE DE STOCK (Críticos/Bajos) ejecutado OK");
+  }
 
   console.log("✔ Seed de FUSIÓN ejecutado OK");
 }
