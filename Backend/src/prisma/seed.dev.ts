@@ -1104,6 +1104,11 @@ async function main() {
     update: {},
     create: { nombre: "Cancelado" },
   });
+  const estadoVendido = await prisma.estadoMovimiento.upsert({
+    where: { nombre: "Vendido" },
+    update: {},
+    create: { nombre: "Vendido" },
+  });
   console.log("Seed de ESTADOS_MOVIMIENTO ejecutado OK");
 
   const tipoTraslado = await prisma.tiposMovimiento.upsert({

@@ -3,6 +3,7 @@ import type { Formula, CreateFormulaRequest } from "../../types/formula.types";
 import { useFormulaForm } from "../../hooks/useFormulaForm";
 import FormModal from "../../../../components/ui/modales/FormModal";
 import { FormulaInsumoManager } from "./insumos/FormulaInsumoManager";
+import { useToast } from "../../../../components/ui/toast/ToastContext";
 
 interface FormulaFormModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface FormulaFormModalProps {
   isLoading?: boolean;
   isCopyMode?: boolean;
   existingNames?: string[];
+  canEditProtected?: boolean;
 }
 
 export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
@@ -22,7 +24,9 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
   isLoading = false,
   isCopyMode = false,
   existingNames = [],
+  canEditProtected = false,
 }) => {
+  const { show } = useToast();
   const formId = "formula-form";
   const {
     formData,
@@ -99,9 +103,18 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
                 <input
                   type="checkbox"
                   checked={formData.esProtegida}
-                  onChange={(e) =>
-                    handleInputChange("esProtegida", e.target.checked)
-                  }
+                  onChange={(e) => {
+                    if (e.target.checked && !canEditProtected) {
+                      show({
+                        type: 'error',
+                        title: 'Acceso denegado',
+                        message: 'No tienes permisos para crear o editar fórmulas protegidas'
+                      });
+                      onClose();
+                      return;
+                    }
+                    handleInputChange("esProtegida", e.target.checked);
+                  }}
                   className="w-4 h-4 text-[#7c6a55] border-gray-300 rounded focus:ring-[#7c6a55]"
                 />
                 <span className="text-sm font-medium text-gray-700">

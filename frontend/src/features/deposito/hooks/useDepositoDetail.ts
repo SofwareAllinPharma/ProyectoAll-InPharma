@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
 import { DepositoService } from '../services/deposito.service';
 import { InventarioService } from '../../inventario/services/inventario.service';
 import type { Deposito } from '../types/deposito.types';
@@ -8,6 +9,7 @@ import { useToast } from '../../../components/ui/toast/ToastContext';
 
 export default function useDepositoDetail(id?: number | string | null) {
   const navigate = useNavigate();
+  const prefix = useRoutePrefix();
   const [dep, setDep] = useState<Deposito | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,7 +116,7 @@ export default function useDepositoDetail(id?: number | string | null) {
       } catch {
         // ignore if toast context unavailable
       }
-      navigate('/adminsis/depositos', { replace: true });
+      navigate(`${prefix}/depositos`, { replace: true });
     } catch (e: any) {
       alert(e?.message || 'No se pudo desactivar el depósito.');
     }
