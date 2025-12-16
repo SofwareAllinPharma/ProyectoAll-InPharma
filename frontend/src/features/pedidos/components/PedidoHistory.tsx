@@ -26,7 +26,7 @@ const colorForLabel = (label: string) => {
     case 'En Elaboración':
       return 'bg-purple-500';
     case 'Finalizado':
-      return 'bg-orange-500';
+      return 'bg-green-500';
     case 'Cancelado':
       return 'bg-red-500';
     default:

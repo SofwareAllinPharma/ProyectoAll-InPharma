@@ -7,7 +7,7 @@ export default function FormulaInsumoSummary({ formulaInsumos }: Props) {
   return (
     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
       <p className="text-sm text-gray-600 font-roboto">
-        <span className="font-medium">Peso total:</span>{" "}
+        <span className="font-medium">Porción total:</span>{" "}
         {formulaInsumos
           .reduce((total, fi) => total + (fi.cantidadInsumo || 0), 0)
           .toFixed(4)}
