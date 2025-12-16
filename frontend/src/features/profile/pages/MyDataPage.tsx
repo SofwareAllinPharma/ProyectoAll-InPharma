@@ -13,11 +13,12 @@ export default function MyDataPage() {
     );
   }
 
+
   const nameParts = user.name?.trim().split(/\s+/) || [];
   const firstName = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(' ') || 'No disponible';
   const lastName = nameParts.slice(Math.ceil(nameParts.length / 2)).join(' ') || '';
 
-  return (git
+  return (
     <PageShell 
       title="Mis Datos"
       subtitle="Información de tu cuenta de usuario"
