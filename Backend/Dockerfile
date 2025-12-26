@@ -3,6 +3,8 @@
 # =========================
 FROM node:20-alpine AS builder
 WORKDIR /app
+ARG CACHEBUST=1
+RUN echo "CACHEBUST $CACHEBUST"
 
 ENV NODE_ENV=development
 
