@@ -208,11 +208,13 @@ export class MovimientoService {
         estado: (d.estado || '').toString().toUpperCase().replace(/\s+/g, '_') as MovimientoDetalle['estado'],
         cantidad: d.cantidad ?? 0,
         depositoOrigenNombre: d.depositoOrigen?.nombre ?? null,
+        depositoOrigenDireccion: d.depositoOrigen?.direccion ?? null,
         depositoDestinoNombre: d.depositoDestino?.nombre ?? null,
+        depositoDestinoDireccion: d.depositoDestino?.direccion ?? null,
         fechaCreacion: d.fechaCreacion ?? '-',
         responsable: d.responsable ?? undefined,
         observaciones: d.observaciones ?? undefined,
-        referencia: undefined, // referencia no viene del backend detalle actual
+        referencia: undefined,
         historial,
       };
       return detalle;

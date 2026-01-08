@@ -393,11 +393,13 @@ export class MovimientoService {
             cantidad: mov.cantidad,
             depositoOrigen: mov.inventarioOrigen?.deposito ? {
                 id: mov.inventarioOrigen.deposito.id,
-                nombre: mov.inventarioOrigen.deposito.nombre
+                nombre: mov.inventarioOrigen.deposito.nombre,
+                direccion: mov.inventarioOrigen.deposito.direccion || null
             } : { id: mov.idDepositoOrigen },
             depositoDestino: mov.inventarioDestino?.deposito ? {
                 id: mov.inventarioDestino.deposito.id,
-                nombre: mov.inventarioDestino.deposito.nombre
+                nombre: mov.inventarioDestino.deposito.nombre,
+                direccion: mov.inventarioDestino.deposito.direccion || null
             } : (mov.idDepositoDestino ? { id: mov.idDepositoDestino } : null),
             tipoMovimiento: mov.tipoMovimiento ? { idTipoMovimiento: mov.tipoMovimiento.idTipoMovimiento, nombre: mov.tipoMovimiento.nombre } : null,
             observaciones: mov.observaciones || null,

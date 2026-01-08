@@ -10,6 +10,7 @@ import ConfirmarCambioEstadoModal from '../components/detalle/ConfirmarCambioEst
 import Button from '../../../components/ui/Button';
 import ToastContext from '../../../components/ui/toast/ToastContext';
 import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContext';
+import { PrintMovementPdfButton } from '../components/remito/PrintMovementPdfButton';
 
 export default function MovimientoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -110,7 +111,7 @@ export default function MovimientoDetailPage() {
   const isIngreso = detalle.tipo === 'INGRESO';
   const estado = detalle.estado;
   const puedeEntregar = estado === 'EN_CAMINO';
-  const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO' || (estado === 'ENTREGADO' && isEgreso) || (estado === 'VENDIDO' && isEgreso);
+  const puedeCancelar = (estado === 'CREADO' || estado === 'EN_CAMINO') && isEgreso;
   
   // Calcular progreso basado en el estado
   const getProgreso = () => {
@@ -205,20 +206,44 @@ export default function MovimientoDetailPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Movimiento</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Fecha y Hora de Creación</span>
+                <span className="text-base text-gray-900">{detalle.fechaCreacion || '-'}</span>
+              </div>
+              <div className="flex flex-col">
                 <span className="text-sm font-medium text-gray-600 mb-1">Cantidad</span>
                 <span className="text-base text-gray-900">
                   {detalle.cantidad} {detalle.cantidad === 1 ? 'unidad' : 'unidades'}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-600 mb-1">Referencia</span>
-                <span className="text-base text-gray-900">{detalle.referencia || '-'}</span>
-              </div>
-              <div className="flex flex-col">
                 <span className="text-sm font-medium text-gray-600 mb-1">Responsable</span>
                 <span className="text-base text-gray-900">{detalle.responsable || '-'}</span>
               </div>
               <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Referencia</span>
+                <span className="text-base text-gray-900">{detalle.referencia || '-'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-600 mb-1">Depósito Origen</span>
+                <div className="text-base text-gray-900">
+                  <div className="font-medium">{detalle.depositoOrigenNombre || '-'}</div>
+                  {detalle.depositoOrigenDireccion && (
+                    <div className="text-sm text-gray-600">{detalle.depositoOrigenDireccion}</div>
+                  )}
+                </div>
+              </div>
+              {detalle.depositoDestinoNombre && (
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-600 mb-1">Depósito Destino</span>
+                  <div className="text-base text-gray-900">
+                    <div className="font-medium">{detalle.depositoDestinoNombre}</div>
+                    {detalle.depositoDestinoDireccion && (
+                      <div className="text-sm text-gray-600">{detalle.depositoDestinoDireccion}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col md:col-span-2">
                 <span className="text-sm font-medium text-gray-600 mb-1">Observaciones</span>
                 <span className="text-base text-gray-900">
                   {detalle.observaciones?.trim() ? detalle.observaciones : 'No Aplica'}
@@ -276,6 +301,39 @@ export default function MovimientoDetailPage() {
                 )}
               </div>
             )}
+
+            {/* Botón Imprimir Remito */}
+            <div className="mb-4">
+              <PrintMovementPdfButton 
+                movimiento={{
+                  id: detalle.id,
+                  tipo: detalle.tipo,
+                  idProducto: 0,
+                  cantidad: detalle.cantidad,
+                  idDepositoOrigen: 0,
+                  idDepositoDestino: null,
+                  referencia: detalle.referencia || '',
+                  observaciones: detalle.observaciones || null,
+                  estado: detalle.estado,
+                  fechaCreacion: detalle.fechaCreacion,
+                  fechaActualizacion: null,
+                  idUsuario: 0,
+                  responsable: detalle.responsable,
+                  producto: {
+                    idProducto: 0,
+                    nombreComercial: detalle.productoNombre || ''
+                  },
+                  depositoOrigen: {
+                    id: 0,
+                    nombre: detalle.depositoOrigenNombre || ''
+                  },
+                  depositoDestino: detalle.depositoDestinoNombre ? {
+                    id: 0,
+                    nombre: detalle.depositoDestinoNombre
+                  } : null
+                }}
+              />
+            </div>
 
             {/* Botón Volver a la Lista */}
             <div className="pt-4 border-t border-gray-200">

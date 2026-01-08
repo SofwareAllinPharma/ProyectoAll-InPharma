@@ -19,8 +19,10 @@ export type MovimientoDetalle = {
   estado: EstadoMovimiento;
   cantidad: number;
   depositoOrigenNombre: string | null;
+  depositoOrigenDireccion?: string | null;
   depositoDestinoNombre: string | null;
-  fechaCreacion: string; // dd/mm/yy
+  depositoDestinoDireccion?: string | null;
+  fechaCreacion: string; // dd/mm/yy HH:mm
   responsable?: string;
   observaciones?: string;
   referencia?: string;
