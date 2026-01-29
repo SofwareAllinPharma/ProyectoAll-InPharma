@@ -11,9 +11,18 @@ export type RoleCode = (typeof ROLE_CODES)[keyof typeof ROLE_CODES];
 export function normalizeRoleName(name: string): RoleCode | null {
   if (!name) return null;
   const n = name.trim().toUpperCase();
-  if (n.includes("TECN")) return ROLE_CODES.TECNICO;
-  if (n.includes("FAB") || n.includes("FAB")) return ROLE_CODES.ADMINFAB;
-  if (n.includes("SIS") || n.includes("SIS")) return ROLE_CODES.ADMINSIS;
+
+  // Check for ADMINSIS first (most specific)
+  if (n.includes("SISTEMA") || n.includes("SIS")) return ROLE_CODES.ADMINSIS;
+
+  // Check for ADMINFAB
+  if (n.includes("FABRICA") || n.includes("FAB")) return ROLE_CODES.ADMINFAB;
+
+  // Check for TECNICO
+  if (n.includes("TECNICO") || n.includes("TECN")) return ROLE_CODES.TECNICO;
+
+  // Check for ENCPTOVENTA
   if (n.includes("VENTA") || n.includes("PUNTO") || n.includes("ENC")) return ROLE_CODES.ENCPTOVENTA;
+
   return null;
 }

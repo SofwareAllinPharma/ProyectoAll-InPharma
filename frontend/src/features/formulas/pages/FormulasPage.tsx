@@ -49,7 +49,7 @@ const FormulasPage: React.FC = () => {
     }
     setSelected(f);
     setIsCopy(false);
-    f.esProtegida ? setProtectedOpen(true) : setFormOpen(true);
+    setFormOpen(true);
   };
   const openDelete = (f: Formula) => { 
     if (!canCreateOrEdit) {
