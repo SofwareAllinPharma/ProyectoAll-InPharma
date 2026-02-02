@@ -5,6 +5,17 @@ import FormModal from "../../../../components/ui/modales/FormModal";
 import { FormulaInsumoManager } from "./insumos/FormulaInsumoManager";
 import { useToast } from "../../../../components/ui/toast/ToastContext";
 
+// Helper function to format nutritional values with appropriate precision
+const formatNutritionValue = (value: number): string => {
+  if (value === 0) return '0';
+  // For very small values, show more decimals
+  if (Math.abs(value) < 0.01) return value.toFixed(6).replace(/\.?0+$/, '');
+  // For small values, show up to 4 decimals
+  if (Math.abs(value) < 1) return value.toFixed(4).replace(/\.?0+$/, '');
+  // For larger values, show up to 2 decimals
+  return value.toFixed(2).replace(/\.?0+$/, '');
+};
+
 interface FormulaFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,8 +68,8 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
         formula && !isCopyMode
           ? "Editar Fórmula"
           : isCopyMode
-          ? "Crear Copia de Fórmula"
-          : "Agregar Nueva Fórmula"
+            ? "Crear Copia de Fórmula"
+            : "Agregar Nueva Fórmula"
       }
       formId={formId}
       loading={isLoading || isSubmitting}
@@ -86,9 +97,8 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => handleInputChange("nombre", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${
-                  errors.nombre ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6a55] ${errors.nombre ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Ingrese el nombre de la fórmula"
               />
               {errors.nombre && (
@@ -133,27 +143,27 @@ export const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="font-medium">Kcalorías:</span>{" "}
-                  {nutritionValues.kcaloriasPorPorcion.toFixed(4)}
+                  {formatNutritionValue(nutritionValues.kcaloriasPorPorcion)}
                 </div>
                 <div>
                   <span className="font-medium">Proteínas:</span>{" "}
-                  {nutritionValues.proteinasPorPorcion.toFixed(4)}g
+                  {formatNutritionValue(nutritionValues.proteinasPorPorcion)}g
                 </div>
                 <div>
                   <span className="font-medium">Grasas Tot.:</span>{" "}
-                  {nutritionValues.grasaTotalPorPorcion.toFixed(4)}g
+                  {formatNutritionValue(nutritionValues.grasaTotalPorPorcion)}g
                 </div>
                 <div>
                   <span className="font-medium">Carbohidratos:</span>{" "}
-                  {nutritionValues.carbohidratosPorPorcion.toFixed(4)}g
+                  {formatNutritionValue(nutritionValues.carbohidratosPorPorcion)}g
                 </div>
                 <div>
                   <span className="font-medium">Sodio:</span>{" "}
-                  {nutritionValues.sodioPorPorcion.toFixed(4)}g
+                  {formatNutritionValue(nutritionValues.sodioPorPorcion)}g
                 </div>
                 <div>
                   <span className="font-medium">Fibra:</span>{" "}
-                  {nutritionValues.fibraPorPorcion.toFixed(4)}g
+                  {formatNutritionValue(nutritionValues.fibraPorPorcion)}g
                 </div>
               </div>
             </div>

@@ -62,7 +62,7 @@ export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumo
       <div className="w-32">
         <input
           type="number"
-          step="0.1"
+          step="0.001"
           min={0}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}

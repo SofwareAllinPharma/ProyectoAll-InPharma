@@ -30,19 +30,30 @@ export class PedidosController {
     try {
       // Intentar obtener mail del usuario autenticado
       const userMail = (req as any).user?.mail as string | undefined;
-      let payload = { ...req.body } as any;
-      if (userMail) {
-        payload.mailUsuarioCreador = userMail;
-        // Si no viene idPerfilCreador, tratar de resolver el primer perfil asignado al usuario
-        if (!payload.idPerfilCreador) {
-          const up = await prisma.usuarioPerfil.findFirst({ where: { mail: userMail } });
-          if (up) payload.idPerfilCreador = up.idPerfil;
-        }
+      if (!userMail) {
+        return res.status(401).json({ error: 'Usuario no autenticado' });
       }
+
+      let payload = { ...req.body } as any;
+      payload.mailUsuarioCreador = userMail;
+
+      // SIEMPRE resolver el idPerfilCreador desde la base de datos
+      // Ignorar lo que venga del frontend para evitar inconsistencias
+      const up = await prisma.usuarioPerfil.findFirst({
+        where: { mail: userMail },
+        orderBy: { idPerfil: 'asc' } // Usar el primer perfil asignado
+      });
+
+      if (!up) {
+        return res.status(400).json({ error: 'El usuario no tiene perfiles asignados' });
+      }
+
+      payload.idPerfilCreador = up.idPerfil;
 
       const data = await service.create(payload);
       res.status(201).json(data);
     } catch (err: any) {
+      console.error('[CREATE PEDIDO ERROR]', err);
       res.status(400).json({ error: err.message });
     }
   }
