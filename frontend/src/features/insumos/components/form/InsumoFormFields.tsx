@@ -26,9 +26,8 @@ export default function InsumoFormFields({
           type="text"
           value={formData.nombre}
           onChange={(e) => onChange("nombre", e.target.value)}
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.nombre ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.nombre ? "border-red-500" : "border-gray-300"
+            }`}
           placeholder="Ej: Aceite de Coco"
           disabled={loading}
         />
@@ -45,13 +44,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.cal_100g}
+          value={formData.cal_100g === 0 ? "" : formData.cal_100g}
           onChange={(e) =>
             onChange("cal_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.cal_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.cal_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.cal_100g && (
@@ -67,13 +66,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.grasasTotales_100g}
+          value={formData.grasasTotales_100g === 0 ? "" : formData.grasasTotales_100g}
           onChange={(e) =>
             onChange("grasasTotales_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.grasasTotales_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasTotales_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.grasasTotales_100g && (
@@ -91,13 +90,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.grasasTrans_100g}
+          value={formData.grasasTrans_100g === 0 ? "" : formData.grasasTrans_100g}
           onChange={(e) =>
             onChange("grasasTrans_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.grasasTrans_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasTrans_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.grasasTrans_100g && (
@@ -113,13 +112,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.grasasSaturadas_100g}
+          value={formData.grasasSaturadas_100g === 0 ? "" : formData.grasasSaturadas_100g}
           onChange={(e) =>
             onChange("grasasSaturadas_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.grasasSaturadas_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasSaturadas_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.grasasSaturadas_100g && (
@@ -137,13 +136,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.proteinas_100g}
+          value={formData.proteinas_100g === 0 ? "" : formData.proteinas_100g}
           onChange={(e) =>
             onChange("proteinas_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.proteinas_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.proteinas_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.proteinas_100g && (
@@ -159,13 +158,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.carbohidratos_100g}
+          value={formData.carbohidratos_100g === 0 ? "" : formData.carbohidratos_100g}
           onChange={(e) =>
             onChange("carbohidratos_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.carbohidratos_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.carbohidratos_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.carbohidratos_100g && (
@@ -183,13 +182,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.sodio_100g}
+          value={formData.sodio_100g === 0 ? "" : formData.sodio_100g}
           onChange={(e) =>
             onChange("sodio_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.sodio_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.sodio_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.sodio_100g && (
@@ -205,13 +204,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.fibra_100g}
+          value={formData.fibra_100g === 0 ? "" : formData.fibra_100g}
           onChange={(e) =>
             onChange("fibra_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.fibra_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.fibra_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.fibra_100g && (
@@ -227,13 +226,13 @@ export default function InsumoFormFields({
           type="number"
           step="0.01"
           min="0"
-          value={formData.otro_100g}
+          value={formData.otro_100g === 0 ? "" : formData.otro_100g}
           onChange={(e) =>
             onChange("otro_100g", parseFloat(e.target.value) || 0)
           }
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${
-            errors.otro_100g ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="0"
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.otro_100g ? "border-red-500" : "border-gray-300"
+            }`}
           disabled={loading}
         />
         {errors.otro_100g && (

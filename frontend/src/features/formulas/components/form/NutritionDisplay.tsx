@@ -1,6 +1,34 @@
 import React from "react";
 import type { NutritionCalculation } from "../../types/formula.types";
 
+// Función para formatear valores nutricionales con redondeo inteligente
+const formatNutritionValue = (value: number): string => {
+  // Si el valor es muy pequeño (menos de 0.1), mostrar con más decimales
+  if (Math.abs(value) < 0.1) {
+    return value.toFixed(4).replace(/\.?0+$/, '');
+  }
+
+  // Para valores mayores, verificar si está cerca de un número entero
+  const rounded = Math.round(value);
+  const diff = Math.abs(value - rounded);
+
+  // Si está a menos de 0.2 de un entero, redondear al entero
+  // Esto hace que 19.8, 19.9, 4.9, etc se redondeen
+  if (diff < 0.2) {
+    return rounded.toString();
+  }
+
+  // Si está cerca de un decimal (.5), mostrar con 1 decimal
+  const oneDecimal = Math.round(value * 10) / 10;
+  const diffOneDecimal = Math.abs(value - oneDecimal);
+  if (diffOneDecimal < 0.05) {
+    return oneDecimal.toString();
+  }
+
+  // Para otros casos, mostrar con 1 decimal sin ceros finales
+  return value.toFixed(1).replace(/\.0$/, '');
+};
+
 interface Props {
   nutrition: NutritionCalculation;
   // aceptamos 'porcion' (peso total de la porción) para mostrar en el header
@@ -45,7 +73,7 @@ export const NutritionDisplay: React.FC<Props> = ({ nutrition, porcion }) => {
                 {item.label}:
               </span>
               <span className="font-roboto">
-                {item.value.toFixed(4)} {item.unit}
+                {formatNutritionValue(item.value)} {item.unit}
               </span>
             </div>
           ))}
