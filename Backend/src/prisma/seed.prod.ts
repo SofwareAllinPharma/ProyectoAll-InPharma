@@ -163,6 +163,22 @@ async function main() {
   }
   console.log('✔ DEPÓSITOS listos (Farmacia y Fábrica)');
 
+  // 6) ESTADOS DE PEDIDO (necesarios para crear pedidos)
+  const estadosPedido = [
+    { nombre: 'Creado' },
+    { nombre: 'EnElaboración' },
+    { nombre: 'ElaboradoYDepositadoEnFábrica' },
+    { nombre: 'Cancelado' },
+  ];
+  for (const est of estadosPedido) {
+    await prisma.estadoPedido.upsert({
+      where: { nombre: est.nombre },
+      update: {},
+      create: est,
+    });
+  }
+  console.log('✔ ESTADOS DE PEDIDO listos');
+
   console.log('=== Seed de PRODUCCIÓN COMPLETADO OK ===');
 }
 
