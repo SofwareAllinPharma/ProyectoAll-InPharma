@@ -179,6 +179,37 @@ async function main() {
   }
   console.log('✔ ESTADOS DE PEDIDO listos');
 
+  // 7) ESTADOS DE MOVIMIENTO (necesarios para movimientos de stock)
+  const estadosMovimiento = [
+    { nombre: 'Creado' },
+    { nombre: 'En Camino' },
+    { nombre: 'Entregado' },
+    { nombre: 'Cancelado' },
+    { nombre: 'Vendido' },
+  ];
+  for (const est of estadosMovimiento) {
+    await prisma.estadoMovimiento.upsert({
+      where: { nombre: est.nombre },
+      update: {},
+      create: est,
+    });
+  }
+  console.log('✔ ESTADOS DE MOVIMIENTO listos');
+
+  // 8) TIPOS DE MOVIMIENTO (Traslado y Egreso)
+  const tiposMovimiento = [
+    { nombre: 'Traslado' },
+    { nombre: 'Egreso' },
+  ];
+  for (const tipo of tiposMovimiento) {
+    await prisma.tiposMovimiento.upsert({
+      where: { nombre: tipo.nombre },
+      update: {},
+      create: tipo,
+    });
+  }
+  console.log('✔ TIPOS DE MOVIMIENTO listos (Traslado y Egreso)');
+
   console.log('=== Seed de PRODUCCIÓN COMPLETADO OK ===');
 }
 
