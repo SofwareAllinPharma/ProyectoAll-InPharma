@@ -17,10 +17,10 @@ async function main() {
 
   // 1) PERFILES (igual que en dev)
   const perfiles = [
-    { id: 1, nombre: 'tecnico',      descripcion: 'tecnico' },
-    { id: 2, nombre: 'adminfab',     descripcion: 'administrador de fabrica' },
-    { id: 3, nombre: 'adminsis',     descripcion: 'administrador del sistema' },
-    { id: 4, nombre: 'encptoventa',  descripcion: 'encargado de punto de venta' },
+    { id: 1, nombre: 'tecnico', descripcion: 'tecnico' },
+    { id: 2, nombre: 'adminfab', descripcion: 'administrador de fabrica' },
+    { id: 3, nombre: 'adminsis', descripcion: 'administrador del sistema' },
+    { id: 4, nombre: 'encptoventa', descripcion: 'encargado de punto de venta' },
   ];
 
   for (const p of perfiles) {
@@ -149,7 +149,7 @@ async function main() {
   for (const d of depositos) {
     await prisma.deposito.upsert({
       where: { id: d.id },
-      update: { 
+      update: {
         nombre: d.nombre,
         direccion: d.direccion,
         responsable: d.responsable,
