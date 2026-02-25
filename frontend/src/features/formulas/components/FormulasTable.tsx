@@ -33,6 +33,21 @@ const TrashIcon = (
     />
   </svg>
 );
+const CopyIcon = (
+  <svg
+    className="h-4 w-4 text-gray-600"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+    />
+  </svg>
+);
 import DataTable from "../../../components/ui/DataTable";
 import type { Column } from "../../../components/ui/DataTable";
 
@@ -41,6 +56,7 @@ interface FormulasTableProps {
   onFormulaAction?: (formula: Formula) => void;
   onEdit?: (formula: Formula) => void;
   onDelete?: (formula: Formula) => void;
+  onCopy?: (formula: Formula) => void;
   onView?: (formula: Formula) => void;
 }
 
@@ -55,6 +71,7 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
   formulas = [],
   onEdit,
   onDelete,
+  onCopy,
 }) => {
   const [detailFormula, setDetailFormula] = useState<Formula | null>(null);
 
@@ -108,11 +125,10 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
       align: "center",
       render: (f: Formula) => (
         <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-            f.esProtegida
-              ? "bg-red-100 text-red-800"
-              : "bg-green-100 text-green-800"
-          }`}
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${f.esProtegida
+            ? "bg-red-100 text-red-800"
+            : "bg-green-100 text-green-800"
+            }`}
         >
           {f.esProtegida ? "Sí" : "No"}
         </span>
@@ -158,6 +174,12 @@ export const FormulasTable: React.FC<FormulasTableProps> = ({
                 label: "Editar",
                 icon: EditIcon,
                 onClick: () => onEdit?.(f),
+              },
+              {
+                key: "copy",
+                label: "Copiar",
+                icon: CopyIcon,
+                onClick: () => onCopy?.(f),
               },
               {
                 key: "delete",

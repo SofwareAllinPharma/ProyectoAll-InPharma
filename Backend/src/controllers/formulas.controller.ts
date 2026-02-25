@@ -7,10 +7,11 @@ const service = new FormulasService();
 export class FormulasController {
   async list(req: Request, res: Response) {
     try {
-      const { estado, search } = req.query;
+      const { estado, search, insumoId } = req.query;
       const formulas = await service.list({
         estado: estado as string,
         search: search as string,
+        insumoId: insumoId ? Number(insumoId) : undefined,
       });
       res.json(formulas);
     } catch (err: any) {

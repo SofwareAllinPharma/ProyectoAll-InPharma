@@ -89,6 +89,7 @@ model Insumo {
   sodio_100g           Float
   fibra_100g           Float
   otro_100g            Float
+  otroAlias            String?         @db.VarChar(60)
   activo               Boolean         @default(true)
   formulaInsumos       FormulaInsumo[]
 

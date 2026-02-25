@@ -1,6 +1,8 @@
 import type { CreateInsumoDto } from "../../types/insumo.types";
 import type { RefObject } from "react";
 
+const BLOCK_KEYS = ['e', 'E', '+', '-'];
+
 export default function InsumoFormFields({
   formData,
   onChange,
@@ -48,6 +50,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("cal_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.cal_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -70,6 +73,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("grasasTotales_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasTotales_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -94,6 +98,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("grasasTrans_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasTrans_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -116,6 +121,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("grasasSaturadas_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.grasasSaturadas_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -140,6 +146,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("proteinas_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.proteinas_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -162,6 +169,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("carbohidratos_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.carbohidratos_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -186,6 +194,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("sodio_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.sodio_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -208,6 +217,7 @@ export default function InsumoFormFields({
           onChange={(e) =>
             onChange("fibra_100g", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
           placeholder="0"
           className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.fibra_100g ? "border-red-500" : "border-gray-300"
             }`}
@@ -218,23 +228,39 @@ export default function InsumoFormFields({
         )}
       </div>
 
-      <div>
+      <div className="md:col-span-2 lg:col-span-3">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Otros
+          Micronutriente adicional (campo "Otros")
         </label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={formData.otro_100g === 0 ? "" : formData.otro_100g}
-          onChange={(e) =>
-            onChange("otro_100g", parseFloat(e.target.value) || 0)
-          }
-          placeholder="0"
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.otro_100g ? "border-red-500" : "border-gray-300"
-            }`}
-          disabled={loading}
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={formData.otroAlias ?? ''}
+            onChange={(e) => onChange('otroAlias', e.target.value)}
+            placeholder="Nombre (ej: Potasio, Vitamina C...)"
+            className={`flex-1 px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.otroAlias ? 'border-red-500' : 'border-gray-300'}`}
+            disabled={loading}
+          />
+          <div className="w-36">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.otro_100g === 0 ? '' : formData.otro_100g}
+              onChange={(e) => onChange('otro_100g', parseFloat(e.target.value) || 0)}
+              onKeyDown={(e) => BLOCK_KEYS.includes(e.key) && e.preventDefault()}
+              placeholder={formData.otroAlias ? `${formData.otroAlias} (g)` : 'Cantidad (g)'}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-[#5d5448] focus:border-[#5d5448] ${errors.otro_100g ? 'border-red-500' : 'border-gray-300'}`}
+              disabled={loading}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-1">
+          Si este insumo contiene un micronutriente adicional (potasio, calcio, etc.), indicá su nombre y valor por 100g.
+        </p>
+        {errors.otroAlias && (
+          <p className="text-red-500 text-xs mt-1">{errors.otroAlias}</p>
+        )}
         {errors.otro_100g && (
           <p className="text-red-500 text-xs mt-1">{errors.otro_100g}</p>
         )}

@@ -18,7 +18,11 @@ function round(num: number) {
 export class FormulasService {
   repo = new FormulasRepository();
 
-  async list(params: { estado?: string; search?: string }) {
+  async list(params: {
+    estado?: string;
+    search?: string;
+    insumoId?: number;
+  }) {
     return this.repo.findAll(params);
   }
 

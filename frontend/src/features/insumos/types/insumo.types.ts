@@ -10,6 +10,7 @@ export interface Insumo {
   sodio_100g: number;
   fibra_100g: number;
   otro_100g: number;
+  otroAlias?: string;
 }
 
 export interface CreateInsumoDto {
@@ -23,6 +24,7 @@ export interface CreateInsumoDto {
   sodio_100g: number;
   fibra_100g: number;
   otro_100g: number;
+  otroAlias?: string;
 }
 
 export type UpdateInsumoDto = Partial<CreateInsumoDto>;

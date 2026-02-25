@@ -132,7 +132,14 @@ export default function InsumosTable({
       title: "Otros",
       align: "center",
       width: "8%",
-      render: (r) => `${fmt(r.otro_100g)}g`,
+      render: (r) => (
+        <div className="text-center">
+          <div>{fmt(r.otro_100g)}g</div>
+          {r.otroAlias && (
+            <div className="text-xs text-gray-400">{r.otroAlias}</div>
+          )}
+        </div>
+      ),
     },
     {
       key: "acciones",

@@ -31,6 +31,7 @@ export default function InsumoFormModal({
     sodio_100g: 0,
     fibra_100g: 0,
     otro_100g: 0,
+    otroAlias: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -48,6 +49,7 @@ export default function InsumoFormModal({
         sodio_100g: insumo.sodio_100g,
         fibra_100g: insumo.fibra_100g,
         otro_100g: insumo.otro_100g,
+        otroAlias: insumo.otroAlias ?? '',
       });
     } else {
       setFormData({
@@ -61,6 +63,7 @@ export default function InsumoFormModal({
         sodio_100g: 0,
         fibra_100g: 0,
         otro_100g: 0,
+        otroAlias: '',
       });
     }
 
@@ -85,9 +88,22 @@ export default function InsumoFormModal({
     ] as const;
 
     numericFields.forEach((field) => {
-      if ((formData as any)[field] < 0)
+      const v = (formData as any)[field];
+      if (typeof v !== 'number' || isNaN(v)) {
+        newErrors[field as string] = "Debe ser un número válido";
+      } else if (v < 0) {
         newErrors[field as string] = "El valor no puede ser negativo";
+      }
     });
+
+    // Cross-validate: if alias is set but value is 0 (or vice versa) warn user
+    const hasAlias = formData.otroAlias?.trim();
+    if (hasAlias && (isNaN(formData.otro_100g) || formData.otro_100g <= 0)) {
+      newErrors.otro_100g = "Ingresá un valor mayor a 0 para este micronutriente";
+    }
+    if (!hasAlias && formData.otro_100g > 0) {
+      newErrors.otroAlias = "Ingresá el nombre del micronutriente";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -96,7 +112,11 @@ export default function InsumoFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    const dataToSend = { ...formData, sodio_100g: formData.sodio_100g };
+    const dataToSend = {
+      ...formData,
+      sodio_100g: formData.sodio_100g,
+      otroAlias: formData.otroAlias?.trim() || undefined,
+    };
     onSave(dataToSend);
   };
 

@@ -7,14 +7,17 @@ import type {
 import { fromApi, toApi } from '../lib/mappers';
 
 export class FormulaService {
-  static async getAllFormulas(): Promise<Formula[]> {
-    const { data } = await api.get('/formulas');
-    
+  static async getAllFormulas(insumoId?: number): Promise<Formula[]> {
+    const params = new URLSearchParams();
+    if (insumoId) params.append('insumoId', insumoId.toString());
+
+    const { data } = await api.get(`/formulas?${params.toString()}`);
+
     if (data.formulas && Array.isArray(data.formulas)) {
-        return data.formulas.map(fromApi);
+      return data.formulas.map(fromApi);
     }
     if (Array.isArray(data)) {
-        return data.map(fromApi);
+      return data.map(fromApi);
     }
     return [];
   }
