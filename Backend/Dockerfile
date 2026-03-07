@@ -55,4 +55,4 @@ RUN echo "\n==== Archivos en /app/dist (runtime) ====\n" && ls -l /app/dist && \
 
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=src/prisma/schema.prisma && node dist/index.js"]

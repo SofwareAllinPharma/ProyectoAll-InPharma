@@ -5,8 +5,13 @@ const insumosService = new InsumosService();
 
 export class InsumosController {
   async getAll(req: Request, res: Response) {
-    const insumos = await insumosService.getAll();
-    res.json(insumos);
+    try {
+      const insumos = await insumosService.getAll();
+      res.json(insumos);
+    } catch (error: any) {
+      console.error('[INSUMO GETALL ERROR]', error?.message);
+      res.status(500).json({ error: 'Error al obtener los insumos' });
+    }
   }
 
   async getById(req: Request, res: Response) {
