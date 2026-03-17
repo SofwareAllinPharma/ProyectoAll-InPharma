@@ -10,6 +10,7 @@ import ConfirmarCambioEstadoModal from '../components/detalle/ConfirmarCambioEst
 import Button from '../../../components/ui/Button';
 import ToastContext from '../../../components/ui/toast/ToastContext';
 import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContext';
+import { PrintMovimientoButton } from '../components/export/PrintMovimientoButton';
 
 export default function MovimientoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -130,16 +131,19 @@ export default function MovimientoDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      {/* Header con botón de volver */}
-      <button
-        onClick={handleBack}
-        className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Volver
-      </button>
+      {/* Header con botón de volver y exportar */}
+      <div className="mb-6 flex items-center justify-between">
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </button>
+        <PrintMovimientoButton detalle={detalle} />
+      </div>
 
       {/* Grid principal: 2 columnas izq + 1 columna der */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -6,6 +6,8 @@ interface PedidoInfoSectionProps {
   formulaVersion?: number;
   cantidadPaquetes: number;
   pesoGramos: number | string;
+  cantElaboradaPaquetes?: number | null;
+  cantElaboradaGramos?: number | null;
   tecnicoEmail?: string | null;
   createdAt: string | Date;
   observacion?: string | null;
@@ -25,6 +27,8 @@ export default function PedidoInfoSection({
   formulaVersion,
   cantidadPaquetes,
   pesoGramos,
+  cantElaboradaPaquetes,
+  cantElaboradaGramos,
   tecnicoEmail,
   createdAt,
   observacion,
@@ -97,6 +101,33 @@ export default function PedidoInfoSection({
             </div>
           </div>
         </div>
+
+        {/* Cantidad real elaborada */}
+        {cantElaboradaPaquetes != null && (
+          <div className="flex items-start gap-3">
+            <div className="text-gray-500 mt-1">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="text-sm text-gray-500">Cantidad real elaborada</div>
+              <div className="text-base font-medium text-gray-900 mt-1">
+                {cantElaboradaPaquetes} paquetes
+                {cantElaboradaGramos != null && <span className="text-sm text-gray-500 ml-2">({formatQty(cantElaboradaGramos)} g)</span>}
+              </div>
+              {(() => {
+                const diff = cantElaboradaPaquetes - cantidadPaquetes;
+                if (diff === 0) return null;
+                return (
+                  <div className={`text-xs mt-1 ${diff > 0 ? 'text-green-600' : 'text-amber-600'}`}>
+                    {diff > 0 ? '+' : ''}{diff.toFixed(2)} paquetes respecto a lo estimado
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Peso Total */}
         <div className="flex items-start gap-3">

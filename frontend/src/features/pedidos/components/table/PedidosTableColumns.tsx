@@ -67,8 +67,26 @@ export const usePedidosTableColumns = ({
     },
     {
       key: 'cantidad',
-      title: 'Cantidad a producir',
+      title: 'Cant. a producir',
       render: (r) => formatCantidad(r),
+    },
+    {
+      key: 'cantElaborada',
+      title: 'Cant. elaborada',
+      render: (r) => {
+        if (r.cantElaborada_paquetes == null) return <span className="text-gray-400 text-xs">—</span>;
+        const diff = r.cantElaborada_paquetes - r.cantAProducir_paquetes;
+        return (
+          <div className="text-sm">
+            <span className="font-medium">{r.cantElaborada_paquetes} paq.</span>
+            {diff !== 0 && (
+              <span className={`ml-1 text-xs ${diff > 0 ? 'text-green-600' : 'text-amber-600'}`}>
+                ({diff > 0 ? '+' : ''}{diff.toFixed(2)})
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     // columna 'Usuario elaborador' removida a pedido del usuario
     {

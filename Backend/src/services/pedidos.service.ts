@@ -172,36 +172,79 @@ export class PedidosService {
     });
   }
 
-  async finalizarElaboracion(numPedido: number, responsable?: string) {
+  async finalizarElaboracion(numPedido: number, responsable?: string, cantidadRealPaquetes?: number) {
     const pedido = await this.detail(numPedido);
     if (pedido.cambioActual?.estado?.nombre !== ESTADOS.EN_ELAB) {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
     }
 
-    // Obtener depósito "Fábrica" (debe existir con ID=2)
-    const dep = await prisma.deposito.findFirst({
-      where: { nombre: "Fábrica" },
-    });
+    if (cantidadRealPaquetes === undefined || !Number.isFinite(cantidadRealPaquetes) || cantidadRealPaquetes <= 0) {
+      throw new Error("Debe ingresar la cantidad real elaborada (mayor a 0)");
+    }
+
+    // Obtener depósito "Fábrica"
+    const dep = await prisma.deposito.findFirst({ where: { nombre: "Fábrica" } });
     if (!dep) {
       throw new Error("Depósito 'Fábrica' no encontrado. Ejecute el seed de la base de datos.");
     }
 
+    // Convertir cantidad real a gramos y porciones
+    const producto = await prisma.producto.findUnique({
+      where: { idProducto: pedido.idProducto },
+      include: { formula: true },
+    });
+    if (!producto) throw new Error("Producto no encontrado");
+
+    const cantidades = this.convertirCantidades({ paquetes: cantidadRealPaquetes }, producto);
+    const realPaquetes = round4(cantidadRealPaquetes);
+    const realGramos = cantidades.cantAProducir_gramos;
+    const realPorciones = cantidades.cantAProducir_porciones;
+
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
 
-    // Transition state first (this will update cambioActual) then add stock to inventario.
-    const updated = await this.repo.transition(numPedido, estadoElabFabId, { estaAsignado: false, responsable: responsable ?? null });
-
-    // Añadir stock al inventario del depósito Fábrica (cantidad en paquetes)
-    const qty = Math.round(pedido.cantAProducir_paquetes || 0);
-    if (qty > 0) {
-      await prisma.inventario.upsert({
-        where: { idDeposito_idProducto: { idDeposito: dep.id, idProducto: pedido.idProducto } },
-        update: { cantidadProducto: { increment: qty } as any },
-        create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: qty, umbralMin: 0 },
+    // Todo en una única transacción: cambio de estado + guardado de cantidades reales + impacto al stock
+    await prisma.$transaction(async (tx) => {
+      // 1. Cerrar estado actual y abrir nuevo estado
+      if (pedido.idCambioEstadoPedido) {
+        await tx.cambioEstadoPedido.update({
+          where: { idCambioEstado: pedido.idCambioEstadoPedido },
+          data: { fechaHoraFin: new Date() },
+        });
+      }
+      const nuevoCambio = await tx.cambioEstadoPedido.create({
+        data: {
+          idPedido: numPedido,
+          idEstadoPedido: estadoElabFabId,
+          fechaHoraInicio: new Date(),
+          responsable: responsable ?? null,
+        },
       });
-    }
 
-    return updated;
+      // 2. Actualizar pedido: nuevo estado + cantidades reales elaboradas
+      await tx.pedido.update({
+        where: { numPedido },
+        data: {
+          idCambioEstadoPedido: nuevoCambio.idCambioEstado,
+          estaAsignado: false,
+          cantElaborada_paquetes: realPaquetes,
+          cantElaborada_gramos: realGramos,
+          cantElaborada_porciones: realPorciones,
+        },
+      });
+
+      // 3. Impactar stock con la cantidad REAL elaborada
+      const qty = Math.round(realPaquetes);
+      if (qty > 0) {
+        await tx.inventario.upsert({
+          where: { idDeposito_idProducto: { idDeposito: dep.id, idProducto: pedido.idProducto } },
+          update: { cantidadProducto: { increment: qty } as any },
+          create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: qty, umbralMin: 0 },
+        });
+      }
+    });
+
+    // Retornar pedido actualizado completo
+    return this.detail(numPedido);
   }
 
   async iniciarElaboracion(numPedido: number, responsable?: string) {

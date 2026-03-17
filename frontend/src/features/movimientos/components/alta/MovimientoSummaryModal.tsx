@@ -2,12 +2,13 @@ import Modal from '../../../../components/ui/modales/Modal';
 import ModalHeader from '../../../../components/ui/modales/ModalHeader';
 import { FaTruck, FaWarehouse, FaDollarSign, FaArrowRight } from 'react-icons/fa';
 
+type SummaryItem = { productoNombre: string; cantidad: number };
+
 type SummaryData = {
   tipo: string;
-  productoNombre: string;
+  items: SummaryItem[];
   depositoOrigenNombre?: string | null;
   depositoDestinoNombre?: string | null;
-  cantidad: number;
   fecha: string;
   responsable?: string | null;
   observaciones?: string | null;
@@ -15,30 +16,25 @@ type SummaryData = {
 
 export default function MovimientoSummaryModal({ open, onClose, onConfirm, submitting, data }: { open: boolean; onClose: () => void; onConfirm: () => Promise<void>; submitting?: boolean; data: SummaryData | null }) {
   if (!data) return null;
-  const PrimaryIcon = (
-    <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-      <FaTruck size={16} className="text-[#7C6A55]" />
-    </div>
-  );
   const tipoLower = (data.tipo || '').toLowerCase();
   const isTraslado = tipoLower.includes('tras');
   const isEgreso = tipoLower.includes('egre');
   const isIngreso = tipoLower.includes('ingre');
   const primaryLabel = `Registrar ${isTraslado ? 'Traslado' : (data.tipo || 'Movimiento')}`;
+
   return (
     <Modal open={open} onClose={onClose} containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4">
       <div className="flex flex-col h-full">
         <ModalHeader>Resumen del Movimiento</ModalHeader>
         <div className="p-5">
-          {PrimaryIcon}
-          <div className="grid grid-cols-2 gap-y-2 text-sm">
+          <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+            <FaTruck size={16} className="text-[#7C6A55]" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-y-2 text-sm mb-3">
             <div className="text-gray-700">Tipo:</div>
             <div className="text-right font-semibold text-gray-800">{data.tipo}</div>
 
-            <div className="text-gray-700">Producto:</div>
-            <div className="text-right font-semibold text-gray-800">{data.productoNombre}</div>
-
-            {/* Flujo de depósitos inmediatamente después del Producto */}
             <div className="col-span-2">
               <div className="flex items-center justify-center w-full text-sm text-gray-600">
                 {isTraslado && (
@@ -76,23 +72,33 @@ export default function MovimientoSummaryModal({ open, onClose, onConfirm, submi
                 )}
               </div>
             </div>
+          </div>
 
-            <div className="text-gray-700">Cantidad:</div>
-            <div className="text-right text-gray-800">{data.cantidad} {data.cantidad === 1 ? 'unidad' : 'unidades'}</div>
+          {/* Productos */}
+          <div className="mb-3">
+            <div className="text-sm font-medium text-gray-700 mb-1">Productos:</div>
+            <div className="rounded border border-gray-200 overflow-hidden">
+              {data.items.map((item, idx) => (
+                <div key={idx} className={`flex justify-between px-3 py-1.5 text-sm ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <span className="text-gray-800 truncate mr-2">{item.productoNombre}</span>
+                  <span className="font-medium text-gray-900 shrink-0">{item.cantidad} u.</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-y-2 text-sm">
             <div className="text-gray-700">Fecha:</div>
             <div className="text-right text-gray-800">{data.fecha}</div>
 
-                <div className="text-gray-700">Responsable:</div>
-                <div className="text-right font-semibold text-gray-900">{(function(){
-                  const r = data.responsable ?? '';
-                  if (!r) return '-';
-                  try { if (String(r).includes('@')) return String(r).split('@')[0]; } catch(_) {}
-                  return r;
-                })()}</div>
-          </div>
+            <div className="text-gray-700">Responsable:</div>
+            <div className="text-right font-semibold text-gray-900">{(function () {
+              const r = data.responsable ?? '';
+              if (!r) return '-';
+              try { if (String(r).includes('@')) return String(r).split('@')[0]; } catch (_) { }
+              return r;
+            })()}</div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
             <div className="text-sm text-gray-700">Observaciones</div>
             <div className="mt-0 text-sm text-right text-gray-800">{data.observaciones ?? '-'}</div>
           </div>

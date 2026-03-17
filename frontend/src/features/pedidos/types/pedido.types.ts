@@ -29,6 +29,9 @@ export type Pedido = {
   cantAProducir_gramos: number;
   cantAProducir_paquetes: number;
   cantAProducir_porciones: number;
+  cantElaborada_paquetes?: number | null;
+  cantElaborada_gramos?: number | null;
+  cantElaborada_porciones?: number | null;
   observacion?: string | null;
   idCambioEstadoPedido?: number | null;
   mailUsuarioCreador: string;

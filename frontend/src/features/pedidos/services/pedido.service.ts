@@ -48,8 +48,8 @@ class PedidoServiceClass {
     return data;
   }
 
-  async finalizarElaboracion(numPedido: number): Promise<Pedido> {
-    const { data } = await api.post(`/pedidos/${numPedido}/finalizar-elaboracion`);
+  async finalizarElaboracion(numPedido: number, cantidadRealPaquetes: number): Promise<Pedido> {
+    const { data } = await api.post(`/pedidos/${numPedido}/finalizar-elaboracion`, { cantidadRealPaquetes });
     return data;
   }
 

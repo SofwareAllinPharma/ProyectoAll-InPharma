@@ -27,7 +27,7 @@ export default function Modal({
   children,
   backdropClassName = 'bg-black/40 backdrop-blur-[2px]',
   className = '',
-  containerClass = 'bg-white rounded-xl p-8 shadow-lg max-w-md w-full mx-4 min-h-[180px] transform -translate-y-6',
+  containerClass = 'bg-white rounded-xl p-8 shadow-lg max-w-md w-full mx-4 min-h-[180px]',
 }: {
   open: boolean;
   onClose: () => void;
@@ -43,7 +43,6 @@ export default function Modal({
     const el = elRef.current!;
     document.body.appendChild(el);
     return () => {
-      // eslint-disable-next-line no-empty
       try { document.body.removeChild(el); } catch {}
     };
   }, []);
@@ -62,12 +61,16 @@ export default function Modal({
   if (!open) return null;
 
   return createPortal(
+    // Outer: full-screen overlay that scrolls if modal content is taller than viewport
     <div
-      className={`fixed inset-0 z-[10000] flex items-center justify-center ${backdropClassName} ${className}`}
+      className={`fixed inset-0 z-[10000] overflow-y-auto ${backdropClassName} ${className}`}
       onClick={onClose}
     >
-      <div className={containerClass} onClick={(e) => e.stopPropagation()}>
-        {children}
+      {/* Centering wrapper — clicking it (outside the modal box) closes the modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className={containerClass} onClick={(e) => e.stopPropagation()}>
+          {children}
+        </div>
       </div>
     </div>,
     elRef.current,

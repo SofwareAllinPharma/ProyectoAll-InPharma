@@ -5,6 +5,7 @@ import PedidoInfoSection from '../components/detail/PedidoInfoSection';
 import InsumosRequeridosTable from '../components/detail/InsumosRequeridosTable';
 import PedidoStatusSidebar from '../components/detail/PedidoStatusSidebar';
 import LocalToast from '../components/detail/LocalToast';
+import { PrintPedidoButton } from '../components/export/PrintPedidoButton';
 import { usePedidoDetail } from '../hooks/usePedidoDetail';
 import { computeInsumosRequeridos } from '../utils/insumos.utils';
 
@@ -80,15 +81,18 @@ export default function PedidoDetailPage() {
         onClose={hideToast}
       />
 
-      <button
-        onClick={handleBack}
-        className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Volver
-      </button>
+      <div className="mb-6 flex items-center justify-between">
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </button>
+        <PrintPedidoButton pedido={pedido} insumos={insumos} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -105,6 +109,8 @@ export default function PedidoDetailPage() {
             formulaVersion={(productoDetalle?.formula as any)?.version}
             cantidadPaquetes={pedido.cantAProducir_paquetes}
             pesoGramos={pedido.cantAProducir_gramos}
+            cantElaboradaPaquetes={pedido.cantElaborada_paquetes}
+            cantElaboradaGramos={pedido.cantElaborada_gramos}
             tecnicoEmail={pedido.mailUsuarioCocinero}
             createdAt={pedido.createdAt}
             observacion={pedido.observacion}

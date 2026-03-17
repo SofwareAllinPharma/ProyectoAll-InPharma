@@ -78,12 +78,8 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
         } catch (e) {
           // ignore
         }
-        // eslint-disable-next-line no-console
-        console.log('[ConfirmarCambioEstadoModal] personas cargadas:', Array.isArray(list) ? list.length : 0, { open, to, tipo, isEntregado, isTraslado });
-      }).catch((e) => {
+      }).catch(() => {
         setUsers([]);
-        // eslint-disable-next-line no-console
-        console.log('[ConfirmarCambioEstadoModal] error cargando personas', e, { open, to, tipo, isEntregado, isTraslado });
       });
     }
   }, [open, user, isEntregado, isTraslado, tipo, to]);

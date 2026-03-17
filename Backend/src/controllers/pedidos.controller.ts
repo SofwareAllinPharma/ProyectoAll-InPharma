@@ -84,7 +84,10 @@ export class PedidosController {
         const p = await prisma.persona.findUnique({ where: { mail: userMail } });
         if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
       }
-      const data = await service.finalizarElaboracion(numPedido, responsable);
+      const cantidadRealPaquetes = req.body?.cantidadRealPaquetes !== undefined
+        ? Number(req.body.cantidadRealPaquetes)
+        : undefined;
+      const data = await service.finalizarElaboracion(numPedido, responsable, cantidadRealPaquetes);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -100,7 +103,10 @@ export class PedidosController {
         const p = await prisma.persona.findUnique({ where: { mail: userMail } });
         if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
       }
-      const data = await service.finalizarElaboracion(numPedido, responsable);
+      const cantidadRealPaquetes = req.body?.cantidadRealPaquetes !== undefined
+        ? Number(req.body.cantidadRealPaquetes)
+        : undefined;
+      const data = await service.finalizarElaboracion(numPedido, responsable, cantidadRealPaquetes);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
