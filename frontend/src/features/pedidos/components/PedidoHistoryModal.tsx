@@ -4,6 +4,7 @@ import type { Pedido, CambioEstado } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
 import PedidoModalShell from "./PedidoModalShell";
 import PedidoEstadoCell from "./PedidoEstadoCell";
+import FinalizarElaboracionModal from "./FinalizarElaboracionModal";
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const PedidoHistoryModal: React.FC<Props> = ({
   onRefresh,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
   const { show } = useToast();
 
   if (!isOpen || !pedido) return null;
@@ -96,9 +98,8 @@ const PedidoHistoryModal: React.FC<Props> = ({
           message = "Elaboración iniciada";
           break;
         case "finalizar":
-          await PedidoService.finalizarElaboracion(pedido.numPedido);
-          message = "Elaboración finalizada";
-          break;
+          setFinalizarModalOpen(true);
+          return;
         case "cancelar":
           await PedidoService.cancelar(pedido.numPedido);
           message = "Pedido cancelado";
@@ -248,6 +249,28 @@ const PedidoHistoryModal: React.FC<Props> = ({
             </div>
         </div>
       )}
+      <FinalizarElaboracionModal
+        isOpen={finalizarModalOpen}
+        cantEstimadaPaquetes={pedido.cantAProducir_paquetes}
+        onCancel={() => setFinalizarModalOpen(false)}
+        onConfirm={async (cantidadRealPaquetes) => {
+          setFinalizarModalOpen(false);
+          setLoading(true);
+          try {
+            await PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes);
+            show({ message: "Elaboración finalizada", type: "success" });
+            onRefresh?.();
+            onClose();
+          } catch (error) {
+            show({
+              message: (error as Error)?.message || "Error ejecutando acción",
+              type: "error",
+            });
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
     </PedidoModalShell>
   );
 };

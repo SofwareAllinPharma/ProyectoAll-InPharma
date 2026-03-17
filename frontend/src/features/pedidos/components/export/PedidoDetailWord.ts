@@ -32,7 +32,6 @@ const formatDate = (d: string | Date) => {
   );
 };
 
-const outerBorder = { style: BorderStyle.SINGLE, size: 20, color: "000000" };
 const thinBorder = { style: BorderStyle.SINGLE, size: 3, color: "CCCCCC" };
 const accentBorder = { style: BorderStyle.SINGLE, size: 8, color: "9D977B" };
 
