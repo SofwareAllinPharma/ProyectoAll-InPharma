@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { PedidosPage } from "../../pedidos";
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
+import { CronogramaPage, MiCronogramaPage } from "../../cronograma";
 
 // Secciones (placeholders por ahora)
 const OperacionesComponent = () => (
@@ -38,6 +39,10 @@ export default function TecnicoDashboard() {
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+
+      {/* Cronograma */}
+      <Route path="cronograma" element={<CronogramaPage />} />
+      <Route path="mi-cronograma" element={<MiCronogramaPage />} />
 
       {/* Fallback dentro del módulo */}
       <Route path="*" element={<Navigate to="" replace />} />

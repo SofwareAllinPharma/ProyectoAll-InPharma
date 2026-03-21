@@ -4,6 +4,7 @@ import { PedidosPage } from "../../pedidos";
 import PedidoDetailPage from '../../pedidos/pages/PedidoDetailPage';
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
+import { CronogramaPage } from "../../cronograma";
 
 const StockComponent = () => (
   <div>
@@ -33,6 +34,9 @@ export default function AdminFabDashboard() {
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+
+      {/* Cronograma */}
+      <Route path="cronograma" element={<CronogramaPage />} />
 
       {/* Fallback dentro del módulo */}
       <Route path="*" element={<Navigate to="pedidos" replace />} />

@@ -14,6 +14,7 @@ import { ProductoService } from "../../productos/services/producto.service";
 
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
+import { CronogramaPage } from "../../cronograma";
 
 const ResumenComponent = () => {
   const [insumosCount, setInsumosCount] = useState(0);
@@ -242,6 +243,9 @@ export default function AdminSisDashboard() {
       {/* Depósitos */}
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+
+      {/* Cronograma */}
+      <Route path="cronograma" element={<CronogramaPage />} />
 
       {/* Wildcard: si preferís que vaya a depósitos, cambia "." por "depositos" */}
       <Route path="*" element={<Navigate to="." replace />} />
