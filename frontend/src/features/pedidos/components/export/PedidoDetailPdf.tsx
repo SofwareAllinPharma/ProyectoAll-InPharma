@@ -132,7 +132,12 @@ export const PedidoDetailPdf = ({ pedido, insumos }: PedidoDetailPdfProps) => {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Cant. estimada (porciones):</Text>
-            <Text style={styles.value}>{pedido.cantAProducir_porciones}</Text>
+            <Text style={styles.value}>
+              {Math.round(pedido.cantAProducir_porciones)}
+              {pedido.producto?.cantPorcionesAportadas
+                ? `  (1 paquete = ${pedido.producto.cantPorcionesAportadas} porciones)`
+                : ""}
+            </Text>
           </View>
           {pedido.observacion ? (
             <View style={styles.row}>

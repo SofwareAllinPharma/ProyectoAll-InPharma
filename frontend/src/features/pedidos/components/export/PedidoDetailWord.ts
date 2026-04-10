@@ -117,7 +117,12 @@ export const generatePedidoWord = async (pedido: Pedido, insumos: InsumoRequerid
         infoRow("Producto", pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`),
         infoRow("Cant. estimada (paquetes)", String(pedido.cantAProducir_paquetes)),
         infoRow("Cant. estimada (gramos)", `${pedido.cantAProducir_gramos} g`),
-        infoRow("Cant. estimada (porciones)", String(pedido.cantAProducir_porciones)),
+        infoRow(
+          "Cant. estimada (porciones)",
+          pedido.producto?.cantPorcionesAportadas
+            ? `${Math.round(pedido.cantAProducir_porciones)}  (1 paquete = ${pedido.producto.cantPorcionesAportadas} porciones)`
+            : String(Math.round(pedido.cantAProducir_porciones))
+        ),
         ...(pedido.observacion ? [infoRow("Observación", pedido.observacion)] : []),
       ],
     }),

@@ -117,16 +117,21 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     if (mode === "gramos") {
       gramos = value;
       paquetes = gramos / pesoPaquete;
-      porciones = +(gramos / porcion).toFixed(4);
+      porciones = +(gramos / porcion).toFixed(6);
     } else if (mode === "paquetes") {
       // ensure paquetes are interpreted as integer count for conversion, but keep decimal representation for UI
       paquetes = Math.round(value);
-      gramos = +(paquetes * pesoPaquete).toFixed(4);
-      porciones = +(gramos / porcion).toFixed(4);
+      gramos = +(paquetes * pesoPaquete).toFixed(6);
+      // Use cantPorcionesAportadas for exact integer-based porciones (avoids floating point drift)
+      porciones = selected.cantPorcionesAportadas
+        ? paquetes * selected.cantPorcionesAportadas
+        : +(gramos / porcion).toFixed(6);
     } else {
       porciones = value;
-      gramos = +(porciones * porcion).toFixed(4);
-      paquetes = +(gramos / pesoPaquete).toFixed(4);
+      gramos = +(porciones * porcion).toFixed(6);
+      paquetes = selected.cantPorcionesAportadas
+        ? porciones / selected.cantPorcionesAportadas
+        : +(gramos / pesoPaquete).toFixed(6);
     }
     return { gramos, paquetes, porciones };
   }
