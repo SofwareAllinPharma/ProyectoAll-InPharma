@@ -22,7 +22,8 @@ COPY src ./src
 RUN npm ci
 
 # Build de producción (Vite + Tailwind + PostCSS)
-RUN npm run build
+# Limitamos heap de Node a 1536MB para evitar OOM kill en VPS con poca RAM
+RUN NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
 
 # ========= STAGE 2: RUNTIME (NGINX) =========
