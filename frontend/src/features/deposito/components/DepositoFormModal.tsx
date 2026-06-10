@@ -52,11 +52,10 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
   const onlyCreate = !isEdit;
 
   return (
-    <Modal open={open} onClose={onCancel} containerClass="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
-      <div>
-        <ModalHeader>{isEdit ? 'Modificar Depósito' : 'Registrar Depósito'}</ModalHeader>
+    <Modal open={open} onClose={onCancel} containerClass="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <ModalHeader>{isEdit ? 'Modificar Depósito' : 'Registrar Depósito'}</ModalHeader>
 
-        <form onSubmit={handleSubmit(onSave)} className="p-6 space-y-4">
+      <form onSubmit={handleSubmit(onSave)} className="p-6 space-y-4 flex-1 overflow-auto min-h-0">
           <TextField label="Nombre" disabled={isEdit || loading} {...{ inputProps: { ...register('nombre', { required: onlyCreate ? 'El nombre es requerido' : false, minLength: onlyCreate ? { value: 3, message: 'Mínimo 3 caracteres' } : undefined, validate: validateUniqueName(existingNames, onlyCreate), }) }, error: errors.nombre?.message as string | undefined }} />
 
           <TextField label="Dirección" disabled={isEdit || loading} {...{ inputProps: { ...register('direccion', { required: onlyCreate ? 'La dirección es requerida' : false, minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined, }) }, error: errors.direccion?.message as string | undefined }} />
@@ -119,7 +118,6 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
 
           <FormActions onCancel={onCancel} submitting={loading} disabled={!isValid} submitLabel={isEdit ? 'Guardar cambios' : 'Crear Depósito'} />
         </form>
-      </div>
     </Modal>
   );
 }

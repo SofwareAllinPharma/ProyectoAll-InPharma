@@ -146,9 +146,9 @@ export default function InsumoFormModal({
       loading={loading}
       submitLabel={isEditing ? "Guardar Insumo" : "Crear Insumo"}
       cancelLabel="Cancelar"
-      containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+      containerClass="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col"
       footer={
-        <div className="-mt-6">
+        <div>
           <FormActions
             onCancel={onCancel}
             submitting={loading}
@@ -162,7 +162,7 @@ export default function InsumoFormModal({
       <form
         id={formId}
         onSubmit={handleSubmit}
-        className="pt-3 pb-2 overflow-y-auto max-h-[calc(90vh-120px)]"
+        className="pt-3 pb-2"
       >
         <InsumoFormFields
           formData={formData}
