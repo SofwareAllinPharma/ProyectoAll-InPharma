@@ -18,15 +18,17 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
   const [costoLoading, setCostoLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !formula) return;
+    if (!isOpen || !formula) { setCosto(null); return; }
     let cancelled = false;
+    setCosto(null);
     setCostoLoading(true);
     FormulaService.getCosto(formula.id)
       .then(c => { if (!cancelled) setCosto(c); })
       .catch(() => { if (!cancelled) setCosto(null); })
       .finally(() => { if (!cancelled) setCostoLoading(false); });
     return () => { cancelled = true; };
-  }, [isOpen, formula]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, formula?.id]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
