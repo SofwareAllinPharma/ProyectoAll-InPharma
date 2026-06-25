@@ -91,6 +91,16 @@ export class FormulasController {
     }
   }
 
+  async costo(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await service.calcularCosto(Number(id));
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
   async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;

@@ -50,6 +50,16 @@ export class FormulaService {
     return (await this.getAllFormulas()).filter(f => f.nombre.toLowerCase().includes(searchTerm.trim().toLowerCase()));
   }
 
+  static async getCosto(idFormula: number): Promise<{
+    costoPorPorcion: number;
+    esParcial: boolean;
+    insumosSinPrecio: string[];
+    detalle: { insumo: string; gramos: number; precioPorKg: number | null; costoAporte: number | null }[];
+  }> {
+    const { data } = await api.get(`/formulas/${idFormula}/costo`);
+    return data;
+  }
+
   static async checkFormulaProtection(
     id: number
   ): Promise<{ canEdit: boolean; reason?: string }> {

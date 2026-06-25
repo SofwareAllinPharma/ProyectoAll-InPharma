@@ -267,4 +267,53 @@ export class FormulasService {
     // 2. Si no hay productos, proceder con la eliminación lógica
     return this.repo.softDelete(id);
   }
+
+  async calcularCosto(idFormula: number) {
+    const formula = await prisma.formula.findUnique({
+      where: { id: idFormula },
+      include: {
+        formulaInsumos: {
+          include: {
+            insumo: {
+              include: {
+                precios: {
+                  where: { activo: true },
+                  take: 1,
+                  include: { proveedor: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!formula) throw new Error("Fórmula no encontrada");
+
+    let costoPorPorcion = 0;
+    const insumosSinPrecio: string[] = [];
+    const detalle: { insumo: string; gramos: number; precioPorKg: number | null; costoAporte: number | null }[] = [];
+
+    for (const fi of formula.formulaInsumos) {
+      const insumo = fi.insumo;
+      const precioActivo = insumo?.precios?.[0] ?? null;
+      const gramos = fi.cantidadInsumo;
+
+      if (!precioActivo) {
+        insumosSinPrecio.push(insumo?.nombre ?? `#${fi.idInsumo}`);
+        detalle.push({ insumo: insumo?.nombre ?? `#${fi.idInsumo}`, gramos, precioPorKg: null, costoAporte: null });
+      } else {
+        const aporte = (gramos / 1000) * precioActivo.precioPorKg;
+        costoPorPorcion += aporte;
+        detalle.push({ insumo: insumo!.nombre, gramos, precioPorKg: precioActivo.precioPorKg, costoAporte: aporte });
+      }
+    }
+
+    return {
+      costoPorPorcion,
+      esParcial: insumosSinPrecio.length > 0,
+      insumosSinPrecio,
+      detalle,
+    };
+  }
 }

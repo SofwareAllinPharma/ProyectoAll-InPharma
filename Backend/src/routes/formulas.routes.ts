@@ -11,7 +11,9 @@ router.use(requireAuth);
 
 router.get("/", 
     requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB,ROLE_CODES.TECNICO),controller.list);
-router.get("/:id", 
+router.get("/:id/costo",
+    requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB,ROLE_CODES.TECNICO),controller.costo);
+router.get("/:id",
     requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB,ROLE_CODES.TECNICO),controller.detail);
 router.post("/", 
     requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB),controller.create);

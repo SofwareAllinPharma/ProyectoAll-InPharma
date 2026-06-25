@@ -216,18 +216,18 @@ export default function InsumoFormModal({
               </button>
             )}
           </div>
-          {precios.length > 1 && (
+          {precios.filter(p => !p.activo).length > 0 && (
             <button
               type="button"
               onClick={() => setShowHistorial(s => !s)}
               className="text-xs text-[#5d5448] underline hover:no-underline"
             >
-              {showHistorial ? 'Ocultar historial' : `Ver historial (${precios.length - 1} anterior${precios.length - 1 !== 1 ? 'es' : ''})`}
+              {showHistorial ? 'Ocultar historial' : `Ver historial (${precios.filter(p => !p.activo).length} anterior${precios.filter(p => !p.activo).length !== 1 ? 'es' : ''})`}
             </button>
           )}
           {showHistorial && (
             <PrecioInsumoHistorial
-              precios={precios}
+              precios={precios.filter(p => !p.activo)}
               insumoId={insumo!.id}
               onRefresh={loadPrecios}
             />
