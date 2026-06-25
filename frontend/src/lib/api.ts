@@ -71,10 +71,12 @@ export async function apiFetch<T = unknown>(path: string, init?: RequestInit): P
   });
 
   let data: unknown = null;
-  try {
-    data = await res.json();
-  } catch (err) {
-    console.error('Failed to parse JSON:', err);
+  if (res.status !== 204 && res.headers.get('content-length') !== '0') {
+    try {
+      data = await res.json();
+    } catch {
+      // body vacío o no es JSON
+    }
   }
 
   const hasError = (obj: unknown): obj is { error?: string; message?: string } =>

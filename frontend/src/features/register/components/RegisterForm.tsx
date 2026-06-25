@@ -124,7 +124,7 @@ export default function RegisterForm({ onSuccess }: Props) {
           {...register('confirmPassword', { 
             required: 'Confirme la contraseña',
             validate: (val: string | undefined) => {
-              if (watch('password') != val) {
+              if (watch('password') !== val) {
                 return "Las contraseñas no coinciden";
               }
             }
