@@ -5,6 +5,7 @@ import type { Column } from "../../../../components/ui/DataTable";
 import ProductoNombreCell from "./ProductoNombreCell";
 import ProductoFormulaCell from "./ProductoFormulaCell";
 import ProductoAccionesCell from "./ProductoAccionesCell";
+import CostoProductoCell from "./CostoProductoCell";
 
 interface Props {
   productos: Producto[];
@@ -79,6 +80,13 @@ export const ProductosTable: React.FC<Props> = ({
       align: "center",
       render: (r) =>
         r.formula ? `${formatNumber(r.formula.porcion || 0)}g` : "N/A",
+    },
+    {
+      key: "costo",
+      title: "Costo/paquete",
+      width: "12%",
+      align: "center",
+      render: (r) => <CostoProductoCell idProducto={r.idProducto} />,
     },
     {
       key: "acciones",

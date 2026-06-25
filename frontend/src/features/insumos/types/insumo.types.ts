@@ -33,3 +33,15 @@ export interface InsumoModalAction {
   type: 'edit' | 'delete' | 'cancel';
   insumo?: Insumo;
 }
+
+export interface PrecioInsumo {
+  id: number;
+  idInsumo: number;
+  idProveedor: number;
+  precioPorKg: number;
+  activo: boolean;
+  fechaDesde: string;
+  fechaHasta: string | null;
+  observacion: string | null;
+  proveedor: { id: number; nombre: string };
+}

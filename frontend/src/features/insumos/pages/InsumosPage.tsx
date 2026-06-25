@@ -1,16 +1,19 @@
-import { } from 'react';
+import { useState } from 'react';
 import { useToast } from '../../../components/ui/toast/ToastContext';
-// types handled in the hook
 import { useInsumos } from '../hooks/useInsumos';
 import InsumosTable from '../components/InsumosTable';
 import SearchBar from '../components/SearchBar';
 import InsumoFormModal from '../components/form/InsumoFormModal';
 import DeleteConfirmModal from '../components/form/DeleteConfirmModal';
+import PrecioInsumoModal from '../components/precio/PrecioInsumoModal';
 import PageShell from '../../../components/PageShell';
 import TipBox from '../../../components/ui/TipBox';
+import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContext';
 
 export default function InsumosPage() {
   useToast();
+  const { show } = useGlobalSnack();
+  const [precioModalOpen, setPrecioModalOpen] = useState(false);
 
   const {
     insumos, searchTerm, setSearchTerm, loading, error, formModalOpen, deleteModalOpen,
@@ -30,9 +33,7 @@ export default function InsumosPage() {
       onDismissError={dismissError}
       noContainer={true}
       searchNode={(
-        <>
-          <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} placeholder="Buscar por nombre del insumo..." />
-        </>
+        <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} placeholder="Buscar por nombre del insumo..." />
       )}
       helpTip={(
         <div className="-mt-4">
@@ -49,6 +50,7 @@ export default function InsumosPage() {
             onSave={handleFormSave}
             onCancel={closeAllModals}
             loading={formLoading}
+            onSetPrecio={selectedInsumo ? () => setPrecioModalOpen(true) : undefined}
           />
 
           <DeleteConfirmModal
@@ -58,6 +60,19 @@ export default function InsumosPage() {
             onCancel={closeAllModals}
             loading={formLoading}
           />
+
+          {selectedInsumo && (
+            <PrecioInsumoModal
+              open={precioModalOpen}
+              insumoId={selectedInsumo.id}
+              insumoNombre={selectedInsumo.nombre}
+              onSaved={() => {
+                setPrecioModalOpen(false);
+                show({ message: 'Precio actualizado', type: 'success' });
+              }}
+              onCancel={() => setPrecioModalOpen(false)}
+            />
+          )}
         </>
       )}
     >

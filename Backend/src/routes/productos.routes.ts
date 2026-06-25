@@ -10,11 +10,9 @@ router.use(requireAuth);
 
 router.get("/", controller.list);
 router.get("/:id", controller.detail);
-router.post("/", 
-    requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB),controller.create);
-router.put("/:id", 
-    requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB),controller.update);
-router.delete("/:id",
-    requireRoles(ROLE_CODES.ADMINSIS,ROLE_CODES.ADMINFAB),controller.delete);
+router.get("/:id/costo", controller.costo);
+router.post("/", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), controller.create);
+router.put("/:id", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), controller.update);
+router.delete("/:id", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), controller.delete);
 
 export default router;

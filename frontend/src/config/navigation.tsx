@@ -7,6 +7,7 @@ import {
   FaUsers,
   FaWarehouse,
   FaBox,
+  FaTruck,
 } from "react-icons/fa";
 
 export interface NavItemConfig {
@@ -20,6 +21,7 @@ export const ROLE_NAV_ITEMS: Record<string, NavItemConfig[]> = {
   ADMINSIS: [
     { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
     { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
+    { id: 'proveedores', label: 'Proveedores', to: '/adminsis/proveedores', icon: <FaTruck /> },
     { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
     { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaBox /> },
     { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },

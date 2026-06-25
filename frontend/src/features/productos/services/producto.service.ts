@@ -80,4 +80,26 @@ export class ProductoService {
       cantPorcionesAportadas,
     };
   }
+
+  static async getCosto(idProducto: number): Promise<CostoProducto> {
+    const { data } = await api.get(`/productos/${idProducto}/costo`);
+    return data;
+  }
+}
+
+export interface CostoProducto {
+  idProducto: number;
+  nombreComercial: string;
+  cantPorcionesAportadas: number;
+  costoPorPorcion: number;
+  costoPorPaquete: number;
+  esParcial: boolean;
+  insumosSinPrecio: string[];
+  detalle: {
+    insumo: string;
+    gramos: number;
+    precioPorKg: number | null;
+    proveedor: { id: number; nombre: string } | null;
+    costoAporte: number | null;
+  }[];
 }
