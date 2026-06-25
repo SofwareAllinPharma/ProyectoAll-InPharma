@@ -14,6 +14,7 @@ export default function InsumosPage() {
   useToast();
   const { show } = useGlobalSnack();
   const [precioModalOpen, setPrecioModalOpen] = useState(false);
+  const [priceRefreshKey, setPriceRefreshKey] = useState(0);
 
   const {
     insumos, searchTerm, setSearchTerm, loading, error, formModalOpen, deleteModalOpen,
@@ -51,6 +52,7 @@ export default function InsumosPage() {
             onCancel={closeAllModals}
             loading={formLoading}
             onSetPrecio={selectedInsumo ? () => setPrecioModalOpen(true) : undefined}
+            priceRefreshKey={priceRefreshKey}
           />
 
           <DeleteConfirmModal
@@ -68,6 +70,7 @@ export default function InsumosPage() {
               insumoNombre={selectedInsumo.nombre}
               onSaved={() => {
                 setPrecioModalOpen(false);
+                setPriceRefreshKey(k => k + 1);
                 show({ message: 'Precio actualizado', type: 'success' });
               }}
               onCancel={() => setPrecioModalOpen(false)}

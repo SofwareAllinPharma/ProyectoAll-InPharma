@@ -13,6 +13,7 @@ interface InsumoFormModalProps {
   onCancel: () => void;
   loading?: boolean;
   onSetPrecio?: () => void;
+  priceRefreshKey?: number;
 }
 
 export default function InsumoFormModal({
@@ -22,6 +23,7 @@ export default function InsumoFormModal({
   onCancel,
   loading = false,
   onSetPrecio,
+  priceRefreshKey,
 }: InsumoFormModalProps) {
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [precios, setPrecios] = useState<PrecioInsumo[]>([]);
@@ -84,7 +86,14 @@ export default function InsumoFormModal({
     if (insumo) void loadPrecios();
     else setPrecios([]);
     nameRef.current?.focus();
-  }, [open, insumo, onCancel, loadPrecios]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, insumo?.id]);
+
+  // Refresca precios cuando se guarda un nuevo precio desde fuera
+  useEffect(() => {
+    if (open && insumo) void loadPrecios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceRefreshKey]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
