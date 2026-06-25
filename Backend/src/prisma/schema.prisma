@@ -253,6 +253,7 @@ model CambioEstadoPedido {
   fechaHoraInicio  DateTime
   fechaHoraFin     DateTime?
   responsable      String?      @db.VarChar(255)
+  depositador      String?      @db.VarChar(255)
   pedido           Pedido       @relation("Pedido_Historial", fields: [idPedido], references: [numPedido])
   pedidoActualDe   Pedido?      @relation("Pedido_CambioActual")
   estado           EstadoPedido @relation(fields: [idEstadoPedido], references: [id])

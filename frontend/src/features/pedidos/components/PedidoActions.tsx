@@ -164,10 +164,10 @@ export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props)
         isOpen={finalizarModalOpen}
         cantEstimadaPaquetes={pedido.cantAProducir_paquetes}
         onCancel={() => setFinalizarModalOpen(false)}
-        onConfirm={(cantidadRealPaquetes) => {
+        onConfirm={(cantidadRealPaquetes, elaborador, depositador) => {
           setFinalizarModalOpen(false);
           void runAndRefresh(
-            () => PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes),
+            () => PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes, elaborador, depositador),
             'Pedido finalizado exitosamente'
           );
         }}
