@@ -21,13 +21,7 @@ export default function MovimientoDetailPage() {
   const [capacityError, setCapacityError] = useState<string | null>(null);
   const toastCtx = useContext(ToastContext);
   const showToast = toastCtx?.show;
-  const { show: showGlobalSnack } = (() => {
-    try {
-      return useGlobalSnack();
-    } catch {
-      return { show: (_: any) => 0 } as any;
-    }
-  })();
+  const { show: showGlobalSnack } = useGlobalSnack();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

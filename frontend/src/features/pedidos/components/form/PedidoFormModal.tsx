@@ -103,7 +103,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   }, [mode, selected]);
 
   const creatorMail = localStorage.getItem("userMail") || "adminfab@aip.com";
-  const creationDate = new Date().toLocaleString();
+  const [creationDate] = useState(() => new Date().toLocaleString());
 
 
   function calcular() {
@@ -317,14 +317,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
             Cancelar
           </Button>
           <Button
-            onClick={async () => {
-              setSubmitting(true);
-              try {
-                setValidationError(null);
-                await handleSubmit();
-              } finally {
-                setSubmitting(false);
-              }
+            onClick={() => {
+              setValidationError(null);
+              void handleSubmit();
             }}
             className="px-6 py-2"
             ariaLabel="Crear Pedido"

@@ -26,7 +26,7 @@ export default function FinalizarElaboracionModal({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    const num = Number(valor);
+    const num = Math.round(Number(valor));
     if (!valor.trim() || isNaN(num) || num <= 0) {
       setError('Ingrese una cantidad válida mayor a 0.');
       return;
@@ -57,8 +57,8 @@ export default function FinalizarElaboracionModal({
         </label>
         <input
           type="number"
-          min="0.01"
-          step="0.01"
+          min="1"
+          step="1"
           value={valor}
           onChange={(e) => {
             setValor(e.target.value);

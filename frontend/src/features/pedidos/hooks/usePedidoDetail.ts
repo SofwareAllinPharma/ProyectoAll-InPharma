@@ -11,35 +11,49 @@ export function usePedidoDetail(id: string | undefined) {
   const [loading, setLoading] = useState(true);
   const { show } = useToast();
 
-  const loadDetail = async () => {
+  useEffect(() => {
     if (!id) return;
-    
+    let cancelled = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setLoading(true);
+    const run = async () => {
+      try {
+        const p = await PedidoService.detail(Number(id));
+        if (cancelled) return;
+        setPedido(p);
+        try {
+          const prod = await ProductoService.getProductoById(p.idProducto);
+          if (!cancelled) setProductoDetalle(prod);
+        } catch {
+          // producto opcional
+        }
+      } catch (err) {
+        console.error('Error cargando detalle:', err);
+        if (!cancelled) show({ type: 'error', message: 'No se pudo cargar el detalle del pedido.' });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void run();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  const reload = async () => {
+    if (!id) return;
     setLoading(true);
     try {
       const p = await PedidoService.detail(Number(id));
       setPedido(p);
-      
       try {
         const prod = await ProductoService.getProductoById(p.idProducto);
         setProductoDetalle(prod);
-      } catch {
-        // silently ignore
-      }
+      } catch { /* opcional */ }
     } catch (err) {
-      console.error('Error cargando detalle:', err);
-      show({ type: 'error', message: 'No se pudo cargar el detalle del pedido.' });
+      console.error('Error recargando detalle:', err);
+      show({ type: 'error', message: 'No se pudo recargar el detalle.' });
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    void loadDetail();
-  }, [id]);
-
-  const reload = async () => {
-    await loadDetail();
   };
 
   return { pedido, productoDetalle, loading, reload };
