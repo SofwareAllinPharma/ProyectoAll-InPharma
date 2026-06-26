@@ -57,6 +57,12 @@ export class PreciosInsumoService {
     if (precio.activo) {
       throw new Error('No se puede eliminar el precio vigente. Cargá uno nuevo para reemplazarlo.');
     }
-    return prisma.precioInsumo.delete({ where: { id: precioId } });
+    // deleteMany con condición activo:false es atómico — evita race condition entre check y delete
+    const result = await prisma.precioInsumo.deleteMany({
+      where: { id: precioId, idInsumo, activo: false },
+    });
+    if (result.count === 0) {
+      throw new Error('No se pudo eliminar el registro. Fue modificado concurrentemente.');
+    }
   }
 }

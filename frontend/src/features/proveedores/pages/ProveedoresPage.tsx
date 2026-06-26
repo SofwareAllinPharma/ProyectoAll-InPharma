@@ -3,8 +3,7 @@ import PageShell from '../../../components/PageShell';
 import { ProveedorService } from '../services/proveedor.service';
 import type { Proveedor, CreateProveedorDto } from '../types/proveedor.types';
 import ProveedorFormModal from '../components/ProveedorFormModal';
-import Modal from '../../../components/ui/modales/Modal';
-import ModalHeader from '../../../components/ui/modales/ModalHeader';
+import ConfirmModal from '../../../components/ui/modales/ConfirmModal';
 import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContext';
 
 export default function ProveedoresPage() {
@@ -14,7 +13,6 @@ export default function ProveedoresPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState<Proveedor | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const { show } = useGlobalSnack();
 
   const load = useCallback(async () => {
@@ -46,18 +44,14 @@ export default function ProveedoresPage() {
 
   const handleDelete = async () => {
     if (!selected) return;
-    setDeleting(true);
-    try {
-      await ProveedorService.remove(selected.id);
+    await ProveedorService.remove(selected.id).then(() => {
       show({ message: 'Proveedor eliminado', type: 'success' });
       setDeleteOpen(false);
       setSelected(null);
       void load();
-    } catch (e: any) {
+    }).catch((e: any) => {
       show({ message: e?.message ?? 'Error al eliminar', type: 'error' });
-    } finally {
-      setDeleting(false);
-    }
+    });
   };
 
   return (
@@ -77,19 +71,20 @@ export default function ProveedoresPage() {
             onSave={handleSave}
             onCancel={() => { setFormOpen(false); setSelected(null); }}
           />
-          <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} containerClass="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 flex flex-col">
-            <ModalHeader>Eliminar proveedor</ModalHeader>
-            <div className="p-6 space-y-3">
-              <p className="text-sm text-gray-700">¿Confirma que desea eliminar <strong>{selected?.nombre}</strong>?</p>
-              <p className="text-xs text-gray-500">Solo se puede eliminar si no tiene precios activos en insumos.</p>
-            </div>
-            <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
-              <button onClick={() => setDeleteOpen(false)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
-              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
-                {deleting ? 'Eliminando…' : 'Eliminar'}
-              </button>
-            </div>
-          </Modal>
+          <ConfirmModal
+            open={deleteOpen}
+            title="Eliminar proveedor"
+            description={(
+              <div className="space-y-2">
+                <p>¿Confirma que desea eliminar <strong>{selected?.nombre}</strong>?</p>
+                <p className="text-xs text-gray-500">Solo se puede eliminar si no tiene precios activos en insumos.</p>
+              </div>
+            )}
+            confirmLabel="Eliminar"
+            onCancel={() => setDeleteOpen(false)}
+            onConfirm={handleDelete}
+            danger
+          />
         </>
       )}
     >

@@ -16,15 +16,22 @@ type CostoFormula = Awaited<ReturnType<typeof FormulaService.getCosto>>;
 const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
   const [costo, setCosto] = useState<CostoFormula | null>(null);
   const [costoLoading, setCostoLoading] = useState(false);
+  const [costoError, setCostoError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !formula) { setCosto(null); return; }
+    if (!isOpen || !formula) { setCosto(null); setCostoError(null); return; }
     let cancelled = false;
     setCosto(null);
+    setCostoError(null);
     setCostoLoading(true);
     FormulaService.getCosto(formula.id)
       .then(c => { if (!cancelled) setCosto(c); })
-      .catch(() => { if (!cancelled) setCosto(null); })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setCosto(null);
+          setCostoError(err instanceof Error ? err.message : 'Error al calcular costo');
+        }
+      })
       .finally(() => { if (!cancelled) setCostoLoading(false); });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,6 +77,8 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Costo estimado por porción</p>
           {costoLoading ? (
             <p className="text-sm text-gray-400">Calculando…</p>
+          ) : costoError ? (
+            <p className="text-sm text-red-500 italic">{costoError}</p>
           ) : !costo ? (
             <p className="text-sm text-gray-400 italic">No disponible</p>
           ) : (

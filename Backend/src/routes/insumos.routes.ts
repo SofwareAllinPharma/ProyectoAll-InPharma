@@ -17,7 +17,7 @@ router.put("/:id", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), contr
 router.delete("/:id", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), controller.delete);
 
 // Precios
-router.get("/:id/precios", preciosCtrl.listByInsumo);
+router.get("/:id/precios", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.listByInsumo);
 router.post("/:id/precios", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.setNuevoPrecio);
 router.delete("/:id/precios/:precioId", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.deletePrecio);
 

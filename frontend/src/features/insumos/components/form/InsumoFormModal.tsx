@@ -90,8 +90,11 @@ export default function InsumoFormModal({
   }, [open, insumo?.id]);
 
   // Refresca precios cuando se guarda un nuevo precio desde fuera
+  const loadPreciosRef = useRef(loadPrecios);
+  loadPreciosRef.current = loadPrecios;
   useEffect(() => {
-    if (open && insumo) void loadPrecios();
+    if (open && insumo) void loadPreciosRef.current();
+  // priceRefreshKey es la señal intencional; loadPreciosRef siempre apunta a la versión fresca
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [priceRefreshKey]);
 
@@ -160,6 +163,8 @@ export default function InsumoFormModal({
   if (!open) return null;
   const isEditing = !!insumo;
   const formId = "insumo-form";
+  const precioActivo = precios.find(p => p.activo);
+  const preciosHistoricos = precios.filter(p => !p.activo);
 
   return (
     <FormModal
@@ -202,16 +207,13 @@ export default function InsumoFormModal({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Precio vigente</p>
-              {precios.find(p => p.activo)
-                ? (() => {
-                    const v = precios.find(p => p.activo)!;
-                    return (
-                      <p className="text-sm font-medium text-gray-800 mt-0.5">
-                        ${v.precioPorKg.toLocaleString('es-AR', { minimumFractionDigits: 2 })}/kg
-                        <span className="ml-2 text-xs font-normal text-gray-500">— {v.proveedor.nombre}</span>
-                      </p>
-                    );
-                  })()
+              {precioActivo
+                ? (
+                    <p className="text-sm font-medium text-gray-800 mt-0.5">
+                      ${precioActivo.precioPorKg.toLocaleString('es-AR', { minimumFractionDigits: 2 })}/kg
+                      <span className="ml-2 text-xs font-normal text-gray-500">— {precioActivo.proveedor.nombre}</span>
+                    </p>
+                  )
                 : <p className="text-sm text-gray-400 italic mt-0.5">Sin precio cargado</p>
               }
             </div>
@@ -221,22 +223,22 @@ export default function InsumoFormModal({
                 onClick={onSetPrecio}
                 className="px-3 py-1.5 text-xs font-medium text-white bg-[#5d5448] rounded-md hover:bg-[#4a433e] transition-colors"
               >
-                {precios.find(p => p.activo) ? 'Actualizar precio' : 'Cargar precio'}
+                {precioActivo ? 'Actualizar precio' : 'Cargar precio'}
               </button>
             )}
           </div>
-          {precios.filter(p => !p.activo).length > 0 && (
+          {preciosHistoricos.length > 0 && (
             <button
               type="button"
               onClick={() => setShowHistorial(s => !s)}
               className="text-xs text-[#5d5448] underline hover:no-underline"
             >
-              {showHistorial ? 'Ocultar historial' : `Ver historial (${precios.filter(p => !p.activo).length} anterior${precios.filter(p => !p.activo).length !== 1 ? 'es' : ''})`}
+              {showHistorial ? 'Ocultar historial' : `Ver historial (${preciosHistoricos.length} anterior${preciosHistoricos.length !== 1 ? 'es' : ''})`}
             </button>
           )}
           {showHistorial && (
             <PrecioInsumoHistorial
-              precios={precios.filter(p => !p.activo)}
+              precios={preciosHistoricos}
               insumoId={insumo!.id}
               onRefresh={loadPrecios}
             />
