@@ -6,6 +6,9 @@ type Snack = {
   title?: string;
   message: string;
   duration?: number;
+  // Variante visual (success/error/info/warning). Hoy GlobalSnack no la usa
+  // para estilos, pero los callers la pasan; tiparla evita romper el build.
+  type?: 'success' | 'error' | 'info' | 'warning';
 };
 
 type Ctx = {
