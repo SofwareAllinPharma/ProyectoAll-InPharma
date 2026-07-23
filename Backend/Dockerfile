@@ -55,4 +55,5 @@ RUN echo "\n==== Archivos en /app/dist (runtime) ====\n" && ls -l /app/dist && \
 
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+# Corre migraciones pendientes antes de iniciar (idempotente: si ya están aplicadas, no hace nada)
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=./src/prisma/schema.prisma && node dist/index.js"]

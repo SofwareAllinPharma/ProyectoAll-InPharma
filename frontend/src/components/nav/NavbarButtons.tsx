@@ -116,7 +116,7 @@ export default function NavbarButtons({ variant }: { variant:
 
   return (
     <div className="flex items-center gap-3">
-      {pedidosPath ? <GhostButton to={pedidosPath}>Pedidos</GhostButton> : null}
+      {pedidosPath ? <GhostButton to={pedidosPath}>Órdenes</GhostButton> : null}
       <div className="w-px h-6 bg-gray-300"></div>
       {showUserAvatar && user && <UserAvatar name={user.name} showPerfilesOption={showPerfilesInMenu} />}
     </div>

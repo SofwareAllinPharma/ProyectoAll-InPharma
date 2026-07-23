@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../../../components/ui/modales/Modal";
 import ModalHeader from "../../../components/ui/modales/ModalHeader";
 import type { Formula } from "../types/formula.types";
 import FormulaNutritionCard from "./FormulaNutritionCard";
+import { FormulaService } from "../services/formula.service";
 
 interface Props {
   isOpen: boolean;
@@ -10,7 +11,32 @@ interface Props {
   onClose: () => void;
 }
 
+type CostoFormula = Awaited<ReturnType<typeof FormulaService.getCosto>>;
+
 const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
+  const [costo, setCosto] = useState<CostoFormula | null>(null);
+  const [costoLoading, setCostoLoading] = useState(false);
+  const [costoError, setCostoError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !formula) { setCosto(null); setCostoError(null); return; }
+    let cancelled = false;
+    setCosto(null);
+    setCostoError(null);
+    setCostoLoading(true);
+    FormulaService.getCosto(formula.id)
+      .then(c => { if (!cancelled) setCosto(c); })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setCosto(null);
+          setCostoError(err instanceof Error ? err.message : 'Error al calcular costo');
+        }
+      })
+      .finally(() => { if (!cancelled) setCostoLoading(false); });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, formula?.id]);
+
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     return () => {
@@ -46,6 +72,28 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
           <p className="text-gray-700 mt-1">Porción: {formula.porcion}g</p>
         </div>
 
+        {/* Costo estimado por porción */}
+        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 mb-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Costo estimado por porción</p>
+          {costoLoading ? (
+            <p className="text-sm text-gray-400">Calculando…</p>
+          ) : costoError ? (
+            <p className="text-sm text-red-500 italic">{costoError}</p>
+          ) : !costo ? (
+            <p className="text-sm text-gray-400 italic">No disponible</p>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-lg font-semibold text-gray-800">
+                {costo.esParcial && <span className="text-amber-500 mr-1 text-sm">~</span>}
+                ${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              {costo.esParcial && (
+                <p className="text-xs text-amber-600">Costo parcial — sin precio: {costo.insumosSinPrecio.join(', ')}</p>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Insumos */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -54,20 +102,28 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
             </h4>
             <ul className="space-y-2">
               {formula.insumos && formula.insumos.length > 0 ? (
-                formula.insumos.map((fi, idx) => (
-                  <li key={fi.id || idx} className="flex items-start text-sm">
-                    <span className="text-gray-600 mr-2">•</span>
-                    <span className="text-gray-700">
-                      <span className="font-medium">
-                        {fi.insumo?.nombre || `Insumo #${fi.idInsumo}`}
+                formula.insumos.map((fi, idx) => {
+                  const d = costo?.detalle.find(x => x.insumo === (fi.insumo?.nombre ?? ''));
+                  return (
+                    <li key={fi.id || idx} className="flex items-start text-sm">
+                      <span className="text-gray-600 mr-2">•</span>
+                      <span className="text-gray-700 flex-1">
+                        <span className="font-medium">
+                          {fi.insumo?.nombre || `Insumo #${fi.idInsumo}`}
+                        </span>
+                        <span className="text-gray-600"> – {fi.cantidadInsumo}g</span>
+                        {d && d.precioPorKg != null && (
+                          <span className="ml-2 text-xs text-gray-400">
+                            (${d.precioPorKg.toLocaleString('es-AR')}/kg → ${d.costoAporte!.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                          </span>
+                        )}
+                        {d && d.precioPorKg == null && (
+                          <span className="ml-2 text-xs text-amber-500">sin precio</span>
+                        )}
                       </span>
-                      <span className="text-gray-600">
-                        {" "}
-                        – {fi.cantidadInsumo}g
-                      </span>
-                    </span>
-                  </li>
-                ))
+                    </li>
+                  );
+                })
               ) : (
                 <li className="text-gray-500 text-sm italic">
                   No hay insumos registrados

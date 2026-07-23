@@ -35,7 +35,7 @@ export default function PedidoInfoSection({
 }: PedidoInfoSectionProps) {
   return (
     <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Información del Pedido</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">Información de la Orden</h3>
       <div className="space-y-6">
         {/* Producto */}
         <div className="flex items-start gap-3">

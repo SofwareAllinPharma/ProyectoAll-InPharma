@@ -20,6 +20,7 @@ export default function RegistroMovimientoModal({
   defaultDepOrigen,
   defaultProducto,
   defaultDepDestino,
+  defaultTipo,
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,10 +28,19 @@ export default function RegistroMovimientoModal({
   defaultDepOrigen?: DepositoMin;
   defaultProducto?: { idProducto: number; nombreComercial?: string; cantidadProducto?: number | null };
   defaultDepDestino?: DepositoMin;
+  defaultTipo?: 'EGRESO' | 'INGRESO' | 'TRASLADO';
 }) {
   const { depositos } = useDepositos();
   const rm = useRegistroMovimiento({ onCreated, onClose });
   const { productos } = useProductosPorDeposito(rm.depOrigen?.id);
+
+  React.useEffect(() => {
+    if (!open || !defaultTipo) return;
+    if (!rm.tipo) {
+      const label = defaultTipo.charAt(0) + defaultTipo.slice(1).toLowerCase();
+      rm.handleTipoChange({ key: defaultTipo, value: defaultTipo, label });
+    }
+  }, [open, defaultTipo, rm.tipo]);
 
   React.useEffect(() => {
     if (!open || !defaultDepOrigen) return;

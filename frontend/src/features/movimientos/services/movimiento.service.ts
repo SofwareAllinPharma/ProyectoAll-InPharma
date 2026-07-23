@@ -84,14 +84,14 @@ export class MovimientoService {
 
       // Funciones utilitarias para normalizar
       const normalizeEstado = (s?: string | null) => {
-        if (!s) return 'EN_CAMINO';
+        if (!s) return 'CREADO';
         const norm = s.toString().toLowerCase().replace(/\s+/g, '');
         if (norm.includes('creado') || norm.includes('cread')) return 'CREADO';
         if (norm.includes('encamino') || norm.includes('encam')) return 'EN_CAMINO';
         if (norm.includes('entregado')) return 'ENTREGADO';
         if (norm.includes('vend') || norm.includes('vendido')) return 'VENDIDO';
         if (norm.includes('cancelado')) return 'CANCELADO';
-        return 'EN_CAMINO';
+        return 'CREADO';
       };
 
       const normalizeTipo = (t?: string | null, item?: RawMovimiento) => {
@@ -242,10 +242,6 @@ export class MovimientoService {
         observaciones: data.observaciones ?? undefined,
       };
 
-      // DEBUG: log payload to help track 400 errors from backend
-      // (remove or change to a proper logger after debugging)
-      // eslint-disable-next-line no-console
-      console.log('Creating movimiento payload:', payload);
       const { data: responseData } = await api.put<Movimiento>('/movimientos', payload);
       return responseData;
     } catch (error) {

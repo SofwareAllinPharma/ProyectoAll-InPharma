@@ -253,11 +253,11 @@ const PedidoHistoryModal: React.FC<Props> = ({
         isOpen={finalizarModalOpen}
         cantEstimadaPaquetes={pedido.cantAProducir_paquetes}
         onCancel={() => setFinalizarModalOpen(false)}
-        onConfirm={async (cantidadRealPaquetes) => {
+        onConfirm={async (cantidadRealPaquetes, elaborador, depositador) => {
           setFinalizarModalOpen(false);
           setLoading(true);
           try {
-            await PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes);
+            await PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes, elaborador, depositador);
             show({ message: "Elaboración finalizada", type: "success" });
             onRefresh?.();
             onClose();

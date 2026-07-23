@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useState } from 'react';
+import React, { createContext, useContext, useCallback, useState, useRef } from 'react';
 import GlobalSnack from './GlobalSnack';
 
 type Snack = {
@@ -23,18 +23,17 @@ export const useGlobalSnack = () => {
 
 export const GlobalSnackProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [current, setCurrent] = useState<Snack | null>(null);
-  const [counter, setCounter] = useState(1);
+  const counterRef = useRef(1);
 
   const hide = useCallback((id: number) => {
     setCurrent(c => (c && c.id === id ? null : c));
   }, []);
 
   const show = useCallback((opts: Omit<Snack, 'id'>) => {
-    const id = counter;
-    setCounter(id + 1);
+    const id = counterRef.current++;
     setCurrent({ id, ...opts });
     return id;
-  }, [counter]);
+  }, []);
 
   return (
     <GlobalSnackContext.Provider value={{ show, hide }}>

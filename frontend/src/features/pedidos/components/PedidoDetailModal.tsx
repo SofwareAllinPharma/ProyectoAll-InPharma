@@ -143,7 +143,7 @@ const PedidoDetailModal: React.FC<Props> = ({
                 );
               })()}
             <div className="bg-white border rounded p-4 mt-4">
-              <h3 className="font-semibold mb-2">Información del Pedido</h3>
+              <h3 className="font-semibold mb-2">Información de la Orden</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-600">Producto</div>
@@ -200,7 +200,7 @@ const PedidoDetailModal: React.FC<Props> = ({
 
           <div className="space-y-4">
             <div className="bg-gray-50 border rounded p-4">
-              <h3 className="font-semibold mb-2">Estado del Pedido</h3>
+              <h3 className="font-semibold mb-2">Estado de la Orden</h3>
               <div className="mt-2">
                 <PedidoEstadoCell
                   estado={pedido.cambioActual?.estado?.nombre ?? ""}

@@ -79,7 +79,7 @@ model PasswordReset {
 
 model Insumo {
   id                   Int             @id @default(autoincrement())
-  nombre               String          
+  nombre               String
   cal_100g             Float
   grasasTotales_100g   Float
   grasasTrans_100g     Float
@@ -92,8 +92,39 @@ model Insumo {
   otroAlias            String?         @db.VarChar(60)
   activo               Boolean         @default(true)
   formulaInsumos       FormulaInsumo[]
+  precios              PrecioInsumo[]
 
   @@map("INSUMOS")
+}
+
+model Proveedor {
+  id          Int            @id @default(autoincrement())
+  nombre      String         @db.VarChar(150)
+  telefono    String?        @db.VarChar(50)
+  email       String?        @db.VarChar(150)
+  cuit        String?        @db.VarChar(20)
+  razonSocial String?        @db.VarChar(200)
+  activo      Boolean        @default(true)
+  precios     PrecioInsumo[]
+
+  @@map("PROVEEDOR")
+}
+
+model PrecioInsumo {
+  id          Int       @id @default(autoincrement())
+  idInsumo    Int
+  idProveedor Int
+  precioPorKg Float
+  activo      Boolean   @default(true)
+  fechaDesde  DateTime  @default(now())
+  fechaHasta  DateTime?
+  observacion String?   @db.VarChar(300)
+  insumo      Insumo    @relation(fields: [idInsumo], references: [id])
+  proveedor   Proveedor @relation(fields: [idProveedor], references: [id])
+
+  @@index([idInsumo, activo])
+  @@index([idProveedor])
+  @@map("PRECIO_INSUMO")
 }
 
 model Formula {
@@ -253,6 +284,7 @@ model CambioEstadoPedido {
   fechaHoraInicio  DateTime
   fechaHoraFin     DateTime?
   responsable      String?      @db.VarChar(255)
+  depositador      String?      @db.VarChar(255)
   pedido           Pedido       @relation("Pedido_Historial", fields: [idPedido], references: [numPedido])
   pedidoActualDe   Pedido?      @relation("Pedido_CambioActual")
   estado           EstadoPedido @relation(fields: [idEstadoPedido], references: [id])

@@ -14,6 +14,7 @@ import pedidosRoutes from "./routes/pedidos.routes";
 import movimientoRoutes from './routes/movimiento.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import personasRoutes from './routes/personas.routes';
+import proveedoresRoutes from './routes/proveedores.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -40,6 +41,7 @@ app.use('/inventario-global', inventarioGlobalRoutes);
 app.use('/movimientos', movimientoRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/personas', personasRoutes);
+app.use('/proveedores', proveedoresRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API corriendo correctamente");

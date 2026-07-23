@@ -14,7 +14,7 @@ export const usePedidosData = () => {
       const data = await PedidoService.list(1, 200);
       data.sort(
         (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setPedidos(data);
     } catch (e) {

@@ -18,6 +18,7 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
   const { user } = useAuth();
   const isEntregado = useMemo(() => to.trim().toLowerCase().includes('entregado'), [to]);
   const isTraslado = useMemo(() => (tipo || '').toString().trim().toLowerCase() === 'traslado', [tipo]);
+  const isEgreso = useMemo(() => (tipo || '').toString().trim().toLowerCase() === 'egreso', [tipo]);
   // Reset fields every time the modal opens or when tipo/isEntregado change to avoid stale values
   useEffect(() => {
     if (open) {
@@ -92,7 +93,7 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
   }, []);
 
   const handleConfirm = async () => {
-    if (isEntregado) {
+    if (isEntregado && (isTraslado || isEgreso)) {
       if (!responsableEntrega.trim() || !responsableRecepcion.trim()) return;
     } else {
       if (!responsable.trim()) return;
@@ -100,7 +101,7 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
     try {
       setLoading(true);
       await onConfirm(
-        isEntregado
+        isEntregado && (isTraslado || isEgreso)
           ? { responsableEntrega: responsableEntrega.trim(), responsableRecepcion: responsableRecepcion.trim(), observaciones: obs.trim() || 'No Aplica' }
           : { responsable: responsable.trim(), observaciones: obs.trim() || 'No Aplica' }
       );
@@ -124,10 +125,10 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
           <div className="text-gray-700">Cambiar de <span className="font-semibold">{from}</span> a <span className="font-semibold">{to}</span></div>
           <div className="text-gray-600">Fecha y hora: {fechaHora}</div>
           <div className="space-y-2">
-            {isEntregado && isTraslado ? (
+            {isEntregado && (isTraslado || isEgreso) ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Entrega (requerido)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{isEgreso ? 'Despachador (requerido)' : 'Responsable de Entrega (requerido)'}</label>
                   <SearchSelect
                     items={users}
                     value={users.find(u => `${(u.nombre || '').trim()} ${(u.apellido || '').trim()}`.trim() === responsableEntrega) || null}
@@ -141,7 +142,7 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Responsable de Recepción (requerido)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{isEgreso ? 'Receptor / Verificador (requerido)' : 'Responsable de Recepción (requerido)'}</label>
                   <SearchSelect
                     items={users}
                     value={users.find(u => `${(u.nombre || '').trim()} ${(u.apellido || '').trim()}`.trim() === responsableRecepcion) || null}
@@ -169,7 +170,7 @@ export default function ConfirmarCambioEstadoModal({ open, onClose, from, to, ti
         </div>
         <div className="px-4 sm:px-5 pb-5 flex gap-2 justify-end flex-col sm:flex-row">
           <Button className="w-full sm:w-auto" variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button className="w-full sm:w-auto" onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
+          <Button className="w-full sm:w-auto" onClick={handleConfirm} disabled={loading || (!isEntregado && !responsable.trim()) || (isEntregado && (isTraslado || isEgreso) && (!responsableEntrega.trim() || !responsableRecepcion.trim()))}>{loading ? 'Guardando…' : 'Confirmar'}</Button>
         </div>
       </div>
     </Modal>

@@ -41,7 +41,7 @@ const StockGlobalActionsCell: React.FC<Props> = ({ row, onCrearPedido, onMovimie
       {mostrarPedido(row) && (
         <MiniActionButton
           variant="pedido"
-          title="Crear Pedido de Elaboración"
+          title="Crear Orden de Producción"
           icon={<FaPlus size={16} />}
           onClick={() => onCrearPedido?.(row)}
         />

@@ -97,16 +97,20 @@ export class PedidosController {
   async finalizarElaboracion(req: Request, res: Response) {
     try {
       const numPedido = Number(req.params.id);
-      const userMail = (req as any).user?.mail as string | undefined;
-      let responsable: string | undefined = undefined;
-      if (userMail) {
-        const p = await prisma.persona.findUnique({ where: { mail: userMail } });
-        if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
-      }
       const cantidadRealPaquetes = req.body?.cantidadRealPaquetes !== undefined
         ? Number(req.body.cantidadRealPaquetes)
         : undefined;
-      const data = await service.finalizarElaboracion(numPedido, responsable, cantidadRealPaquetes);
+      // Elaborador: puede venir en el body o se obtiene del usuario autenticado como fallback
+      let elaborador: string | undefined = req.body?.elaborador?.trim() || undefined;
+      if (!elaborador) {
+        const userMail = (req as any).user?.mail as string | undefined;
+        if (userMail) {
+          const p = await prisma.persona.findUnique({ where: { mail: userMail } });
+          if (p) elaborador = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
+        }
+      }
+      const depositador: string | undefined = req.body?.depositador?.trim() || undefined;
+      const data = await service.finalizarElaboracion(numPedido, elaborador, cantidadRealPaquetes, depositador);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

@@ -1,5 +1,5 @@
 import { api } from '../../../lib/api';
-import type { Insumo, CreateInsumoDto, UpdateInsumoDto } from '../types/insumo.types';
+import type { Insumo, CreateInsumoDto, UpdateInsumoDto, PrecioInsumo } from '../types/insumo.types';
 
 export class InsumoService {
   static async getAllInsumos(): Promise<Insumo[]> {
@@ -49,6 +49,20 @@ export class InsumoService {
       console.error('Error en deleteInsumo:', error);
       throw error;
     }
+  }
+
+  static async getPrecios(id: number): Promise<PrecioInsumo[]> {
+    const { data } = await api.get(`/insumos/${id}/precios`);
+    return data;
+  }
+
+  static async setNuevoPrecio(id: number, dto: { idProveedor: number; precioPorKg: number; observacion?: string }): Promise<PrecioInsumo> {
+    const { data } = await api.post(`/insumos/${id}/precios`, dto);
+    return data;
+  }
+
+  static async deletePrecio(id: number, precioId: number): Promise<void> {
+    await api.delete(`/insumos/${id}/precios/${precioId}`);
   }
 
   static async searchInsumos(searchTerm: string): Promise<Insumo[]> {

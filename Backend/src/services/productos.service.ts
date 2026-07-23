@@ -152,4 +152,78 @@ export class ProductosService {
     }
     return this.repo.softDelete(idProducto);
   }
+
+  async calcularCosto(idProducto: number) {
+    const producto = await prisma.producto.findUnique({
+      where: { idProducto },
+      include: {
+        formula: {
+          include: {
+            formulaInsumos: {
+              include: {
+                insumo: {
+                  include: {
+                    precios: {
+                      where: { activo: true },
+                      take: 1,
+                      include: { proveedor: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!producto || !producto.estaActivo) throw new Error('Producto no encontrado');
+    if (!producto.formula) throw new Error('El producto no tiene fórmula asociada');
+
+    const insumosSinPrecio: string[] = [];
+    let costoPorPorcion = 0;
+
+    const detalle = producto.formula.formulaInsumos.map((fi) => {
+      const precioActivo = fi.insumo.precios[0] ?? null;
+      const gramos = fi.cantidadInsumo;
+      const precioPorKg = precioActivo?.precioPorKg ?? null;
+
+      if (precioPorKg === null) {
+        insumosSinPrecio.push(fi.insumo.nombre);
+        return {
+          insumo: fi.insumo.nombre,
+          gramos,
+          precioPorKg: null,
+          proveedor: null,
+          costoAporte: null,
+        };
+      }
+
+      const costoAporte = (gramos / 1000) * precioPorKg;
+      costoPorPorcion += costoAporte;
+
+      return {
+        insumo: fi.insumo.nombre,
+        gramos,
+        precioPorKg,
+        proveedor: precioActivo?.proveedor
+          ? { id: precioActivo.proveedor.id, nombre: precioActivo.proveedor.nombre }
+          : null,
+        costoAporte: Math.round(costoAporte * 100) / 100,
+      };
+    });
+
+    const costoPorPaquete = costoPorPorcion * producto.cantPorcionesAportadas;
+
+    return {
+      idProducto: producto.idProducto,
+      nombreComercial: producto.nombreComercial,
+      cantPorcionesAportadas: producto.cantPorcionesAportadas,
+      costoPorPorcion: Math.round(costoPorPorcion * 100) / 100,
+      costoPorPaquete: Math.round(costoPorPaquete * 100) / 100,
+      esParcial: insumosSinPrecio.length > 0,
+      insumosSinPrecio,
+      detalle,
+    };
+  }
 }

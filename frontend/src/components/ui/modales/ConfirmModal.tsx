@@ -9,6 +9,7 @@ export default function ConfirmModal({
   onConfirm,
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
+  danger = false,
 }: {
   open: boolean;
   title?: React.ReactNode;
@@ -17,6 +18,7 @@ export default function ConfirmModal({
   onConfirm: () => Promise<any> | void;
   confirmLabel?: string;
   cancelLabel?: string;
+  danger?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -41,7 +43,11 @@ export default function ConfirmModal({
           <button onClick={onCancel} className="px-4 py-2 rounded-lg border border-gray-400 text-gray-700 hover:bg-gray-100 transition">
             {cancelLabel}
           </button>
-          <button onClick={handleConfirm} disabled={loading} className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition">
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-white transition disabled:opacity-50 ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-[#5d5448] hover:bg-[#5d5448]/90'}`}
+          >
             {loading ? '...' : confirmLabel}
           </button>
         </div>

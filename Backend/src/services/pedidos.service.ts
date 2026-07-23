@@ -172,7 +172,7 @@ export class PedidosService {
     });
   }
 
-  async finalizarElaboracion(numPedido: number, responsable?: string, cantidadRealPaquetes?: number) {
+  async finalizarElaboracion(numPedido: number, elaborador?: string, cantidadRealPaquetes?: number, depositador?: string) {
     const pedido = await this.detail(numPedido);
     if (pedido.cambioActual?.estado?.nombre !== ESTADOS.EN_ELAB) {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
@@ -216,7 +216,8 @@ export class PedidosService {
           idPedido: numPedido,
           idEstadoPedido: estadoElabFabId,
           fechaHoraInicio: new Date(),
-          responsable: responsable ?? null,
+          responsable: elaborador ?? null,
+          depositador: depositador ?? null,
         },
       });
 

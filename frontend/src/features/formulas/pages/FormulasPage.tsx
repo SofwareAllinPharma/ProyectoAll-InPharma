@@ -15,7 +15,7 @@ import { useAuth } from '../../../lib/auth';
 
 const FormulasPage: React.FC = () => {
   const { show } = useToast() as any;
-  const { isAdminSis, isTecnico } = useAuth();
+  const { isAdminSis, isAdminFab, isTecnico } = useAuth();
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const formulasRef = useRef<Formula[]>([]);
   const [filtered, setFiltered] = useState<Formula[]>([]);
@@ -32,7 +32,7 @@ const FormulasPage: React.FC = () => {
   const [isCopy, setIsCopy] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
-  const canEditProtected = isAdminSis;
+  const canEditProtected = isAdminSis || isAdminFab;
   const canCreateOrEdit = !isTecnico;
 
   const syncFormulas = (data: Formula[]) => { setFormulas(data); formulasRef.current = data; setFiltered(data); };

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "CAMBIO_ESTADO_PEDIDO" ADD COLUMN "depositador" VARCHAR(255);

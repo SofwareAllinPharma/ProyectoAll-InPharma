@@ -2,6 +2,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import { InsumosPage } from "../../insumos";
+import ProveedoresPage from "../../proveedores/pages/ProveedoresPage";
 import { PedidosPage } from "../../pedidos";
 import PedidoDetailPage from "../../pedidos/pages/PedidoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
@@ -37,6 +38,7 @@ export default function AdminSisDashboard() {
 
   {/* Rutas de módulos */}
       <Route path="insumos" element={<InsumosPage />} />
+      <Route path="proveedores" element={<ProveedoresPage />} />
       <Route path="formulas" element={<FormulasPage />} />
   <Route path="productos" element={<ProductosPage />} />
   <Route path="productos/:id" element={<ProductosPage />} />
