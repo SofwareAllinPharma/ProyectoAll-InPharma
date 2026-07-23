@@ -35,9 +35,10 @@ export class FormulasController {
       const dto = req.body;
 
       const roles = (req as any).roles || [];
-      const isAdminSis = roles.includes(ROLE_CODES.ADMINSIS);
+      const canManageProtected =
+        roles.includes(ROLE_CODES.ADMINSIS) || roles.includes(ROLE_CODES.ADMINFAB);
 
-      if (dto.esProtegida && !isAdminSis) {
+      if (dto.esProtegida && !canManageProtected) {
         return res
           .status(403)
           .json({ error: "No tienes permisos para crear una fórmula protegida." });
@@ -56,9 +57,10 @@ export class FormulasController {
       const dto = req.body;
 
       const roles = (req as any).roles || [];
-      const isAdminSis = roles.includes(ROLE_CODES.ADMINSIS);
+      const canManageProtected =
+        roles.includes(ROLE_CODES.ADMINSIS) || roles.includes(ROLE_CODES.ADMINFAB);
 
-      if (!isAdminSis) {
+      if (!canManageProtected) {
         const existing = await service.detail(Number(id));
         if (existing && existing.esProtegida) {
           return res
@@ -106,9 +108,10 @@ export class FormulasController {
       const { id } = req.params;
 
       const roles = (req as any).roles || [];
-      const isAdminSis = roles.includes(ROLE_CODES.ADMINSIS);
+      const canManageProtected =
+        roles.includes(ROLE_CODES.ADMINSIS) || roles.includes(ROLE_CODES.ADMINFAB);
 
-      if (!isAdminSis) {
+      if (!canManageProtected) {
         const existing = await service.detail(Number(id));
         if (existing && existing.esProtegida) {
           return res
