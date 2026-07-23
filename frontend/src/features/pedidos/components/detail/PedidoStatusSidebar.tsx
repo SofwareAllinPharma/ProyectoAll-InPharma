@@ -24,7 +24,7 @@ export default function PedidoStatusSidebar({
 
   return (
     <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Estado del Pedido</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Estado de la Orden</h3>
       
       <div className="mb-4">
         <div className="text-sm text-gray-500 mb-2">Estado Actual</div>

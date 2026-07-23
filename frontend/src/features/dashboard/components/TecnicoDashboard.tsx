@@ -148,7 +148,7 @@ export default function TecnicoDashboard() {
               <FaClipboardList size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Pedidos de Elaboración</h3>
+              <h3 className="font-bold text-lg">Órdenes de Producción</h3>
               <p className="text-sm text-gray-500">Gestionar producción</p>
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function TecnicoDashboard() {
       {/* Tareas Pendientes */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-[#5d5448]">Pedidos Pendientes de Atención</h2>
+          <h2 className="text-xl font-bold text-[#5d5448]">Órdenes Pendientes de Atención</h2>
           <Button variant="outline" onClick={() => navigate('pedidos')}>Ver Todos</Button>
         </div>
 

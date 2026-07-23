@@ -71,7 +71,7 @@ export default function DepositoDetailPage() {
             <>
               <div className="flex items-center space-x-2">
                 <Button variant="outline" title="Registrar Traslado" icon={<FaTruck size={16} className="text-[#7C6A55]" />} onClick={() => setShowTrasladoModal(true)}>Registrar Traslado</Button>
-                <Button variant="solid" title="Registrar Pedido" icon={<FaPlus size={16} />} onClick={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })}>Registrar Pedido</Button>
+                <Button variant="solid" title="Crear Orden de Producción" icon={<FaPlus size={16} />} onClick={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })}>Crear Orden</Button>
               </div>
             </>
           ) : undefined

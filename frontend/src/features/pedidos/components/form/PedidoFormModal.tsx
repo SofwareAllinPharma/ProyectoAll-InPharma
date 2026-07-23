@@ -247,7 +247,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
       onClose={handleClose}
       containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col"
     >
-      <ModalHeader>Crear Pedido</ModalHeader>
+      <ModalHeader>Crear Orden de Producción</ModalHeader>
 
       <div className="overflow-y-auto px-6 py-4 flex-1">
         <form
@@ -322,9 +322,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
               void handleSubmit();
             }}
             className="px-6 py-2"
-            ariaLabel="Crear Pedido"
+            ariaLabel="Crear Orden de Producción"
           >
-            {submitting ? "Creando..." : "Crear Pedido"}
+            {submitting ? "Creando..." : "Crear Orden"}
           </Button>
         </div>
       </div>

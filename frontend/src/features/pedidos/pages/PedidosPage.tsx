@@ -76,12 +76,12 @@ const PedidosPage: React.FC = () => {
   const handleCreate = async (payload: CreatePedidoRequest) => {
     try {
       await PedidoService.create(payload);
-      show({ message: 'Pedido creado', type: 'success' });
+      show({ message: 'Orden de producción creada', type: 'success' });
       setModals((s) => ({ ...s, form: false }));
       await reload();
     } catch (e) {
       show({
-        message: (e as Error)?.message || 'Error creando pedido',
+        message: (e as Error)?.message || 'Error creando la orden de producción',
         type: 'error',
       });
       throw e;
@@ -90,8 +90,8 @@ const PedidosPage: React.FC = () => {
 
   return (
     <PageShell
-      title="Pedidos"
-      subtitle="Gestión de pedidos de elaboración"
+      title="Órdenes de Producción"
+      subtitle="Gestión de órdenes de producción"
       loading={loading}
       noContainer
       extraActions={
@@ -103,7 +103,7 @@ const PedidosPage: React.FC = () => {
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span>Crear Pedido</span>
+            <span>Crear Orden</span>
           </button>
         ) : null
       }
