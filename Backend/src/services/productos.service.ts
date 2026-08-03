@@ -61,8 +61,17 @@ export class ProductosService {
     if (cantPorcionesAportadas <= 0)
       throw new Error("La cantidad de porciones debe ser mayor a 0");
 
+    const sku = normalizarSku(dto.sku);
+    if (sku) {
+      const skuEnUso = await prisma.producto.findFirst({
+        where: { sku, estaActivo: true },
+      });
+      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
+    }
+
     return this.repo.create({
       nombreComercial: dto.nombreComercial,
+      sku,
       idFormula: dto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -123,8 +132,18 @@ export class ProductosService {
     if (cantPorcionesAportadas <= 0)
       throw new Error("La cantidad de porciones debe ser mayor a 0");
 
+    // sku undefined => no se toca; "" => se limpia a null
+    const sku = dto.sku === undefined ? producto.sku : normalizarSku(dto.sku);
+    if (sku && sku !== producto.sku) {
+      const skuEnUso = await prisma.producto.findFirst({
+        where: { sku, estaActivo: true, idProducto: { not: idProducto } },
+      });
+      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
+    }
+
     return this.repo.update(idProducto, {
       nombreComercial: dto.nombreComercial ?? producto.nombreComercial,
+      sku,
       idFormula: dto.idFormula ?? producto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -226,4 +245,12 @@ export class ProductosService {
       detalle,
     };
   }
+}
+
+// Normaliza el SKU: solo trim (se preserva el case para matchear exacto
+// con WooCommerce, que es case-sensitive). Devuelve null si queda vacío.
+function normalizarSku(raw: unknown): string | null {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  return s === "" ? null : s;
 }

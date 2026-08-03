@@ -235,7 +235,8 @@ model Deposito {
 model Producto {
   idProducto             Int          @id @default(autoincrement())
   idFormula              Int
-  nombreComercial        String       
+  nombreComercial        String
+  sku                    String?      @unique @db.VarChar(64)
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)

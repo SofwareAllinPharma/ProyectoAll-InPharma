@@ -9,6 +9,7 @@ import type { Formula } from '../../../formulas/types/formula.types';
 type FormState = {
   idFormula: number;
   nombreComercial: string;
+  sku: string;
   pesoNeto: number;
   cantPorcionesAportadas: number;
   calculationMode: 'pesoNeto' | 'porciones';
@@ -20,12 +21,13 @@ type Props = {
   errors: Record<string,string>;
   serverError: string | null;
   onNombreChange: (v:string)=>void;
+  onSkuChange: (v:string)=>void;
   onFormulaChange: (f:Formula)=>void;
   onCalcModeChange: (m:'pesoNeto'|'porciones')=>void;
   onValueChange: (field:'pesoNeto'|'cantPorcionesAportadas', v:number)=>void;
 };
 
-export default function ProductoFormBody({ formData, selectedFormula, errors, serverError, onNombreChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
+export default function ProductoFormBody({ formData, selectedFormula, errors, serverError, onNombreChange, onSkuChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
   return (
     <div className="overflow-y-auto p-6 space-y-6">
       <div>
@@ -34,6 +36,15 @@ export default function ProductoFormBody({ formData, selectedFormula, errors, se
           label="Nombre Comercial"
           error={errors.nombreComercial}
           inputProps={{ value: formData.nombreComercial, onChange: (e)=>onNombreChange(e.target.value), placeholder: 'Ingrese el nombre comercial del producto' }}
+        />
+      </div>
+
+      <div>
+        <TextField
+          id="sku"
+          label="SKU (código para ecommerce)"
+          error={errors.sku}
+          inputProps={{ value: formData.sku, onChange: (e)=>onSkuChange(e.target.value), placeholder: 'Ej: PF-CREA-300 (debe coincidir con el SKU en WooCommerce)' }}
         />
       </div>
 

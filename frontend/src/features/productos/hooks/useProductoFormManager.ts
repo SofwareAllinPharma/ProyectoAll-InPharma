@@ -6,6 +6,7 @@ import type { Formula } from '../../formulas/types/formula.types';
 type FormState = {
   idFormula: number;
   nombreComercial: string;
+  sku: string;
   pesoNeto: number;
   cantPorcionesAportadas: number;
   calculationMode: 'pesoNeto' | 'porciones';
@@ -18,7 +19,7 @@ export function useProductoFormManager(args: {
   onClose: () => void;
 }){
   const { producto, isOpen, onSubmit, onClose } = args;
-  const [formData, setFormData] = useState<FormState>({ idFormula:0, nombreComercial:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
+  const [formData, setFormData] = useState<FormState>({ idFormula:0, nombreComercial:'', sku:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
   const [selectedFormula, setSelectedFormula] = useState<Formula | null>(null);
   const [errors, setErrors] = useState<Record<string,string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -27,17 +28,17 @@ export function useProductoFormManager(args: {
   useEffect(() => {
     if (!isOpen) {
       setIsSubmitting(false);
-      setFormData({ idFormula:0, nombreComercial:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
+      setFormData({ idFormula:0, nombreComercial:'', sku:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
       setSelectedFormula(null);
       setErrors({});
       setServerError(null);
       return;
     }
     if (producto) {
-      setFormData({ idFormula: producto.idFormula, nombreComercial: producto.nombreComercial, pesoNeto: producto.pesoNeto, cantPorcionesAportadas: producto.cantPorcionesAportadas, calculationMode:'pesoNeto' });
+      setFormData({ idFormula: producto.idFormula, nombreComercial: producto.nombreComercial, sku: producto.sku ?? '', pesoNeto: producto.pesoNeto, cantPorcionesAportadas: producto.cantPorcionesAportadas, calculationMode:'pesoNeto' });
       setSelectedFormula(producto.formula || null);
     } else {
-      setFormData({ idFormula:0, nombreComercial:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
+      setFormData({ idFormula:0, nombreComercial:'', sku:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
       setSelectedFormula(null);
     }
     setErrors({}); setServerError(null);
@@ -46,6 +47,7 @@ export function useProductoFormManager(args: {
   const { handleCalculationModeChange, handleValueChange, validateForm } = useProductoForm({ formData, setFormData, selectedFormula });
 
   const onNombreChange = (v: string) => setFormData(prev => ({ ...prev, nombreComercial: v }));
+  const onSkuChange = (v: string) => setFormData(prev => ({ ...prev, sku: v }));
   const onFormulaChange = (f: Formula) => { setSelectedFormula(f); setFormData(prev => ({ ...prev, idFormula: f.id, pesoNeto: 0, cantPorcionesAportadas: 0 })); };
 
   const handleSubmit = async () => {
@@ -53,7 +55,7 @@ export function useProductoFormManager(args: {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return false; }
     setIsSubmitting(true); setServerError(null);
     try {
-      const submitData: any = { idFormula: formData.idFormula, nombreComercial: formData.nombreComercial.trim() };
+      const submitData: any = { idFormula: formData.idFormula, nombreComercial: formData.nombreComercial.trim(), sku: formData.sku.trim() };
       if (formData.calculationMode === 'pesoNeto') submitData.pesoNeto = formData.pesoNeto; else submitData.cantPorcionesAportadas = formData.cantPorcionesAportadas;
       await onSubmit(submitData);
       onClose();
@@ -66,7 +68,7 @@ export function useProductoFormManager(args: {
 
   return {
     formData, selectedFormula, errors, serverError, isSubmitting,
-    onNombreChange, onFormulaChange, onCalcModeChange: handleCalculationModeChange, onValueChange: handleValueChange,
+    onNombreChange, onSkuChange, onFormulaChange, onCalcModeChange: handleCalculationModeChange, onValueChange: handleValueChange,
     handleSubmit, setFormData, setSelectedFormula, setErrors,
   } as const;
 }
