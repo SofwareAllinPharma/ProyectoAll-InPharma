@@ -228,6 +228,7 @@ model Deposito {
   estado         Boolean      @default(true)
   esProtegido    Boolean      @default(false)
   inventario     Inventario[]
+  cajas          Caja[]
 
   @@map("DEPOSITOS")
 }
@@ -237,13 +238,15 @@ model Producto {
   idFormula              Int
   nombreComercial        String
   sku                    String?      @unique @db.VarChar(64)
+  diasVencimiento        Int?
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)
   lastStockUpdatedAt     DateTime     @default(now())
   formula                Formula      @relation(fields: [idFormula], references: [id])
   inventario             Inventario[]
-  pedidos                Pedido[]     
+  pedidos                Pedido[]
+  lotes                  Lote[]
 
   @@index([nombreComercial, estaActivo])
   @@map("PRODUCTOS")
@@ -318,10 +321,43 @@ model Pedido {
   cambios                  CambioEstadoPedido[]  @relation("Pedido_Historial")
   creador                  UsuarioPerfil         @relation("Pedido_Creador", fields: [mailUsuarioCreador, idPerfilCreador], references: [mail, idPerfil])
   cocinero                 UsuarioPerfil?        @relation("Pedido_Cocinero", fields: [mailUsuarioCocinero, idPerfilCocinero], references: [mail, idPerfil])
+  lote                     Lote?
 
   @@index([estaAsignado, createdAt])
   @@index([idProducto])
   @@index([mailUsuarioCreador, idPerfilCreador])
   @@index([mailUsuarioCocinero, idPerfilCocinero])
   @@map("PEDIDOS")
+}
+
+model Lote {
+  id               Int      @id @default(autoincrement())
+  numeroLote       String   @unique @db.VarChar(64)
+  idProducto       Int
+  idPedido         Int?     @unique
+  fechaElaboracion DateTime @default(now())
+  fechaVencimiento DateTime
+  createdAt        DateTime @default(now())
+  producto         Producto @relation(fields: [idProducto], references: [idProducto])
+  pedido           Pedido?  @relation(fields: [idPedido], references: [numPedido])
+  cajas            Caja[]
+
+  @@index([idProducto])
+  @@index([fechaElaboracion])
+  @@map("LOTE")
+}
+
+model Caja {
+  id         Int      @id @default(autoincrement())
+  idLote     Int
+  idDeposito Int
+  unidades   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lote       Lote     @relation(fields: [idLote], references: [id])
+  deposito   Deposito @relation(fields: [idDeposito], references: [id])
+
+  @@index([idLote])
+  @@index([idDeposito])
+  @@map("CAJA")
 }
