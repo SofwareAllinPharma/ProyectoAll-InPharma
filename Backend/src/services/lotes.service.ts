@@ -175,11 +175,13 @@ export class LotesService {
         idProducto: number;
         nombreComercial: string;
         totalUnidades: number;
+        totalCajas: number;
         lotes: {
           idLote: number;
           numeroLote: string;
           fechaVencimiento: Date;
           unidades: number;
+          cajas: number;
         }[];
       }
     >();
@@ -192,20 +194,24 @@ export class LotesService {
           idProducto: p.idProducto,
           nombreComercial: p.nombreComercial,
           totalUnidades: 0,
+          totalCajas: 0,
           lotes: [],
         };
         porProducto.set(p.idProducto, entry);
       }
       entry.totalUnidades += caja.unidades;
+      entry.totalCajas += 1;
       const loteEntry = entry.lotes.find((l) => l.idLote === caja.idLote);
       if (loteEntry) {
         loteEntry.unidades += caja.unidades;
+        loteEntry.cajas += 1;
       } else {
         entry.lotes.push({
           idLote: caja.lote.id,
           numeroLote: caja.lote.numeroLote,
           fechaVencimiento: caja.lote.fechaVencimiento,
           unidades: caja.unidades,
+          cajas: 1,
         });
       }
     }
