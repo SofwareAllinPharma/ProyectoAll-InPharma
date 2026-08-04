@@ -10,6 +10,7 @@ type FormState = {
   idFormula: number;
   nombreComercial: string;
   sku: string;
+  diasVencimiento: string;
   pesoNeto: number;
   cantPorcionesAportadas: number;
   calculationMode: 'pesoNeto' | 'porciones';
@@ -22,12 +23,13 @@ type Props = {
   serverError: string | null;
   onNombreChange: (v:string)=>void;
   onSkuChange: (v:string)=>void;
+  onDiasVencimientoChange: (v:string)=>void;
   onFormulaChange: (f:Formula)=>void;
   onCalcModeChange: (m:'pesoNeto'|'porciones')=>void;
   onValueChange: (field:'pesoNeto'|'cantPorcionesAportadas', v:number)=>void;
 };
 
-export default function ProductoFormBody({ formData, selectedFormula, errors, serverError, onNombreChange, onSkuChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
+export default function ProductoFormBody({ formData, selectedFormula, errors, serverError, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
   return (
     <div className="overflow-y-auto p-6 space-y-6">
       <div>
@@ -45,6 +47,15 @@ export default function ProductoFormBody({ formData, selectedFormula, errors, se
           label="SKU (código para ecommerce)"
           error={errors.sku}
           inputProps={{ value: formData.sku, onChange: (e)=>onSkuChange(e.target.value), placeholder: 'Ej: PF-CREA-300 (debe coincidir con el SKU en WooCommerce)' }}
+        />
+      </div>
+
+      <div>
+        <TextField
+          id="diasVencimiento"
+          label="Días de vencimiento"
+          error={errors.diasVencimiento}
+          inputProps={{ type: 'number', min: 1, value: formData.diasVencimiento, onChange: (e)=>onDiasVencimientoChange(e.target.value), placeholder: 'Ej: 60 — se usa para calcular el vencimiento del lote' }}
         />
       </div>
 

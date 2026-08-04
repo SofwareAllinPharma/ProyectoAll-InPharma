@@ -69,9 +69,12 @@ export class ProductosService {
       if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
     }
 
+    const diasVencimiento = parseDiasVencimiento(dto.diasVencimiento);
+
     return this.repo.create({
       nombreComercial: dto.nombreComercial,
       sku,
+      diasVencimiento,
       idFormula: dto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -141,9 +144,15 @@ export class ProductosService {
       if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
     }
 
+    const diasVencimiento =
+      dto.diasVencimiento === undefined
+        ? producto.diasVencimiento
+        : parseDiasVencimiento(dto.diasVencimiento);
+
     return this.repo.update(idProducto, {
       nombreComercial: dto.nombreComercial ?? producto.nombreComercial,
       sku,
+      diasVencimiento,
       idFormula: dto.idFormula ?? producto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -253,4 +262,13 @@ function normalizarSku(raw: unknown): string | null {
   if (raw == null) return null;
   const s = String(raw).trim();
   return s === "" ? null : s;
+}
+
+// Días de vencimiento: entero >= 1, o null si viene vacío. Lanza si es inválido.
+function parseDiasVencimiento(raw: unknown): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0)
+    throw new Error("Los días de vencimiento deben ser un entero mayor a 0");
+  return n;
 }

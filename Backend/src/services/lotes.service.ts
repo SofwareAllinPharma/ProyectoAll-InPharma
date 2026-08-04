@@ -58,7 +58,7 @@ export class LotesService {
   }
 
   // Secuencia diaria por producto; busca el primer número libre (numeroLote es único).
-  private async generarNumeroDisponible(
+  async generarNumeroDisponible(
     nombreProducto: string,
     fecha: Date
   ): Promise<string> {

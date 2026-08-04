@@ -110,7 +110,12 @@ export class PedidosController {
         }
       }
       const depositador: string | undefined = req.body?.depositador?.trim() || undefined;
-      const data = await service.finalizarElaboracion(numPedido, elaborador, cantidadRealPaquetes, depositador);
+      const opts = {
+        unidadesPorCaja: req.body?.unidadesPorCaja != null ? Number(req.body.unidadesPorCaja) : undefined,
+        idDepositoDestino: req.body?.idDepositoDestino != null ? Number(req.body.idDepositoDestino) : undefined,
+        diasVencimientoOverride: req.body?.diasVencimientoOverride != null ? Number(req.body.diasVencimientoOverride) : undefined,
+      };
+      const data = await service.finalizarElaboracion(numPedido, elaborador, cantidadRealPaquetes, depositador, opts);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

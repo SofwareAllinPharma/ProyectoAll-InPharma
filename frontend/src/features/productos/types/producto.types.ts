@@ -5,6 +5,7 @@ export interface Producto {
   idFormula: number;
   nombreComercial: string;
   sku?: string | null;
+  diasVencimiento?: number | null;
   pesoNeto: number;
   cantPorcionesAportadas: number;
   estaActivo: boolean;
@@ -17,6 +18,7 @@ export interface CreateProductoRequest {
   idFormula: number;
   nombreComercial: string;
   sku?: string | null;
+  diasVencimiento?: number | null;
   pesoNeto?: number;
   cantPorcionesAportadas?: number;
 }

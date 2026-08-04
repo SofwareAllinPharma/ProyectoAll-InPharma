@@ -48,8 +48,19 @@ class PedidoServiceClass {
     return data;
   }
 
-  async finalizarElaboracion(numPedido: number, cantidadRealPaquetes: number, elaborador?: string, depositador?: string): Promise<Pedido> {
-    const { data } = await api.post(`/pedidos/${numPedido}/finalizar-elaboracion`, { cantidadRealPaquetes, elaborador, depositador });
+  async finalizarElaboracion(
+    numPedido: number,
+    cantidadRealPaquetes: number,
+    elaborador?: string,
+    depositador?: string,
+    opts?: { unidadesPorCaja?: number; idDepositoDestino?: number; diasVencimientoOverride?: number }
+  ): Promise<Pedido> {
+    const { data } = await api.post(`/pedidos/${numPedido}/finalizar-elaboracion`, {
+      cantidadRealPaquetes,
+      elaborador,
+      depositador,
+      ...opts,
+    });
     return data;
   }
 

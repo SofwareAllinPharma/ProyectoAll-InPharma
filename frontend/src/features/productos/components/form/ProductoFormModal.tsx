@@ -15,7 +15,7 @@ interface Props {
 
 export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, producto }) => {
   const mgr = useProductoFormManager({ producto, isOpen, onSubmit, onClose });
-  const { formData, selectedFormula, errors, serverError, isSubmitting, onNombreChange, onSkuChange, onFormulaChange, onCalcModeChange, onValueChange, handleSubmit } = mgr;
+  const { formData, selectedFormula, errors, serverError, isSubmitting, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange, onValueChange, handleSubmit } = mgr;
 
   
 
@@ -38,6 +38,7 @@ export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
             serverError={serverError}
             onNombreChange={onNombreChange}
             onSkuChange={onSkuChange}
+            onDiasVencimientoChange={onDiasVencimientoChange}
             onFormulaChange={onFormulaChange}
             onCalcModeChange={onCalcModeChange}
             onValueChange={onValueChange}
