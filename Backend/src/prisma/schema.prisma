@@ -357,6 +357,7 @@ model Caja {
   lote        Lote             @relation(fields: [idLote], references: [id])
   deposito    Deposito         @relation(fields: [idDeposito], references: [id])
   movimientos MovimientoCaja[]
+  egresos     EgresoCaja[]
 
   @@index([idLote])
   @@index([idDeposito])
@@ -375,4 +376,18 @@ model MovimientoCaja {
 
   @@index([idCaja])
   @@map("MOVIMIENTO_CAJA")
+}
+
+model EgresoCaja {
+  id          Int      @id @default(autoincrement())
+  idCaja      Int
+  idDeposito  Int
+  unidades    Int
+  motivo      String?  @db.VarChar(60)
+  responsable String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  caja        Caja     @relation(fields: [idCaja], references: [id])
+
+  @@index([idCaja])
+  @@map("EGRESO_CAJA")
 }

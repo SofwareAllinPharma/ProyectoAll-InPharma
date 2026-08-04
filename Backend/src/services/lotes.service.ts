@@ -129,9 +129,9 @@ export class LotesService {
     if (envio.toLowerCase() === recepcion.toLowerCase())
       throw new Error("La segunda firma debe ser de una persona distinta");
 
-    // Cajas del producto en el origen, más viejas primero (FIFO).
+    // Cajas del producto en el origen (con stock), más viejas primero (FIFO).
     const cajas = await prisma.caja.findMany({
-      where: { idDeposito: idDepositoOrigen, lote: { idProducto } },
+      where: { idDeposito: idDepositoOrigen, unidades: { gt: 0 }, lote: { idProducto } },
       orderBy: { lote: { fechaElaboracion: "asc" } },
     });
     if (cajas.length < cantidadCajas)
@@ -161,10 +161,55 @@ export class LotesService {
     });
   }
 
+  // Egreso por unidades (venta/salida): descuenta de la estantería por FIFO,
+  // consumiendo cajas (puede dejar una parcial). Sin doble firma (venta rápida).
+  async egresar(dto: {
+    idDeposito: number;
+    idProducto: number;
+    unidades: number;
+    motivo?: string;
+    responsable?: string;
+  }) {
+    const { idDeposito, idProducto } = dto;
+    const unidades = Math.round(Number(dto.unidades));
+    if (!idDeposito) throw new Error("Indicá el depósito");
+    if (!idProducto) throw new Error("Indicá el producto");
+    if (!Number.isInteger(unidades) || unidades <= 0)
+      throw new Error("Las unidades deben ser un entero mayor a 0");
+
+    const cajas = await prisma.caja.findMany({
+      where: { idDeposito, unidades: { gt: 0 }, lote: { idProducto } },
+      orderBy: { lote: { fechaElaboracion: "asc" } },
+    });
+    const disponible = cajas.reduce((s, c) => s + c.unidades, 0);
+    if (disponible < unidades)
+      throw new Error(`Stock insuficiente: hay ${disponible} u, se pidieron ${unidades}`);
+
+    const motivo = dto.motivo?.trim() || "VENTA";
+    const responsable = dto.responsable?.trim() || null;
+
+    return prisma.$transaction(async (tx) => {
+      let restante = unidades;
+      for (const caja of cajas) {
+        if (restante <= 0) break;
+        const tomar = Math.min(caja.unidades, restante);
+        await tx.caja.update({
+          where: { id: caja.id },
+          data: { unidades: caja.unidades - tomar },
+        });
+        await tx.egresoCaja.create({
+          data: { idCaja: caja.id, idDeposito, unidades: tomar, motivo, responsable },
+        });
+        restante -= tomar;
+      }
+      return { unidades };
+    });
+  }
+
   // Stock de un depósito derivado de las cajas: total por producto + desglose por lote (FIFO).
   async stockPorDeposito(idDeposito: number) {
     const cajas = await prisma.caja.findMany({
-      where: { idDeposito },
+      where: { idDeposito, unidades: { gt: 0 } },
       include: { lote: { include: { producto: true } } },
       orderBy: { lote: { fechaElaboracion: "asc" } }, // más viejo primero = FIFO
     });

@@ -6,7 +6,7 @@ import { MovimientoService } from '../../movimientos/services/movimiento.service
 import type { Movimiento } from '../../movimientos/types/movimiento.types';
 import { useDepositos } from '../../movimientos/hooks/useDepositos';
 import { findDepositoByRole } from '../../inventario/depositosConfig';
-import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
+import EgresoModal from '../../inventario/components/EgresoModal';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 import LoadingPanel from '../../../components/LoadingPanel';
 
@@ -164,15 +164,13 @@ export default function PuntoVentaDashboard() {
         </div>
       </div>
 
-      {estanteria && (
-        <RegistroMovimientoModal
-          open={salidaOpen}
-          onClose={() => setSalidaOpen(false)}
-          onCreated={() => { void loadDashboard(); }}
-          defaultTipo="EGRESO"
-          defaultDepOrigen={{ id: estanteria.id, nombre: estanteria.nombre }}
-        />
-      )}
+      <EgresoModal
+        isOpen={salidaOpen}
+        idDeposito={estanteria?.id ?? null}
+        depositoNombre={estanteria?.nombre}
+        onClose={() => setSalidaOpen(false)}
+        onDone={() => { void loadDashboard(); }}
+      />
     </div>
   );
 }

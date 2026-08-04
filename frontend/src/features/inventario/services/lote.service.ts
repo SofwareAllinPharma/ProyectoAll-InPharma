@@ -23,6 +23,18 @@ export const LoteStockService = {
     return data;
   },
 
+  // Egreso/venta por unidades desde un depósito (FIFO, puede dejar caja parcial).
+  async egresar(payload: {
+    idDeposito: number;
+    idProducto: number;
+    unidades: number;
+    motivo?: string;
+    responsable?: string;
+  }): Promise<{ unidades: number }> {
+    const { data } = await api.post('/lotes/egreso', payload);
+    return data;
+  },
+
   // Traslado de N cajas enteras de un producto entre depósitos (doble firma).
   async trasladar(payload: {
     idDepositoOrigen: number;

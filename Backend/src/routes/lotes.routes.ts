@@ -41,4 +41,11 @@ router.post(
   controller.trasladar
 );
 
+// Egreso/venta por unidades desde un depósito (estantería). Venta rápida, sin doble firma.
+router.post(
+  "/egreso",
+  requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),
+  controller.egresar
+);
+
 export default router;

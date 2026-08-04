@@ -62,4 +62,19 @@ export class LotesController {
       res.status(400).json({ error: err.message });
     }
   }
+
+  async egresar(req: Request, res: Response) {
+    try {
+      const result = await service.egresar({
+        idDeposito: Number(req.body?.idDeposito),
+        idProducto: Number(req.body?.idProducto),
+        unidades: Number(req.body?.unidades),
+        motivo: req.body?.motivo,
+        responsable: req.body?.responsable,
+      });
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
 }

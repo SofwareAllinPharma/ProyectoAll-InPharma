@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDepositos } from '../../movimientos/hooks/useDepositos';
 import { LoteStockService, type StockProducto } from '../services/lote.service';
 import TrasladoCajasModal from './TrasladoCajasModal';
+import EgresoModal from './EgresoModal';
 
 export default function StockCajasTab() {
   const { depositos } = useDepositos();
@@ -9,6 +10,7 @@ export default function StockCajasTab() {
   const [stock, setStock] = useState<StockProducto[]>([]);
   const [loading, setLoading] = useState(false);
   const [trasladoOpen, setTrasladoOpen] = useState(false);
+  const [egresoOpen, setEgresoOpen] = useState(false);
 
   useEffect(() => {
     if (idDeposito === '' && depositos.length) setIdDeposito(depositos[0].id);
@@ -40,12 +42,21 @@ export default function StockCajasTab() {
             {depositos.map((d) => <option key={d.id} value={d.id}>{d.nombre}</option>)}
           </select>
         </div>
-        <button
-          onClick={() => setTrasladoOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5d5448] text-white text-sm hover:bg-[#4a433e] transition-colors"
-        >
-          Trasladar cajas
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setEgresoOpen(true)}
+            disabled={idDeposito === ''}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#5d5448] text-[#5d5448] text-sm hover:bg-[#5d5448]/5 transition-colors disabled:opacity-50"
+          >
+            Registrar salida
+          </button>
+          <button
+            onClick={() => setTrasladoOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5d5448] text-white text-sm hover:bg-[#4a433e] transition-colors"
+          >
+            Trasladar cajas
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -93,6 +104,14 @@ export default function StockCajasTab() {
         isOpen={trasladoOpen}
         depositos={depositos}
         onClose={() => setTrasladoOpen(false)}
+        onDone={load}
+      />
+
+      <EgresoModal
+        isOpen={egresoOpen}
+        idDeposito={idDeposito === '' ? null : Number(idDeposito)}
+        depositoNombre={depositos.find((d) => d.id === idDeposito)?.nombre}
+        onClose={() => setEgresoOpen(false)}
         onDone={load}
       />
     </div>
