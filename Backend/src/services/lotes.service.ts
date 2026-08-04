@@ -104,6 +104,63 @@ export class LotesService {
     });
   }
 
+  // Traslada N cajas enteras de un producto entre depósitos, eligiendo por FIFO
+  // (lote más viejo primero), con doble firma (dos responsables distintos).
+  async trasladar(dto: {
+    idDepositoOrigen: number;
+    idDepositoDestino: number;
+    idProducto: number;
+    cantidadCajas: number;
+    responsableEnvio?: string;
+    responsableRecepcion?: string;
+  }) {
+    const { idDepositoOrigen, idDepositoDestino, idProducto, cantidadCajas } = dto;
+    if (!idDepositoOrigen || !idDepositoDestino)
+      throw new Error("Indicá depósito de origen y destino");
+    if (idDepositoOrigen === idDepositoDestino)
+      throw new Error("El origen y el destino no pueden ser el mismo depósito");
+    if (!Number.isInteger(cantidadCajas) || cantidadCajas <= 0)
+      throw new Error("La cantidad de cajas debe ser un entero mayor a 0");
+
+    const envio = dto.responsableEnvio?.trim();
+    const recepcion = dto.responsableRecepcion?.trim();
+    if (!envio || !recepcion)
+      throw new Error("Doble verificación: indicá responsable de envío y de recepción");
+    if (envio.toLowerCase() === recepcion.toLowerCase())
+      throw new Error("La segunda firma debe ser de una persona distinta");
+
+    // Cajas del producto en el origen, más viejas primero (FIFO).
+    const cajas = await prisma.caja.findMany({
+      where: { idDeposito: idDepositoOrigen, lote: { idProducto } },
+      orderBy: { lote: { fechaElaboracion: "asc" } },
+    });
+    if (cajas.length < cantidadCajas)
+      throw new Error(
+        `No hay suficientes cajas en el origen (hay ${cajas.length}, se pidieron ${cantidadCajas})`
+      );
+
+    const aMover = cajas.slice(0, cantidadCajas);
+
+    return prisma.$transaction(async (tx) => {
+      for (const caja of aMover) {
+        await tx.movimientoCaja.create({
+          data: {
+            idCaja: caja.id,
+            idDepositoOrigen,
+            idDepositoDestino,
+            responsableEnvio: envio,
+            responsableRecepcion: recepcion,
+          },
+        });
+        await tx.caja.update({
+          where: { id: caja.id },
+          data: { idDeposito: idDepositoDestino },
+        });
+      }
+      return { movidas: aMover.length, unidades: aMover.reduce((s, c) => s + c.unidades, 0) };
+    });
+  }
+
   // Stock de un depósito derivado de las cajas: total por producto + desglose por lote (FIFO).
   async stockPorDeposito(idDeposito: number) {
     const cajas = await prisma.caja.findMany({

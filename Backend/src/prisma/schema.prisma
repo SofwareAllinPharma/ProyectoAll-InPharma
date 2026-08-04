@@ -354,10 +354,25 @@ model Caja {
   unidades   Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  lote       Lote     @relation(fields: [idLote], references: [id])
-  deposito   Deposito @relation(fields: [idDeposito], references: [id])
+  lote        Lote             @relation(fields: [idLote], references: [id])
+  deposito    Deposito         @relation(fields: [idDeposito], references: [id])
+  movimientos MovimientoCaja[]
 
   @@index([idLote])
   @@index([idDeposito])
   @@map("CAJA")
+}
+
+model MovimientoCaja {
+  id                   Int      @id @default(autoincrement())
+  idCaja               Int
+  idDepositoOrigen     Int
+  idDepositoDestino    Int
+  responsableEnvio     String   @db.VarChar(255)
+  responsableRecepcion String   @db.VarChar(255)
+  createdAt            DateTime @default(now())
+  caja                 Caja     @relation(fields: [idCaja], references: [id])
+
+  @@index([idCaja])
+  @@map("MOVIMIENTO_CAJA")
 }

@@ -46,4 +46,20 @@ export class LotesController {
       res.status(400).json({ error: err.message });
     }
   }
+
+  async trasladar(req: Request, res: Response) {
+    try {
+      const result = await service.trasladar({
+        idDepositoOrigen: Number(req.body?.idDepositoOrigen),
+        idDepositoDestino: Number(req.body?.idDepositoDestino),
+        idProducto: Number(req.body?.idProducto),
+        cantidadCajas: Number(req.body?.cantidadCajas),
+        responsableEnvio: req.body?.responsableEnvio,
+        responsableRecepcion: req.body?.responsableRecepcion,
+      });
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
 }

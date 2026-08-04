@@ -33,4 +33,12 @@ router.post(
   controller.create
 );
 
+// Traslado de cajas entre depósitos (con doble firma). Todos los roles operativos:
+// fábrica mueve atrás->intermedio, atención mueve intermedio->estantería.
+router.post(
+  "/traslado",
+  requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),
+  controller.trasladar
+);
+
 export default router;
