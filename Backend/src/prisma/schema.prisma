@@ -391,3 +391,11 @@ model EgresoCaja {
   @@index([idCaja])
   @@map("EGRESO_CAJA")
 }
+
+// Idempotencia del sync con WooCommerce: una orden de Woo se procesa una sola vez.
+model WooOrderProcesada {
+  orderId   String   @id @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  @@map("WOO_ORDER_PROCESADA")
+}

@@ -16,6 +16,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import personasRoutes from './routes/personas.routes';
 import proveedoresRoutes from './routes/proveedores.routes';
 import lotesRoutes from './routes/lotes.routes';
+import integracionRoutes from './routes/integracion.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -44,6 +45,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/personas', personasRoutes);
 app.use('/proveedores', proveedoresRoutes);
 app.use('/lotes', lotesRoutes);
+app.use('/integracion', integracionRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API corriendo correctamente");

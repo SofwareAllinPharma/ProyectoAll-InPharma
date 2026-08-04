@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { slugProducto, generarNumeroLote, calcularVencimiento } from "../utils/lote";
 
@@ -141,7 +142,7 @@ export class LotesService {
 
     const aMover = cajas.slice(0, cantidadCajas);
 
-    return prisma.$transaction(async (tx) => {
+    const res = await prisma.$transaction(async (tx) => {
       for (const caja of aMover) {
         await tx.movimientoCaja.create({
           data: {
@@ -159,6 +160,11 @@ export class LotesService {
       }
       return { movidas: aMover.length, unidades: aMover.reduce((s, c) => s + c.unidades, 0) };
     });
+
+    // Si el traslado tocó la estantería, avisar a Woo (best-effort, post-commit).
+    void this.notificarSiEstanteria(idDepositoDestino, [idProducto]);
+    void this.notificarSiEstanteria(idDepositoOrigen, [idProducto]);
+    return res;
   }
 
   // Egreso por unidades (venta/salida): descuenta de la estantería por FIFO,
@@ -170,6 +176,16 @@ export class LotesService {
     motivo?: string;
     responsable?: string;
   }) {
+    const res = await prisma.$transaction((tx) => this.egresarEnTx(tx, dto));
+    void this.notificarSiEstanteria(dto.idDeposito, [dto.idProducto]);
+    return res;
+  }
+
+  // Núcleo del egreso, reutilizable dentro de otra transacción (ej: venta de Woo).
+  private async egresarEnTx(
+    tx: Prisma.TransactionClient,
+    dto: { idDeposito: number; idProducto: number; unidades: number; motivo?: string; responsable?: string }
+  ) {
     const { idDeposito, idProducto } = dto;
     const unidades = Math.round(Number(dto.unidades));
     if (!idDeposito) throw new Error("Indicá el depósito");
@@ -177,7 +193,7 @@ export class LotesService {
     if (!Number.isInteger(unidades) || unidades <= 0)
       throw new Error("Las unidades deben ser un entero mayor a 0");
 
-    const cajas = await prisma.caja.findMany({
+    const cajas = await tx.caja.findMany({
       where: { idDeposito, unidades: { gt: 0 }, lote: { idProducto } },
       orderBy: { lote: { fechaElaboracion: "asc" } },
     });
@@ -188,22 +204,103 @@ export class LotesService {
     const motivo = dto.motivo?.trim() || "VENTA";
     const responsable = dto.responsable?.trim() || null;
 
-    return prisma.$transaction(async (tx) => {
-      let restante = unidades;
-      for (const caja of cajas) {
-        if (restante <= 0) break;
-        const tomar = Math.min(caja.unidades, restante);
-        await tx.caja.update({
-          where: { id: caja.id },
-          data: { unidades: caja.unidades - tomar },
-        });
-        await tx.egresoCaja.create({
-          data: { idCaja: caja.id, idDeposito, unidades: tomar, motivo, responsable },
-        });
-        restante -= tomar;
-      }
-      return { unidades };
+    let restante = unidades;
+    for (const caja of cajas) {
+      if (restante <= 0) break;
+      const tomar = Math.min(caja.unidades, restante);
+      await tx.caja.update({ where: { id: caja.id }, data: { unidades: caja.unidades - tomar } });
+      await tx.egresoCaja.create({
+        data: { idCaja: caja.id, idDeposito, unidades: tomar, motivo, responsable },
+      });
+      restante -= tomar;
+    }
+    return { unidades };
+  }
+
+  // Procesa una venta de WooCommerce (vía n8n): egresa de la estantería por SKU,
+  // idempotente por orderId (no descuenta dos veces la misma orden).
+  async procesarVentaWoo(dto: { orderId: string | number; items: { sku: string; unidades: number }[] }) {
+    const orderId = String(dto.orderId ?? "").trim();
+    if (!orderId) throw new Error("Falta orderId de la orden de Woo");
+    if (!Array.isArray(dto.items) || dto.items.length === 0)
+      throw new Error("La orden no tiene items");
+
+    const ya = await prisma.wooOrderProcesada.findUnique({ where: { orderId } });
+    if (ya) return { yaProcesada: true, orderId };
+
+    const estanteria = await prisma.deposito.findFirst({
+      where: { nombre: { in: ["Estantería", "Estanteria"] } },
     });
+    if (!estanteria) throw new Error("No se encontró el depósito 'Estantería'");
+
+    // Resolver cada SKU a un producto antes de la transacción.
+    const resueltos: { idProducto: number; unidades: number }[] = [];
+    for (const it of dto.items) {
+      const sku = String(it.sku ?? "").trim();
+      if (!sku) throw new Error("Item sin SKU");
+      const prod = await prisma.producto.findFirst({ where: { sku, estaActivo: true } });
+      if (!prod) throw new Error(`SKU no encontrado en All-In-Pharma: ${sku}`);
+      resueltos.push({ idProducto: prod.idProducto, unidades: Number(it.unidades) });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // marca de idempotencia primero: si otra llamada concurrente la creó, falla y hace rollback
+      await tx.wooOrderProcesada.create({ data: { orderId } });
+      for (const r of resueltos) {
+        await this.egresarEnTx(tx, {
+          idDeposito: estanteria.id,
+          idProducto: r.idProducto,
+          unidades: r.unidades,
+          motivo: "VENTA_WEB",
+        });
+      }
+    });
+
+    return { procesada: true, orderId, items: resueltos.length };
+  }
+
+  // Devuelve el id del depósito "Estantería" (o null si no existe).
+  private async getEstanteriaId(): Promise<number | null> {
+    const est = await prisma.deposito.findFirst({
+      where: { nombre: { in: ["Estantería", "Estanteria"] } },
+      select: { id: true },
+    });
+    return est?.id ?? null;
+  }
+
+  // Si el depósito afectado es la estantería, avisa a n8n el nuevo stock (para actualizar Woo).
+  private async notificarSiEstanteria(idDeposito: number, idProductos: number[]) {
+    try {
+      const url = process.env.N8N_STOCK_WEBHOOK_URL;
+      if (!url) return;
+      const estanteriaId = await this.getEstanteriaId();
+      if (!estanteriaId || estanteriaId !== idDeposito) return;
+
+      const productos = await Promise.all(
+        idProductos.filter(Boolean).map(async (idProducto) => {
+          const prod = await prisma.producto.findUnique({
+            where: { idProducto },
+            select: { sku: true },
+          });
+          const agg = await prisma.caja.aggregate({
+            where: { idDeposito: estanteriaId, unidades: { gt: 0 }, lote: { idProducto } },
+            _sum: { unidades: true },
+          });
+          return { sku: prod?.sku ?? null, unidades: agg._sum.unidades ?? 0 };
+        })
+      );
+
+      const conSku = productos.filter((p) => p.sku);
+      if (conSku.length === 0) return;
+
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productos: conSku }),
+      });
+    } catch (err) {
+      console.error("[notificarSiEstanteria] no se pudo avisar a n8n:", err);
+    }
   }
 
   // Stock de un depósito derivado de las cajas: total por producto + desglose por lote (FIFO).
