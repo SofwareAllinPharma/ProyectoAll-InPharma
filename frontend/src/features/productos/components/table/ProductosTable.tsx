@@ -53,9 +53,21 @@ export const ProductosTable: React.FC<Props> = ({
       ),
     },
     {
+      key: "sku",
+      title: "SKU",
+      width: "12%",
+      align: "center",
+      render: (r) =>
+        r.sku ? (
+          <span className="font-mono text-xs">{r.sku}</span>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        ),
+    },
+    {
       key: "formula",
       title: "Fórmula",
-      width: "18%",
+      width: "16%",
       align: "center",
       render: (r) => <ProductoFormulaCell producto={r} />,
     },

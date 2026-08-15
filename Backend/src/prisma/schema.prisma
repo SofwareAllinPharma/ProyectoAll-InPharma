@@ -228,6 +228,7 @@ model Deposito {
   estado         Boolean      @default(true)
   esProtegido    Boolean      @default(false)
   inventario     Inventario[]
+  cajas          Caja[]
 
   @@map("DEPOSITOS")
 }
@@ -235,14 +236,17 @@ model Deposito {
 model Producto {
   idProducto             Int          @id @default(autoincrement())
   idFormula              Int
-  nombreComercial        String       
+  nombreComercial        String
+  sku                    String?      @unique @db.VarChar(64)
+  diasVencimiento        Int?
   pesoNeto               Float
   cantPorcionesAportadas Int
   estaActivo             Boolean      @default(true)
   lastStockUpdatedAt     DateTime     @default(now())
   formula                Formula      @relation(fields: [idFormula], references: [id])
   inventario             Inventario[]
-  pedidos                Pedido[]     
+  pedidos                Pedido[]
+  lotes                  Lote[]
 
   @@index([nombreComercial, estaActivo])
   @@map("PRODUCTOS")
@@ -317,10 +321,81 @@ model Pedido {
   cambios                  CambioEstadoPedido[]  @relation("Pedido_Historial")
   creador                  UsuarioPerfil         @relation("Pedido_Creador", fields: [mailUsuarioCreador, idPerfilCreador], references: [mail, idPerfil])
   cocinero                 UsuarioPerfil?        @relation("Pedido_Cocinero", fields: [mailUsuarioCocinero, idPerfilCocinero], references: [mail, idPerfil])
+  lote                     Lote?
 
   @@index([estaAsignado, createdAt])
   @@index([idProducto])
   @@index([mailUsuarioCreador, idPerfilCreador])
   @@index([mailUsuarioCocinero, idPerfilCocinero])
   @@map("PEDIDOS")
+}
+
+model Lote {
+  id               Int      @id @default(autoincrement())
+  numeroLote       String   @unique @db.VarChar(64)
+  idProducto       Int
+  idPedido         Int?     @unique
+  fechaElaboracion DateTime @default(now())
+  fechaVencimiento DateTime
+  createdAt        DateTime @default(now())
+  producto         Producto @relation(fields: [idProducto], references: [idProducto])
+  pedido           Pedido?  @relation(fields: [idPedido], references: [numPedido])
+  cajas            Caja[]
+
+  @@index([idProducto])
+  @@index([fechaElaboracion])
+  @@map("LOTE")
+}
+
+model Caja {
+  id         Int      @id @default(autoincrement())
+  idLote     Int
+  idDeposito Int
+  unidades   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lote        Lote             @relation(fields: [idLote], references: [id])
+  deposito    Deposito         @relation(fields: [idDeposito], references: [id])
+  movimientos MovimientoCaja[]
+  egresos     EgresoCaja[]
+
+  @@index([idLote])
+  @@index([idDeposito])
+  @@map("CAJA")
+}
+
+model MovimientoCaja {
+  id                   Int      @id @default(autoincrement())
+  idCaja               Int
+  idDepositoOrigen     Int
+  idDepositoDestino    Int
+  responsableEnvio     String   @db.VarChar(255)
+  responsableRecepcion String   @db.VarChar(255)
+  createdAt            DateTime @default(now())
+  caja                 Caja     @relation(fields: [idCaja], references: [id])
+
+  @@index([idCaja])
+  @@map("MOVIMIENTO_CAJA")
+}
+
+model EgresoCaja {
+  id          Int      @id @default(autoincrement())
+  idCaja      Int
+  idDeposito  Int
+  unidades    Int
+  motivo      String?  @db.VarChar(60)
+  responsable String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  caja        Caja     @relation(fields: [idCaja], references: [id])
+
+  @@index([idCaja])
+  @@map("EGRESO_CAJA")
+}
+
+// Idempotencia del sync con WooCommerce: una orden de Woo se procesa una sola vez.
+model WooOrderProcesada {
+  orderId   String   @id @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  @@map("WOO_ORDER_PROCESADA")
 }

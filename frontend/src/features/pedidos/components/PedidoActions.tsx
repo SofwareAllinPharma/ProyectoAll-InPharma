@@ -6,6 +6,8 @@ import type { Pedido } from '../types/pedido.types';
 import { useAuth } from '../../../lib/auth';
 import Modal from '../../../components/ui/modales/Modal';
 import ModalHeader from '../../../components/ui/modales/ModalHeader';
+import { useDepositos } from '../../movimientos/hooks/useDepositos';
+import { findDepositoByRole } from '../../inventario/depositosConfig';
 
 type Props = {
   pedido: Pedido;
@@ -29,8 +31,12 @@ type PedidoConfirmModal = {
 
 export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props) {
   const { user } = useAuth();
+  const { depositos } = useDepositos();
   const isTecnico = user?.roles.includes('TECNICO');
   const canCancel = !isTecnico;
+
+  // Depósito "atrás": donde entra lo recién elaborado (ver depositosConfig).
+  const depositoAtras = findDepositoByRole(depositos, 'atras');
 
   const [busy, setBusy] = useState(false);
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
@@ -163,12 +169,16 @@ export default function PedidoActions({ pedido, onRefresh, onShowToast }: Props)
       <FinalizarElaboracionModal
         isOpen={finalizarModalOpen}
         cantEstimadaPaquetes={pedido.cantAProducir_paquetes}
+        diasVencimientoProducto={pedido.producto?.diasVencimiento}
         onCancel={() => setFinalizarModalOpen(false)}
-        onConfirm={(cantidadRealPaquetes, elaborador, depositador) => {
+        onConfirm={(cantidadRealPaquetes, elaborador, depositador, opts) => {
           setFinalizarModalOpen(false);
           void runAndRefresh(
-            () => PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes, elaborador, depositador),
-            'Pedido finalizado exitosamente'
+            () => PedidoService.finalizarElaboracion(pedido.numPedido, cantidadRealPaquetes, elaborador, depositador, {
+              ...opts,
+              idDepositoDestino: depositoAtras?.id,
+            }),
+            'Orden finalizada: lote y cajas registrados'
           );
         }}
       />

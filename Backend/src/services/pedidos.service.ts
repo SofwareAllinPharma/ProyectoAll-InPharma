@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { PedidosRepository } from "../repositories/pedidos.repository";
+import { LotesService } from "./lotes.service";
+import { calcularVencimiento } from "../utils/lote";
 
 const ESTADOS = {
   CREADO: "Creado",
@@ -14,6 +16,7 @@ function round4(n: number) {
 
 export class PedidosService {
   repo = new PedidosRepository();
+  private lotesService = new LotesService();
 
   async list({
     pagina = 1,
@@ -172,7 +175,13 @@ export class PedidosService {
     });
   }
 
-  async finalizarElaboracion(numPedido: number, elaborador?: string, cantidadRealPaquetes?: number, depositador?: string) {
+  async finalizarElaboracion(
+    numPedido: number,
+    elaborador?: string,
+    cantidadRealPaquetes?: number,
+    depositador?: string,
+    opts?: { unidadesPorCaja?: number; idDepositoDestino?: number; diasVencimientoOverride?: number }
+  ) {
     const pedido = await this.detail(numPedido);
     if (pedido.cambioActual?.estado?.nombre !== ESTADOS.EN_ELAB) {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
@@ -182,10 +191,18 @@ export class PedidosService {
       throw new Error("Debe ingresar la cantidad real elaborada (mayor a 0)");
     }
 
-    // Obtener depósito "Fábrica"
-    const dep = await prisma.deposito.findFirst({ where: { nombre: "Fábrica" } });
+    // Depósito destino (atrás). Prioridad: el que manda el front; si no, Fábrica-Atrás; si no, Fábrica.
+    let dep = opts?.idDepositoDestino
+      ? await prisma.deposito.findUnique({ where: { id: opts.idDepositoDestino } })
+      : null;
     if (!dep) {
-      throw new Error("Depósito 'Fábrica' no encontrado. Ejecute el seed de la base de datos.");
+      dep = await prisma.deposito.findFirst({
+        where: { nombre: { in: ["Fábrica-Atrás", "Fábrica"] } },
+        orderBy: { nombre: "asc" }, // "Fábrica-Atrás" antes que "Fábrica"
+      });
+    }
+    if (!dep) {
+      throw new Error("No se encontró el depósito de destino (Fábrica-Atrás / Fábrica).");
     }
 
     // Convertir cantidad real a gramos y porciones
@@ -199,10 +216,43 @@ export class PedidosService {
     const realPaquetes = round4(cantidadRealPaquetes);
     const realGramos = cantidades.cantAProducir_gramos;
     const realPorciones = cantidades.cantAProducir_porciones;
+    const totalUnidades = Math.round(realPaquetes);
 
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
 
-    // Todo en una única transacción: cambio de estado + guardado de cantidades reales + impacto al stock
+    // ¿Registramos lote+cajas? Solo si el front manda unidades por caja (flujo nuevo).
+    // El endpoint legacy /finalizar (sin opts) mantiene el impacto al Inventario agregado.
+    const crearLote = opts?.unidadesPorCaja != null;
+
+    let numeroLote: string | undefined;
+    let fechaElaboracion: Date | undefined;
+    let fechaVencimiento: Date | undefined;
+    let cajasData: { idDeposito: number; unidades: number }[] = [];
+
+    if (crearLote) {
+      const upc = opts!.unidadesPorCaja!;
+      if (!Number.isInteger(upc) || upc <= 0) {
+        throw new Error("Las unidades por caja deben ser un entero mayor a 0");
+      }
+      fechaElaboracion = new Date();
+      const dias = opts?.diasVencimientoOverride ?? producto.diasVencimiento;
+      if (dias == null) {
+        throw new Error(
+          "Falta el vencimiento: configurá los días de vencimiento del producto o ingresalos al finalizar"
+        );
+      }
+      fechaVencimiento = calcularVencimiento(fechaElaboracion, dias);
+      numeroLote = await this.lotesService.generarNumeroDisponible(
+        producto.nombreComercial,
+        fechaElaboracion
+      );
+      // Reparto en cajas: cajas completas + una parcial con el resto.
+      const completas = Math.floor(totalUnidades / upc);
+      const resto = totalUnidades % upc;
+      for (let i = 0; i < completas; i++) cajasData.push({ idDeposito: dep.id, unidades: upc });
+      if (resto > 0) cajasData.push({ idDeposito: dep.id, unidades: resto });
+    }
+
     await prisma.$transaction(async (tx) => {
       // 1. Cerrar estado actual y abrir nuevo estado
       if (pedido.idCambioEstadoPedido) {
@@ -233,13 +283,23 @@ export class PedidosService {
         },
       });
 
-      // 3. Impactar stock con la cantidad REAL elaborada
-      const qty = Math.round(realPaquetes);
-      if (qty > 0) {
+      // 3. Stock. Flujo nuevo: crear Lote + Cajas (fuente de verdad). Legacy: Inventario agregado.
+      if (crearLote) {
+        await tx.lote.create({
+          data: {
+            numeroLote: numeroLote!,
+            idProducto: pedido.idProducto,
+            idPedido: numPedido,
+            fechaElaboracion: fechaElaboracion!,
+            fechaVencimiento: fechaVencimiento!,
+            cajas: { create: cajasData },
+          },
+        });
+      } else if (totalUnidades > 0) {
         await tx.inventario.upsert({
           where: { idDeposito_idProducto: { idDeposito: dep.id, idProducto: pedido.idProducto } },
-          update: { cantidadProducto: { increment: qty } as any },
-          create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: qty, umbralMin: 0 },
+          update: { cantidadProducto: { increment: totalUnidades } as any },
+          create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: totalUnidades, umbralMin: 0 },
         });
       }
     });

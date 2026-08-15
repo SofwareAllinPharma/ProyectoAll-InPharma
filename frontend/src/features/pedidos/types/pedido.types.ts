@@ -18,6 +18,7 @@ export type ProductoMin = {
   nombreComercial: string;
   pesoNeto: number;
   cantPorcionesAportadas?: number | null;
+  diasVencimiento?: number | null;
   formula?: {
     porcion: number;
   } | null;
