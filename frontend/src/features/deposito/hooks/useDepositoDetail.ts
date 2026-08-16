@@ -96,7 +96,7 @@ export default function useDepositoDetail(id?: number | string | null) {
 
   const handleUpdate = async (v: any) => {
     try {
-      const updated = await DepositoService.update(dep!.id, { responsable: v.responsable, capacidadTotal: Number(v.capacidadTotal) });
+      const updated = await DepositoService.update(dep!.id, { nombre: v.nombre, responsable: v.responsable, capacidadTotal: Number(v.capacidadTotal) });
       setDep(updated);
       show({ message: 'El depósito fue modificado con éxito', type: 'success' });
       setOpenForm(false);

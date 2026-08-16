@@ -43,7 +43,7 @@ export class DepositosService {
   // ✅ Modificar solo responsable y capacidadTotal
   async update(
     id: number,
-    data: { responsable?: string; capacidadTotal?: number }
+    data: { nombre?: string; responsable?: string; capacidadTotal?: number }
   ): Promise<Deposito> {
     if (
       data.capacidadTotal !== undefined &&
@@ -51,10 +51,14 @@ export class DepositosService {
     ) {
       throw new Error("capacidadTotal debe ser un número >= 0.");
     }
+    if (data.nombre !== undefined && data.nombre.trim().length < 3) {
+      throw new Error("El nombre debe tener al menos 3 caracteres.");
+    }
 
     return prisma.deposito.update({
       where: { id },
       data: {
+        ...(data.nombre !== undefined ? { nombre: data.nombre.trim() } : {}),
         ...(data.responsable !== undefined
           ? { responsable: data.responsable }
           : {}),
