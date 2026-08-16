@@ -229,7 +229,7 @@ export class LotesService {
     if (ya) return { yaProcesada: true, orderId };
 
     const estanteria = await prisma.deposito.findFirst({
-      where: { nombre: { in: ["Estantería", "Estanteria"] } },
+      where: { nombre: { in: ["Estantería", "Estanteria"] }, estado: true },
     });
     if (!estanteria) throw new Error("No se encontró el depósito 'Estantería'");
 
@@ -262,7 +262,7 @@ export class LotesService {
   // Devuelve el id del depósito "Estantería" (o null si no existe).
   private async getEstanteriaId(): Promise<number | null> {
     const est = await prisma.deposito.findFirst({
-      where: { nombre: { in: ["Estantería", "Estanteria"] } },
+      where: { nombre: { in: ["Estantería", "Estanteria"] }, estado: true },
       select: { id: true },
     });
     return est?.id ?? null;

@@ -56,7 +56,7 @@ export default function DepositoFormModal({ open, deposito, onSave, onCancel, lo
       <ModalHeader>{isEdit ? 'Modificar Depósito' : 'Registrar Depósito'}</ModalHeader>
 
       <form onSubmit={handleSubmit(onSave)} className="p-6 space-y-4 flex-1 overflow-auto min-h-0">
-          <TextField label="Nombre" disabled={isEdit || loading} {...{ inputProps: { ...register('nombre', { required: onlyCreate ? 'El nombre es requerido' : false, minLength: onlyCreate ? { value: 3, message: 'Mínimo 3 caracteres' } : undefined, validate: validateUniqueName(existingNames, onlyCreate), }) }, error: errors.nombre?.message as string | undefined }} />
+          <TextField label="Nombre" disabled={loading} {...{ inputProps: { ...register('nombre', { required: 'El nombre es requerido', minLength: { value: 3, message: 'Mínimo 3 caracteres' }, validate: validateUniqueName(existingNames, onlyCreate), }) }, error: errors.nombre?.message as string | undefined }} />
 
           <TextField label="Dirección" disabled={isEdit || loading} {...{ inputProps: { ...register('direccion', { required: onlyCreate ? 'La dirección es requerida' : false, minLength: onlyCreate ? { value: 6, message: 'Mínimo 6 caracteres' } : undefined, }) }, error: errors.direccion?.message as string | undefined }} />
 

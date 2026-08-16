@@ -17,6 +17,7 @@ export interface CreateDepositoDTO {
 }
 
 export interface UpdateDepositoDTO {
+  nombre?: string;
   responsable?: string;
-  capacidadTotal?: number; 
+  capacidadTotal?: number;
 }
