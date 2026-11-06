@@ -90,14 +90,17 @@ export class PedidosRepository {
   async transition(
     numPedido: number,
     nextEstadoId: number,
-    extraData: any = {}
+    extraData: any = {},
+    estadosEsperados: string[]
   ) {
     return prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "numPedido" FROM "PEDIDOS" WHERE "numPedido" = ${numPedido} FOR UPDATE`;
       const pedido = await tx.pedido.findUnique({
         where: { numPedido },
-        include: { cambioActual: true },
+        include: { cambioActual: { include: { estado: true } } },
       });
       if (!pedido) throw new Error("Pedido no encontrado");
+      if (!estadosEsperados.includes(pedido.cambioActual?.estado?.nombre ?? '')) throw new Error("El estado de la orden cambió. Actualizá la pantalla antes de continuar.");
 
       if (pedido.idCambioEstadoPedido) {
         await tx.cambioEstadoPedido.update({

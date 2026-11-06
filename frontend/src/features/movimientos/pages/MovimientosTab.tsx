@@ -1,31 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaTruck } from 'react-icons/fa';
-import Button from '../../../components/ui/Button';
 import MovimientosCards from '../components/MovimientosCards';
 import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
-import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
 import { useAuth } from '../../../lib/auth';
 
 interface Props {
   idDeposito?: number;
-  onShowTraslado?: () => void; 
+
 }
 
-export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
+export default function MovimientosTab({ idDeposito }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
   useAuth();
   const {
     movimientos,
-    resumen, 
+    resumen,
     loading,
     error,
     filtrarMovimientos,
-    recargar
   } = useMovimientos(idDeposito);
 
   const [filters, setFilters] = useState<IMovimientoFilters>({
@@ -60,16 +56,15 @@ export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
     // Determinar la ruta base según la URL actual para mantener el contexto
     const currentPath = location.pathname;
     let basePath = '/adminsis';
-    
+
     if (currentPath.startsWith('/tecnico')) basePath = '/tecnico';
     else if (currentPath.startsWith('/adminfab')) basePath = '/adminfab';
     else if (currentPath.startsWith('/puntoventa')) basePath = '/puntoventa';
-    
+
     navigate(`${basePath}/movimientos/${movimiento.id}`);
   };
 
 
-  const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -89,18 +84,7 @@ export default function MovimientosTab({ idDeposito, onShowTraslado }: Props) {
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          title="Registrar Traslado"
-          icon={<FaTruck size={16} className="text-[#7C6A55]" />}
-          onClick={() => {
-            onShowTraslado?.();
-            setOpenRegistroModal(true);
-          }}
-        >
-          Nuevo Movimiento
-        </Button>
-        <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
+        <p className="text-xs text-amber-700">Historial anterior, solo consulta. Los movimientos actuales se registran por cajas desde Depósitos.</p>
       </div>
 
       <MovimientosCards resumen={resumen} loading={loading} />

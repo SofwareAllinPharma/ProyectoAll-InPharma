@@ -17,3 +17,16 @@ export interface CreateProveedorDto {
 }
 
 export type UpdateProveedorDto = Partial<CreateProveedorDto>;
+
+export interface ProveedorDetalle extends Proveedor {
+  precios: {
+    id: number;
+    idInsumo: number;
+    precioPorKg: number;
+    activo: boolean;
+    fechaDesde: string;
+    fechaHasta: string | null;
+    observacion: string | null;
+    insumo: { id: number; nombre: string; activo: boolean };
+  }[];
+}

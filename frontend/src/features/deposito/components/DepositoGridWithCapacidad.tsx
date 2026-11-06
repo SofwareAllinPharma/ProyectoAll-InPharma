@@ -5,11 +5,12 @@ import DepositCard from "./DepositoCard";
 
 interface Props {
   items: Deposito[];
+  refreshKey?: number;
   onOpenDetail?: (id: number) => void;
   onDelete?: (deposito: Deposito) => void;
 }
 
-export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete }: Props) {
+export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete, refreshKey = 0 }: Props) {
   // Estado para mapear idDeposito -> suma de productos
   const [capacidadPorDeposito, setCapacidadPorDeposito] = useState<Record<number, number>>({});
 
@@ -36,7 +37,7 @@ export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete
     return () => {
       isMounted = false;
     };
-  }, [items]);
+  }, [items, refreshKey]);
 
   
 

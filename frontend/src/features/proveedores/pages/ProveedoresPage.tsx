@@ -4,6 +4,8 @@ import { ProveedorService } from '../services/proveedor.service';
 import type { Proveedor, CreateProveedorDto } from '../types/proveedor.types';
 import ProveedorFormModal from '../components/ProveedorFormModal';
 import ConfirmModal from '../../../components/ui/modales/ConfirmModal';
+import { useAuth } from '../../../lib/auth';
+import ProveedorDetailModal from '../components/ProveedorDetailModal';
 import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContext';
 
 export default function ProveedoresPage() {
@@ -14,6 +16,12 @@ export default function ProveedoresPage() {
   const [selected, setSelected] = useState<Proveedor | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const { show } = useGlobalSnack();
+  const { isAdminSis, isAdminFab } = useAuth();
+  const canManage = isAdminSis || isAdminFab;
+  const [search, setSearch] = useState('');
+  const [viewing, setViewing] = useState<Proveedor | null>(null);
+  const term = search.trim().toLocaleLowerCase('es-AR');
+  const filtered = proveedores.filter(p => [p.nombre, p.razonSocial, p.cuit].some(value => value?.toLocaleLowerCase('es-AR').includes(term)));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,13 +66,17 @@ export default function ProveedoresPage() {
     <PageShell
       title="Proveedores"
       subtitle="Gestión de proveedores de insumos"
-      onCreate={() => { setSelected(null); setFormOpen(true); }}
+      onCreate={canManage ? () => { setSelected(null); setFormOpen(true); } : undefined}
       createLabel="Nuevo proveedor"
+      searchNode={<label className="block text-sm text-gray-600">Buscar proveedor
+        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Nombre, razón social o CUIT" className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>}
       loading={loading}
       error={error}
       onDismissError={() => setError(null)}
       modals={(
         <>
+          <ProveedorDetailModal proveedor={viewing} onClose={() => setViewing(null)} />
           <ProveedorFormModal
             open={formOpen}
             proveedor={selected}
@@ -106,7 +118,8 @@ export default function ProveedoresPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {proveedores.map(p => (
+              {filtered.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-gray-500">Sin proveedores para esa búsqueda.</td></tr>}
+              {filtered.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-900">{p.nombre}</td>
                   <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{p.razonSocial ?? '—'}</td>
@@ -117,18 +130,19 @@ export default function ProveedoresPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex gap-2 justify-end">
-                      <button
+                      {canManage && <button type="button" onClick={() => setViewing(p)} className="px-3 py-1 text-xs font-medium text-[#5d5448] underline">Ver ficha</button>}
+                      {canManage && <button
                         onClick={() => { setSelected(p); setFormOpen(true); }}
                         className="px-3 py-1 text-xs font-medium text-[#5d5448] border border-[#5d5448]/30 rounded-md hover:bg-[#5d5448]/5 transition-colors"
                       >
                         Editar
-                      </button>
-                      <button
+                      </button>}
+                      {canManage && <button
                         onClick={() => { setSelected(p); setDeleteOpen(true); }}
                         className="px-3 py-1 text-xs font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
                       >
                         Eliminar
-                      </button>
+                      </button>}
                     </div>
                   </td>
                 </tr>

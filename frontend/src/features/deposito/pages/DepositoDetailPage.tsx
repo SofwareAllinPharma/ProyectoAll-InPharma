@@ -2,7 +2,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
 import { useAuth } from '../../../lib/auth';
 import PageShell from '../../../components/PageShell';
-import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
+import TrasladoCajasModal from '../../inventario/components/TrasladoCajasModal';
+import { useDepositos } from '../../movimientos/hooks/useDepositos';
 import DepositoFormModal from '../components/DepositoFormModal';
 import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -17,6 +18,7 @@ export default function DepositoDetailPage() {
   const { id } = useParams();
   const prefix = useRoutePrefix();
   const { user } = useAuth();
+  const { depositos } = useDepositos();
   const isTecnico = user?.roles.includes('TECNICO');
   const {
     dep,
@@ -92,11 +94,20 @@ export default function DepositoDetailPage() {
               }}
             />
 
-            <DepositoFormModal open={openForm} deposito={dep} onCancel={() => setOpenForm(false)} onSave={handleUpdate} capacidadUsadaActual={dep.capacidadUsada ?? 0} />
+            <DepositoFormModal open={openForm} deposito={dep} onCancel={() => setOpenForm(false)} onSave={handleUpdate} capacidadUsadaActual={capacidadUsada} />
 
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
-            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} defaultDepOrigen={{ id: dep.id, nombre: dep.nombre }} />
+            <TrasladoCajasModal
+              isOpen={showTrasladoModal}
+              depositos={depositos.filter(d => d.estado !== false)}
+              onClose={() => setShowTrasladoModal(false)}
+              onDone={() => {
+                setShowTrasladoModal(false);
+                void Promise.all([refreshInventario(), refreshResumen()]);
+                show({ message: 'Traslado de cajas registrado', type: 'success' });
+              }}
+            />
           </>
         }
       >

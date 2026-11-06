@@ -84,11 +84,10 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
           ) : (
             <div className="space-y-1">
               <p className="text-lg font-semibold text-gray-800">
-                {costo.esParcial && <span className="text-amber-500 mr-1 text-sm">~</span>}
-                ${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {costo.esParcial || costo.costoPorPorcion == null ? 'Costo incompleto' : `$${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               </p>
               {costo.esParcial && (
-                <p className="text-xs text-amber-600">Costo parcial — sin precio: {costo.insumosSinPrecio.join(', ')}</p>
+                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.'}</p>
               )}
             </div>
           )}
@@ -164,6 +163,8 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
                   value: `${formula.carbohidratosPorPorcion}g`,
                 },
                 { label: "Sodio", value: `${formula.sodioPorPorcion}g` },
+                { label: "Fibra", value: `${formula.fibraPorPorcion}g` },
+                { label: "Otros", value: formula.otrosPorPorcion == null ? 'No disponible' : `${formula.otrosPorPorcion}g` },
               ]}
               colorClass="green"
             />

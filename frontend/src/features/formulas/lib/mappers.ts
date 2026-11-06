@@ -23,6 +23,7 @@ export function fromApi(a: ApiFormula): Formula {
     grasaTransPorPorcion: a.grasaTrans,
     fibraPorPorcion: a.fibra,
     sodioPorPorcion: a.sodio,
+    otrosPorPorcion: Number.isFinite(a.otros) ? a.otros : null,
     esProtegida: a.esProtegida,
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,

@@ -28,10 +28,9 @@ export default function CostoProductoCell({ idProducto }: Props) {
   return (
     <span
       className="text-gray-800 text-sm tabular-nums"
-      title={costo.esParcial ? `Costo parcial — sin precio: ${costo.insumosSinPrecio.join(', ')}` : undefined}
+      title={costo.esParcial ? (costo.insumosSinPrecio.length ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.') : undefined}
     >
-      {costo.esParcial && <span className="text-amber-500 mr-1 text-xs">~</span>}
-      {fmt(costo.costoPorPaquete)}
+      {costo.esParcial || costo.costoPorPaquete == null ? 'Costo incompleto' : fmt(costo.costoPorPaquete)}
     </span>
   );
 }

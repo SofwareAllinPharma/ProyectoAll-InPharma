@@ -1,11 +1,7 @@
 import type { PrecioInsumo } from '../../types/insumo.types';
-import { InsumoService } from '../../services/insumo.service';
-import { useGlobalSnack } from '../../../../components/ui/overlay/GlobalSnackContext';
 
 interface Props {
   precios: PrecioInsumo[];
-  insumoId: number;
-  onRefresh: () => void;
 }
 
 function fmt(iso: string) {
@@ -13,19 +9,7 @@ function fmt(iso: string) {
   catch { return iso; }
 }
 
-export default function PrecioInsumoHistorial({ precios, insumoId, onRefresh }: Props) {
-  const { show } = useGlobalSnack();
-
-  const handleDelete = async (precioId: number) => {
-    try {
-      await InsumoService.deletePrecio(insumoId, precioId);
-      show({ message: 'Registro eliminado', type: 'success' });
-      onRefresh();
-    } catch (e: any) {
-      show({ message: e?.message ?? 'Error al eliminar', type: 'error' });
-    }
-  };
-
+export default function PrecioInsumoHistorial({ precios }: Props) {
   if (precios.length === 0) return <p className="text-xs text-gray-400 italic">Sin historial de precios.</p>;
 
   return (
@@ -34,11 +18,10 @@ export default function PrecioInsumoHistorial({ precios, insumoId, onRefresh }: 
         <thead>
           <tr className="border-b border-gray-100 text-gray-500 uppercase tracking-wide">
             <th className="pb-2 text-left font-medium">Proveedor</th>
-            <th className="pb-2 text-right font-medium">$/kg</th>
+            <th className="pb-2 text-right font-medium">ARS/kg</th>
             <th className="pb-2 text-center font-medium">Desde</th>
             <th className="pb-2 text-center font-medium">Hasta</th>
             <th className="pb-2 text-center font-medium">Estado</th>
-            <th className="pb-2" />
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
@@ -55,16 +38,6 @@ export default function PrecioInsumoHistorial({ precios, insumoId, onRefresh }: 
                   ? <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">Vigente</span>
                   : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-[10px]">Histórico</span>
                 }
-              </td>
-              <td className="py-2 text-right">
-                {!p.activo && (
-                  <button
-                    onClick={() => void handleDelete(p.id)}
-                    className="text-red-400 hover:text-red-600 transition-colors text-[10px]"
-                  >
-                    Eliminar
-                  </button>
-                )}
               </td>
             </tr>
           ))}

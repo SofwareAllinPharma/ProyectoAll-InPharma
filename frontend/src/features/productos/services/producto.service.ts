@@ -91,8 +91,8 @@ export interface CostoProducto {
   idProducto: number;
   nombreComercial: string;
   cantPorcionesAportadas: number;
-  costoPorPorcion: number;
-  costoPorPaquete: number;
+  costoPorPorcion: number | null;
+  costoPorPaquete: number | null;
   esParcial: boolean;
   insumosSinPrecio: string[];
   detalle: {

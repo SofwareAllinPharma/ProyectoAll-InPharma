@@ -110,20 +110,18 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
                 <div>
                   <p className="text-xs text-gray-500">Por porción</p>
                   <p className="text-lg font-semibold text-gray-800">
-                    {costo.esParcial && <span className="text-amber-500 mr-1 text-sm">~</span>}
-                    ${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {costo.esParcial || costo.costoPorPorcion == null ? 'Costo incompleto' : `$${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Por paquete</p>
                   <p className="text-lg font-semibold text-[#5d5448]">
-                    {costo.esParcial && <span className="text-amber-500 mr-1 text-sm">~</span>}
-                    ${costo.costoPorPaquete.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {costo.esParcial || costo.costoPorPaquete == null ? 'Costo incompleto' : `$${costo.costoPorPaquete.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   </p>
                 </div>
               </div>
               {costo.esParcial && (
-                <p className="text-xs text-amber-600">Costo parcial — sin precio: {costo.insumosSinPrecio.join(', ')}</p>
+                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.'}</p>
               )}
               {costo.detalle.length > 0 && (
                 <details className="mt-1">

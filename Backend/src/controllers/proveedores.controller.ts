@@ -12,6 +12,14 @@ export class ProveedoresController {
     }
   }
 
+  async detail(req: Request, res: Response) {
+    try {
+      res.json(await service.detail(Number(req.params.id)));
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
   async create(req: Request, res: Response) {
     try {
       res.status(201).json(await service.create(req.body));

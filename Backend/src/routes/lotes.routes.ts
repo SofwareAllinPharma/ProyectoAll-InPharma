@@ -20,6 +20,14 @@ router.get(
   requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),
   controller.stockPorDeposito
 );
+router.get("/alertas/deposito/:idDeposito",
+  requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),
+  controller.alertasPorDeposito
+);
+router.get("/movimientos/recientes",
+  requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),
+  controller.movimientosRecientes
+);
 router.get(
   "/:id",
   requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB, ROLE_CODES.TECNICO, ROLE_CODES.ENCPTOVENTA),

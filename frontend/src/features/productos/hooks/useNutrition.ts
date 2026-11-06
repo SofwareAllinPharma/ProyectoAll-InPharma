@@ -31,7 +31,7 @@ export function computeNutrition(producto: Producto) {
     carbohidratos: formula.carbohidratosPorPorcion || 0,
     sodio: formula.sodioPorPorcion || 0,
     fibra: formula.fibraPorPorcion || 0,
-    otros: 0,
+    otros: formula.otrosPorPorcion ?? null,
   };
 
   const nutritionPer100g = (() => {
@@ -46,7 +46,7 @@ export function computeNutrition(producto: Producto) {
         carbohidratos: 0,
         sodio: 0,
         fibra: 0,
-        otros: 0,
+        otros: null,
       };
     }
     const factor = 100 / pesoPorPorcion;
@@ -60,7 +60,7 @@ export function computeNutrition(producto: Producto) {
       carbohidratos: nutritionPerPortion.carbohidratos * factor,
       sodio: nutritionPerPortion.sodio * factor,
       fibra: nutritionPerPortion.fibra * factor,
-      otros: nutritionPerPortion.otros * factor,
+      otros: nutritionPerPortion.otros == null ? null : nutritionPerPortion.otros * factor,
     };
   })();
 
@@ -78,7 +78,7 @@ export function computeNutrition(producto: Producto) {
       nutritionPerPortion.carbohidratos * producto.cantPorcionesAportadas,
     sodio: nutritionPerPortion.sodio * producto.cantPorcionesAportadas,
     fibra: nutritionPerPortion.fibra * producto.cantPorcionesAportadas,
-    otros: nutritionPerPortion.otros * producto.cantPorcionesAportadas,
+    otros: nutritionPerPortion.otros == null ? null : nutritionPerPortion.otros * producto.cantPorcionesAportadas,
   };
 
   const rowsPerPortion = [
@@ -106,7 +106,7 @@ export function computeNutrition(producto: Producto) {
     },
     { label: "Sodio", value: `${nutritionPerPortion.sodio.toFixed(4)}g` },
     { label: "Fibra", value: `${nutritionPerPortion.fibra.toFixed(4)}g` },
-    { label: "Otros", value: `${nutritionPerPortion.otros.toFixed(4)}g` },
+    { label: "Otros", value: nutritionPerPortion.otros == null ? 'No disponible' : `${nutritionPerPortion.otros.toFixed(4)}g` },
   ];
 
   const rowsPer100g = [
@@ -131,7 +131,7 @@ export function computeNutrition(producto: Producto) {
     },
     { label: "Sodio", value: `${nutritionPer100g.sodio.toFixed(4)}g` },
     { label: "Fibra", value: `${nutritionPer100g.fibra.toFixed(4)}g` },
-    { label: "Otros", value: `${nutritionPer100g.otros.toFixed(4)}g` },
+    { label: "Otros", value: nutritionPer100g.otros == null ? 'No disponible' : `${nutritionPer100g.otros.toFixed(4)}g` },
   ];
 
   const rowsTotal = [
@@ -156,7 +156,7 @@ export function computeNutrition(producto: Producto) {
     },
     { label: "Sodio", value: `${nutritionTotal.sodio.toFixed(4)}g` },
     { label: "Fibra", value: `${nutritionTotal.fibra.toFixed(4)}g` },
-    { label: "Otros", value: `${nutritionTotal.otros.toFixed(4)}g` },
+    { label: "Otros", value: nutritionTotal.otros == null ? 'No disponible' : `${nutritionTotal.otros.toFixed(4)}g` },
   ];
 
   return {

@@ -4,6 +4,19 @@ import { LotesService } from "../services/lotes.service";
 const service = new LotesService();
 
 export class LotesController {
+  async movimientosRecientes(_req: Request, res: Response) {
+    try { res.json(await service.movimientosRecientes()); }
+    catch (err: any) { res.status(400).json({ error: err.message }); }
+  }
+
+  async alertasPorDeposito(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.idDeposito);
+      if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Depósito inválido');
+      res.json(await service.alertasPorDeposito(id));
+    } catch (err: any) { res.status(400).json({ error: err.message }); }
+  }
+
   async list(req: Request, res: Response) {
     try {
       const { idProducto } = req.query;

@@ -30,6 +30,8 @@ export const ROLE_NAV_ITEMS: Record<string, NavItemConfig[]> = {
   ],
   ADMINFAB: [
     { id: 'resumen', label: 'Resumen', to: '/adminfab', icon: <FaThLarge /> },
+    { id: 'insumos', label: 'Insumos', to: '/adminfab/insumos', icon: <FaBoxOpen /> },
+    { id: 'proveedores', label: 'Proveedores', to: '/adminfab/proveedores', icon: <FaTruck /> },
     { id: 'formulas', label: 'Fórmulas', to: '/adminfab/formulas', icon: <FaFlask /> },
     { id: 'productos', label: 'Productos', to: '/adminfab/productos', icon: <FaBox /> },
     { id: 'pedidos', label: 'Pedidos', to: '/adminfab/pedidos', icon: <FaClipboardList /> },

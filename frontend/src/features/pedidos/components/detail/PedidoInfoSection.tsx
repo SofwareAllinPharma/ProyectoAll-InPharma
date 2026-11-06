@@ -68,7 +68,7 @@ export default function PedidoInfoSection({
           <div className="flex-1">
             <div className="text-sm text-gray-500">Fórmula</div>
             <div className="text-base text-gray-900 mt-1">
-              {formulaNombre || `${productoNombre} Pura`}
+              {formulaNombre?.trim() || 'No disponible'}
             </div>
             {formulaVersion && (
               <div className="text-xs text-gray-500 mt-1">

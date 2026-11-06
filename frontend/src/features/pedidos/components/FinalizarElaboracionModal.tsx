@@ -50,18 +50,18 @@ export default function FinalizarElaboracionModal({
   }, [isOpen, cantEstimadaPaquetes, diasVencimientoProducto]);
 
   const handleConfirm = () => {
-    const num = Math.round(Number(valor));
-    if (!valor.trim() || isNaN(num) || num <= 0) {
-      setError('Ingrese una cantidad válida mayor a 0.');
+    const num = Number(valor);
+    if (!valor.trim() || !Number.isSafeInteger(num) || num <= 0) {
+      setError('Ingrese una cantidad entera de paquetes mayor a 0.');
       return;
     }
-    const upc = Math.round(Number(unidadesPorCaja));
-    if (!unidadesPorCaja.trim() || isNaN(upc) || upc <= 0) {
-      setError('Ingrese las unidades por caja (mayor a 0).');
+    const upc = Number(unidadesPorCaja);
+    if (!unidadesPorCaja.trim() || !Number.isSafeInteger(upc) || upc <= 0) {
+      setError('Ingrese unidades por caja enteras mayores a 0.');
       return;
     }
-    const diasNum = diasVenc.trim() ? Math.round(Number(diasVenc)) : undefined;
-    if (diasVencimientoProducto == null && (diasNum === undefined || isNaN(diasNum) || diasNum <= 0)) {
+    const diasNum = diasVenc.trim() ? Number(diasVenc) : undefined;
+    if ((diasNum !== undefined && (!Number.isSafeInteger(diasNum) || diasNum <= 0)) || (diasVencimientoProducto == null && diasNum === undefined)) {
       setError('El producto no tiene días de vencimiento configurados; ingreselos.');
       return;
     }
@@ -73,16 +73,20 @@ export default function FinalizarElaboracionModal({
       setError('Seleccione el depositador.');
       return;
     }
+    if (elaborador.trim().toLowerCase() === depositador.trim().toLowerCase()) {
+      setError('El elaborador y el depositador deben ser personas distintas.');
+      return;
+    }
     onConfirm(num, elaborador.trim(), depositador.trim(), {
       unidadesPorCaja: upc,
       diasVencimientoOverride: diasNum,
     });
   };
 
-  const upcNum = Math.round(Number(unidadesPorCaja));
-  const totalNum = Math.round(Number(valor));
+  const upcNum = Number(unidadesPorCaja);
+  const totalNum = Number(valor);
   const cajasPreview =
-    upcNum > 0 && totalNum > 0
+    Number.isSafeInteger(upcNum) && Number.isSafeInteger(totalNum) && upcNum > 0 && totalNum > 0
       ? `${Math.floor(totalNum / upcNum)} caja(s) de ${upcNum}${
           totalNum % upcNum ? ` + 1 parcial de ${totalNum % upcNum}` : ''
         }`

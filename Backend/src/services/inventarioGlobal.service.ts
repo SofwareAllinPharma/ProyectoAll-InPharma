@@ -1,81 +1,36 @@
-import { PrismaClient } from '@prisma/client';
-import { calcularEstado } from './inventario.estado';
-const prisma = new PrismaClient();
-
-type Distribucion = { idDeposito: number; nombre: string; cantidad: number; porcentaje: number };
+import { prisma } from '../lib/prisma';
+import { LotesService } from './lotes.service';
 
 export const InventarioGlobalService = {
-  /** Cards globales: suma de estados de TODAS las filas (depósito×producto) con stock y producto activo */
   async resumenEstadosGlobal() {
-    const filas = await prisma.inventario.findMany({
-      where: { cantidadProducto: { gt: 0 }, producto: { estaActivo: true } },
-      select: { cantidadProducto: true, umbralMin: true },
-    });
-
+    const depositos = await prisma.deposito.findMany({ where: { estado: true }, select: { id: true } });
+    const filas = (await Promise.all(depositos.map(d => new LotesService().alertasPorDeposito(d.id)))).flat();
     const counters = { critico: 0, bajo: 0, normal: 0, default: 0 };
-    for (const f of filas) {
-      const estado = calcularEstado(f.cantidadProducto, f.umbralMin ?? null);
-      (counters as any)[estado]++;
+    for (const f of filas.filter(f => f.cantidadProducto > 0 || f.umbralMin !== null)) {
+      counters[f.estado.toLowerCase() as keyof typeof counters]++;
     }
-
-    // totalProductos: cantidad de productos únicos con stock (>0) en al menos un depósito
-    const productosUnicos = await prisma.inventario.groupBy({
-      by: ['idProducto'],
-      where: { cantidadProducto: { gt: 0 }, producto: { estaActivo: true } },
-      _sum: { cantidadProducto: true },
-    });
-
-    return {
-      totalProductos: productosUnicos.length,
-      normal: counters.normal,
-      bajo: counters.bajo,
-      critico: counters.critico,
-      default: counters.default,
-    };
+    return { totalProductos: new Set(filas.filter(f => f.cantidadProducto > 0).map(f => f.idProducto)).size, ...counters };
   },
 
-  /** Listado global: producto + stock total + distribución por depósito (sin nivel ni actualización) */
   async listGlobal(opts?: { q?: string; sort?: 'producto' | 'cantidad'; order?: 'asc' | 'desc' }) {
-    const { q, sort = 'producto', order = 'asc' } = opts || {};
-
-    // Traigo productos activos con sus filas de inventario y depósitos
     const productos = await prisma.producto.findMany({
-      where: { estaActivo: true, ...(q ? { nombreComercial: { contains: q, mode: 'insensitive' } } : {}) },
-      select: {
-        idProducto: true,
-        nombreComercial: true,
-        lastStockUpdatedAt: true,
-        inventario: { include: { deposito: { select: { id: true, nombre: true } } } },
-      },
+      where: { estaActivo: true, ...(opts?.q ? { nombreComercial: { contains: opts.q, mode: 'insensitive' as const } } : {}) },
+      select: { idProducto: true, nombreComercial: true, lotes: { select: { cajas: { where: { deposito: { estado: true }, unidades: { gt: 0 } }, include: { deposito: { select: { id: true, nombre: true } } } } } } },
     });
-
-    let rows = productos.map(p => {
-      const total = p.inventario.reduce((acc, r) => acc + r.cantidadProducto, 0);
-      const distribucion: Distribucion[] = p.inventario.map(r => ({
-        idDeposito: r.idDeposito,
-        nombre: r.deposito.nombre,
-        cantidad: r.cantidadProducto,
-        porcentaje: total > 0 ? Math.round((r.cantidadProducto / total) * 100) : 0,
-      }));
-      return {
-        idProducto: p.idProducto,
-        producto: p.nombreComercial,
-        stockTotal: total,
-        distribucion,
-        updatedAt: p.lastStockUpdatedAt ? (p.lastStockUpdatedAt as Date).toISOString() : undefined,
-      };
+    const rows = productos.map(p => {
+      const cajas = p.lotes.flatMap(l => l.cajas);
+      const stockTotal = cajas.reduce((s, c) => s + c.unidades, 0);
+      const deps = [...new Set(cajas.map(c => c.idDeposito))];
+      return { idProducto: p.idProducto, producto: p.nombreComercial, stockTotal,
+        distribucion: deps.map(id => {
+          const propias = cajas.filter(c => c.idDeposito === id);
+          const cantidad = propias.reduce((s, c) => s + c.unidades, 0);
+          return { idDeposito: id, nombre: propias[0].deposito.nombre, cantidad, porcentaje: stockTotal ? Math.round(cantidad / stockTotal * 100) : 0 };
+        }),
+        updatedAt: cajas.length ? new Date(Math.max(...cajas.map(c => c.updatedAt.getTime()))).toISOString() : undefined };
     });
-
-    if (sort === 'producto') {
-      rows.sort((a, b) =>
-        order === 'asc'
-          ? a.producto.localeCompare(b.producto)
-          : b.producto.localeCompare(a.producto)
-      );
-    } else if (sort === 'cantidad') {
-      rows.sort((a, b) => (order === 'asc' ? a.stockTotal - b.stockTotal : b.stockTotal - a.stockTotal));
-    }
-
+    const sentido = opts?.order === 'desc' ? -1 : 1;
+    rows.sort((a, b) => sentido * (opts?.sort === 'cantidad' ? a.stockTotal - b.stockTotal : a.producto.localeCompare(b.producto)));
     return rows;
   },
 };

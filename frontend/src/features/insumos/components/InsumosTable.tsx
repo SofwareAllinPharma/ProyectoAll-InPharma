@@ -37,6 +37,8 @@ import type { Column } from "../../../components/ui/DataTable";
 
 interface InsumosTableProps {
   insumos: Insumo[];
+  onView: (insumo: Insumo) => void;
+  canManage?: boolean;
   onEdit: (insumo: Insumo) => void;
   onDelete: (insumo: Insumo) => void;
   searchTerm: string;
@@ -44,6 +46,8 @@ interface InsumosTableProps {
 
 export default function InsumosTable({
   insumos,
+  onView,
+  canManage = false,
   onEdit,
   onDelete,
   searchTerm,
@@ -149,7 +153,8 @@ export default function InsumosTable({
       render: (r) => (
         <ActionMenu
           items={[
-            {
+            { key: 'view', label: 'Ver ficha', onClick: () => onView(r) },
+            ...(canManage ? [{
               key: "edit",
               label: "Editar",
               icon: EditIcon,
@@ -160,7 +165,7 @@ export default function InsumosTable({
               label: "Eliminar",
               icon: TrashIcon,
               onClick: () => onDelete(r),
-            },
+            }] : []),
           ]}
         />
       ),

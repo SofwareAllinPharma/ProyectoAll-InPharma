@@ -31,14 +31,14 @@ export default function EgresoModal({ isOpen, idDeposito, depositoNombre, onClos
   }, [isOpen, idDeposito]);
 
   const prodSel = stock.find((p) => p.idProducto === idProducto);
-  const disponible = prodSel?.totalUnidades ?? 0;
+  const disponible = (motivo === 'AJUSTE' ? prodSel?.totalUnidades : prodSel?.unidadesVigentes) ?? 0;
 
   const handleSubmit = async () => {
     setError('');
     if (idDeposito == null) return setError('Depósito no válido.');
     if (idProducto === '') return setError('Elegí un producto.');
-    const n = Math.round(Number(unidades));
-    if (!unidades.trim() || isNaN(n) || n <= 0) return setError('Ingresá las unidades.');
+    const n = Number(unidades);
+    if (!unidades.trim() || !Number.isSafeInteger(n) || n <= 0) return setError('Ingresá las unidades.');
     if (n > disponible) return setError(`Solo hay ${disponible} u de ese producto.`);
     setSubmitting(true);
     try {
@@ -67,7 +67,7 @@ export default function EgresoModal({ isOpen, idDeposito, depositoNombre, onClos
           <select className={cls} value={idProducto} onChange={(e) => { setIdProducto(e.target.value ? Number(e.target.value) : ''); setError(''); }}>
             <option value="">Seleccionar…</option>
             {stock.map((p) => (
-              <option key={p.idProducto} value={p.idProducto}>{p.nombreComercial} — {p.totalUnidades} u</option>
+              <option key={p.idProducto} value={p.idProducto}>{p.nombreComercial} — {motivo === 'AJUSTE' ? p.totalUnidades : p.unidadesVigentes} u</option>
             ))}
           </select>
         </div>
@@ -75,7 +75,7 @@ export default function EgresoModal({ isOpen, idDeposito, depositoNombre, onClos
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Unidades <span className="text-red-500">*</span></label>
           <input type="number" min="1" step="1" value={unidades} onChange={(e) => { setUnidades(e.target.value); setError(''); }} className={cls} placeholder="Ej: 2" autoFocus />
-          {prodSel && <p className="mt-1 text-xs text-gray-500">Disponibles: {disponible} u. Se descuenta por FIFO (lote más viejo primero).</p>}
+          {prodSel && <p className="mt-1 text-xs text-gray-500">Disponibles: {disponible} u. {motivo === 'AJUSTE' ? 'Incluye lotes vencidos para ajuste/merma.' : 'Solo lotes vigentes; los vencidos no se venden.'} Se descuenta por FIFO.</p>}
         </div>
 
         <div>

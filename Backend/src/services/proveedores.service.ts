@@ -8,6 +8,21 @@ export class ProveedoresService {
     });
   }
 
+  async detail(id: number) {
+    if (!Number.isInteger(id) || id <= 0) throw new Error('Proveedor inválido');
+    const proveedor = await prisma.proveedor.findUnique({
+      where: { id },
+      include: {
+        precios: {
+          include: { insumo: { select: { id: true, nombre: true, activo: true } } },
+          orderBy: [{ activo: 'desc' }, { fechaDesde: 'desc' }, { id: 'desc' }],
+        },
+      },
+    });
+    if (!proveedor) throw new Error('Proveedor no encontrado');
+    return proveedor;
+  }
+
   async create(data: {
     nombre: string;
     telefono?: string;
