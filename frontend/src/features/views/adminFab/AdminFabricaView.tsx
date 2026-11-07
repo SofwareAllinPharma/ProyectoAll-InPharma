@@ -8,6 +8,8 @@ import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
 import FormulasPage from "../../formulas/pages/FormulasPage";
 import { ProductosPage } from "../../productos";
 import Dashboard from "../../dashboard";
+import InsumosPage from "../../insumos/pages/InsumosPage";
+import ProveedoresPage from "../../proveedores/pages/ProveedoresPage";
 
 export default function AdminFabDashboard() {
   return (
@@ -16,6 +18,8 @@ export default function AdminFabDashboard() {
 
       <Route path="pedidos" element={<PedidosPage />} />
       <Route path="pedidos/:id" element={<PedidoDetailPage />} />
+      <Route path="insumos" element={<InsumosPage />} />
+      <Route path="proveedores" element={<ProveedoresPage />} />
       <Route path="formulas" element={<FormulasPage />} />
       <Route path="productos" element={<ProductosPage />} />
       <Route path="depositos" element={<DepositosPage />} />

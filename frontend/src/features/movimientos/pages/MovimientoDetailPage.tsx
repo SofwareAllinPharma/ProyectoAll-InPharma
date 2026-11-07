@@ -104,8 +104,8 @@ export default function MovimientoDetailPage() {
   const isEgreso = detalle.tipo === 'EGRESO';
   const isIngreso = detalle.tipo === 'INGRESO';
   const estado = detalle.estado;
-  const puedeEntregar = estado === 'EN_CAMINO';
-  const puedeCancelar = estado === 'CREADO' || estado === 'EN_CAMINO' || (estado === 'ENTREGADO' && isEgreso) || (estado === 'VENDIDO' && isEgreso);
+  const puedeEntregar = false;
+  const puedeCancelar = false;
   
   // Calcular progreso basado en el estado
   const getProgreso = () => {
@@ -139,6 +139,7 @@ export default function MovimientoDetailPage() {
         <PrintMovimientoButton detalle={detalle} />
       </div>
 
+      <p className="mb-4 rounded bg-amber-50 p-3 text-sm text-amber-800">Movimiento anterior, conservado solo para consulta. Para operar stock usá Trasladar cajas o Registrar salida desde Depósitos.</p>
       {/* Grid principal: 2 columnas izq + 1 columna der */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Columna principal (2/3) */}
@@ -255,7 +256,7 @@ export default function MovimientoDetailPage() {
             </div>
 
             {/* Botones de Acción */}
-            {(estado === 'CREADO' || puedeEntregar || puedeCancelar) && (
+            {(puedeEntregar || puedeCancelar) && (
               <div className="mb-4 space-y-2">
                 {estado === 'CREADO' && (
                   <Button onClick={() => setShowConfirm({ to: 'EN_CAMINO' })}>

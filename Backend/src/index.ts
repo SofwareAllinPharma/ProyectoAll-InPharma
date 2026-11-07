@@ -55,4 +55,4 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Ruta no encontrada" });
 });
 
-app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
+app.listen(PORT, process.env.HOST ?? "0.0.0.0", () => console.log(`API running on http://localhost:${PORT}`));

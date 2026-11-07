@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useAuth } from '../../../lib/auth';
+import InsumoDetailModal from '../components/InsumoDetailModal';
+import type { Insumo } from '../types/insumo.types';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 import { useInsumos } from '../hooks/useInsumos';
 import InsumosTable from '../components/InsumosTable';
@@ -12,6 +15,9 @@ import { useGlobalSnack } from '../../../components/ui/overlay/GlobalSnackContex
 
 export default function InsumosPage() {
   useToast();
+  const { isAdminSis, isAdminFab } = useAuth();
+  const canManage = isAdminSis || isAdminFab;
+  const [viewing, setViewing] = useState<Insumo | null>(null);
   const { show } = useGlobalSnack();
   const [precioModalOpen, setPrecioModalOpen] = useState(false);
   const [priceRefreshKey, setPriceRefreshKey] = useState(0);
@@ -26,8 +32,8 @@ export default function InsumosPage() {
   return (
     <PageShell
       title="Insumos"
-      subtitle="Gestiona el inventario de insumos de la fábrica"
-      onCreate={handleCreateNew}
+      subtitle="Catálogo, nutrición y precios de referencia de insumos"
+      onCreate={canManage ? handleCreateNew : undefined}
       createLabel="Agregar Insumo"
       loading={loading}
       error={error}
@@ -39,12 +45,13 @@ export default function InsumosPage() {
       helpTip={(
         <div className="-mt-4">
           <TipBox mt="mt-4">
-            <><strong>Tip:</strong> Usa el botón de tres puntos en cada fila para ver las opciones de editar o eliminar</>
+            <><strong>Tip:</strong> Usá el botón de tres puntos en cada fila para consultar la ficha del insumo</>
           </TipBox>
         </div>
       )}
       modals={(
         <>
+          <InsumoDetailModal insumo={viewing} onClose={() => setViewing(null)} />
           <InsumoFormModal
             open={formModalOpen}
             insumo={selectedInsumo}
@@ -81,6 +88,8 @@ export default function InsumosPage() {
     >
       <InsumosTable
         insumos={insumos}
+        onView={setViewing}
+        canManage={canManage}
         onEdit={handleEditFromTable}
         onDelete={handleDeleteFromTable}
         searchTerm={searchTerm}

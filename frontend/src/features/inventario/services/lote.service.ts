@@ -1,3 +1,4 @@
+import type { InventarioProducto } from './inventario.service';
 import { api } from '../../../lib/api';
 
 export type StockLote = {
@@ -13,10 +14,17 @@ export type StockProducto = {
   nombreComercial: string;
   totalUnidades: number;
   totalCajas: number;
+  unidadesVigentes: number;
+  unidadesVencidas: number;
+  cajasVigentes: number;
   lotes: StockLote[];
 };
 
 export const LoteStockService = {
+  async alertasPorDeposito(idDeposito: number): Promise<InventarioProducto[]> {
+    const { data } = await api.get(`/lotes/alertas/deposito/${idDeposito}`);
+    return data;
+  },
   // Stock de un depósito derivado de las cajas (total por producto + lotes, FIFO).
   async stockPorDeposito(idDeposito: number): Promise<StockProducto[]> {
     const { data } = await api.get(`/lotes/stock/deposito/${idDeposito}`);

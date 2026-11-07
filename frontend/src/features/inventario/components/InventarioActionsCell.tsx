@@ -13,7 +13,7 @@ interface Props {
 const InventarioActionsCell: React.FC<Props> = ({ row, onMovimientoStock, onCrearPedido, onCrearMovimientoPrefill }) => {
     return (
         <div className="flex gap-2 justify-center">
-            <MiniActionButton
+            {(onMovimientoStock || onCrearMovimientoPrefill) && <MiniActionButton
                 variant="traslado"
                 title="Registrar Traslado"
                 icon={<FaTruck size={16} />}
@@ -25,8 +25,8 @@ const InventarioActionsCell: React.FC<Props> = ({ row, onMovimientoStock, onCrea
                         onMovimientoStock?.(row);
                     }
                 }}
-            />
-            {row.estado !== 'NORMAL' && (
+            />}
+            {row.estado !== 'NORMAL' && onCrearPedido && (
                 <MiniActionButton
                     variant="pedido"
                     title="Registrar Pedido"

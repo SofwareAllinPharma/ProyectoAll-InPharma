@@ -10,6 +10,7 @@ export type CambioEstado = {
   fechaHoraInicio: string | Date;
   fechaHoraFin?: string | Date | null;
   responsable?: string | null;
+  depositador?: string | null;
   estado?: EstadoPedido;
 };
 

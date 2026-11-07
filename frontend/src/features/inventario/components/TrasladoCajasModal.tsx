@@ -43,16 +43,17 @@ export default function TrasladoCajasModal({ isOpen, depositos, onClose, onDone 
   }, [isOpen, origen]);
 
   const prodSel = stockOrigen.find((p) => p.idProducto === idProducto);
-  const cajasDisponibles = prodSel?.totalCajas ?? 0;
+  const haciaVenta = ['Estantería', 'Estanteria'].includes(depositos.find(d => d.id === destino)?.nombre ?? '');
+  const cajasDisponibles = (haciaVenta ? prodSel?.cajasVigentes : prodSel?.totalCajas) ?? 0;
 
   const handleSubmit = async () => {
     setError('');
     if (origen === '' || destino === '') return setError('Elegí depósito de origen y destino.');
     if (origen === destino) return setError('Origen y destino no pueden ser el mismo.');
     if (idProducto === '') return setError('Elegí un producto.');
-    const n = Math.round(Number(cantidadCajas));
-    if (!cantidadCajas.trim() || isNaN(n) || n <= 0) return setError('Ingresá la cantidad de cajas.');
-    if (n > cajasDisponibles) return setError(`Solo hay ${cajasDisponibles} caja(s) de ese producto en el origen.`);
+    const n = Number(cantidadCajas);
+    if (!cantidadCajas.trim() || !Number.isSafeInteger(n) || n <= 0) return setError('Ingresá la cantidad de cajas.');
+    if (n > cajasDisponibles) return setError(`Solo hay ${cajasDisponibles} caja(s)${haciaVenta ? " vigentes para trasladar a Estantería" : " de ese producto en el origen"}.`);
     if (!envio.trim() || !recepcion.trim()) return setError('Doble verificación: elegí ambos responsables.');
     if (envio.trim().toLowerCase() === recepcion.trim().toLowerCase())
       return setError('La segunda firma debe ser de otra persona.');
@@ -87,6 +88,7 @@ export default function TrasladoCajasModal({ isOpen, depositos, onClose, onDone 
       </div>
 
       <div className="p-6 flex-1 overflow-auto min-h-0 space-y-4">
+        <p className="text-xs text-gray-600">Los lotes vencidos pueden moverse entre depósitos, pero no ingresar a Estantería de venta.</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Origen <span className="text-red-500">*</span></label>

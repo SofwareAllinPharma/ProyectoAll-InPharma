@@ -242,14 +242,15 @@ export class ProductosService {
     });
 
     const costoPorPaquete = costoPorPorcion * producto.cantPorcionesAportadas;
+    const esParcial = insumosSinPrecio.length > 0 || detalle.length === 0;
 
     return {
       idProducto: producto.idProducto,
       nombreComercial: producto.nombreComercial,
       cantPorcionesAportadas: producto.cantPorcionesAportadas,
-      costoPorPorcion: Math.round(costoPorPorcion * 100) / 100,
-      costoPorPaquete: Math.round(costoPorPaquete * 100) / 100,
-      esParcial: insumosSinPrecio.length > 0,
+      costoPorPorcion: esParcial ? null : Math.round(costoPorPorcion * 100) / 100,
+      costoPorPaquete: esParcial ? null : Math.round(costoPorPaquete * 100) / 100,
+      esParcial,
       insumosSinPrecio,
       detalle,
     };

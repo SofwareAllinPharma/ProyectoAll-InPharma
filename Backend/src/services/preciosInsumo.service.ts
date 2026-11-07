@@ -26,6 +26,8 @@ export class PreciosInsumoService {
     }
 
     return prisma.$transaction(async (tx) => {
+      // Serializa cambios del mismo insumo entre instancias del backend.
+      await tx.$queryRaw`SELECT "id" FROM "INSUMOS" WHERE "id" = ${idInsumo} FOR UPDATE`;
       const ahora = new Date();
 
       // Desactivar precio anterior si existe
@@ -49,20 +51,7 @@ export class PreciosInsumoService {
     });
   }
 
-  async deletePrecio(idInsumo: number, precioId: number) {
-    const precio = await prisma.precioInsumo.findFirst({
-      where: { id: precioId, idInsumo },
-    });
-    if (!precio) throw new Error('Registro de precio no encontrado');
-    if (precio.activo) {
-      throw new Error('No se puede eliminar el precio vigente. Cargá uno nuevo para reemplazarlo.');
-    }
-    // deleteMany con condición activo:false es atómico — evita race condition entre check y delete
-    const result = await prisma.precioInsumo.deleteMany({
-      where: { id: precioId, idInsumo, activo: false },
-    });
-    if (result.count === 0) {
-      throw new Error('No se pudo eliminar el registro. Fue modificado concurrentemente.');
-    }
+  async deletePrecio(_idInsumo: number, _precioId: number) {
+    throw new Error('El historial de precios se conserva. Cargá un nuevo precio para reemplazar el vigente.');
   }
 }

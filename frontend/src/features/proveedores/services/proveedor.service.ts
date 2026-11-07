@@ -1,9 +1,14 @@
 import { api } from '../../../lib/api';
-import type { Proveedor, CreateProveedorDto, UpdateProveedorDto } from '../types/proveedor.types';
+import type { Proveedor, ProveedorDetalle, CreateProveedorDto, UpdateProveedorDto } from '../types/proveedor.types';
 
 export class ProveedorService {
   static async list(): Promise<Proveedor[]> {
     const { data } = await api.get('/proveedores');
+    return data;
+  }
+
+  static async detail(id: number): Promise<ProveedorDetalle> {
+    const { data } = await api.get(`/proveedores/${id}`);
     return data;
   }
 

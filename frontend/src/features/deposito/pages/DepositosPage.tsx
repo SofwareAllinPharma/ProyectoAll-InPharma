@@ -12,13 +12,14 @@ import type { Deposito } from '../types/deposito.types';
 
 import StockCajasTab from '../../inventario/components/StockCajasTab';
 import TrasladoCajasModal from '../../inventario/components/TrasladoCajasModal';
-import MovimientosTab from '../../movimientos/pages/MovimientosTab';
+import MovimientosCajasTab from '../../inventario/components/MovimientosCajasTab';
 
 export default function DepositosPage() {
   const navigate = useNavigate();
   const prefix = useRoutePrefix();
   const { user } = useAuth();
   const isTecnico = user?.roles.includes('TECNICO');
+  const [stockRefreshKey, setStockRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
 
   const {
@@ -33,6 +34,7 @@ export default function DepositosPage() {
     setShowTrasladoModal,
     handleCreate,
     handleDelete,
+    load,
   } = useDepositosPage();
 
   return (
@@ -58,7 +60,11 @@ export default function DepositosPage() {
               isOpen={showTrasladoModal}
               depositos={items}
               onClose={() => setShowTrasladoModal(false)}
-              onDone={() => setShowTrasladoModal(false)}
+              onDone={() => {
+                setShowTrasladoModal(false);
+                setStockRefreshKey(key => key + 1);
+                void load();
+              }}
             />
             {/* NotImplementedModal removido: funcionalidades pendientes (Pedidos / Productos sin stock)
                 Si en el futuro se implementan, reemplazar por el modal correspondiente aquí. */}
@@ -91,6 +97,7 @@ export default function DepositosPage() {
               ) : (
                 <DepositoGridWithCapacidad
                   items={items}
+                  refreshKey={stockRefreshKey}
                   onOpenDetail={(id: number) => navigate(`${prefix}/depositos/${id}`)}
                   onDelete={(deposito: Deposito) => setDeleteTarget(deposito)}
                 />
@@ -125,10 +132,10 @@ export default function DepositosPage() {
               </div>
 
               <div className="mt-6">
-                {activeTab === 'stock' && <StockCajasTab />}
+                {activeTab === 'stock' && <StockCajasTab refreshKey={stockRefreshKey} onStockChanged={() => { setStockRefreshKey(key => key + 1); void load(); }} />}
 
                 {activeTab === 'movimientos' && (
-                  <MovimientosTab idDeposito={undefined} />
+                  <MovimientosCajasTab />
                 )}
               </div>
             </div>

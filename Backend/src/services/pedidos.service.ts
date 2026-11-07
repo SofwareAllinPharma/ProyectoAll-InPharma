@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { PedidosRepository } from "../repositories/pedidos.repository";
 import { LotesService } from "./lotes.service";
-import { calcularVencimiento } from "../utils/lote";
+import { slugProducto, calcularVencimiento } from "../utils/lote";
 
 const ESTADOS = {
   CREADO: "Creado",
@@ -172,7 +172,7 @@ export class PedidosService {
       mailUsuarioCocinero: dto.mailUsuarioCocinero,
       idPerfilCocinero: dto.idPerfilCocinero,
       responsable: responsable ?? null,
-    });
+    }, [ESTADOS.CREADO]);
   }
 
   async finalizarElaboracion(
@@ -187,23 +187,19 @@ export class PedidosService {
       throw new Error("Solo pedidos en EnElaboración pueden finalizarse");
     }
 
-    if (cantidadRealPaquetes === undefined || !Number.isFinite(cantidadRealPaquetes) || cantidadRealPaquetes <= 0) {
-      throw new Error("Debe ingresar la cantidad real elaborada (mayor a 0)");
+    if (cantidadRealPaquetes === undefined || !Number.isSafeInteger(cantidadRealPaquetes) || cantidadRealPaquetes <= 0) {
+      throw new Error("Debe ingresar la cantidad real elaborada en paquetes enteros (mayor a 0)");
     }
 
-    // Depósito destino (atrás). Prioridad: el que manda el front; si no, Fábrica-Atrás; si no, Fábrica.
-    let dep = opts?.idDepositoDestino
-      ? await prisma.deposito.findUnique({ where: { id: opts.idDepositoDestino } })
-      : null;
-    if (!dep) {
-      dep = await prisma.deposito.findFirst({
-        where: { nombre: { in: ["Fábrica-Atrás", "Fábrica"] } },
-        orderBy: { nombre: "asc" }, // "Fábrica-Atrás" antes que "Fábrica"
-      });
+    if (!opts?.unidadesPorCaja || !Number.isSafeInteger(opts.unidadesPorCaja) || opts.unidadesPorCaja <= 0) {
+      throw new Error("Indicá unidades enteras por caja para finalizar con lote y stock. Usá Finalizar elaboración.");
     }
-    if (!dep) {
-      throw new Error("No se encontró el depósito de destino (Fábrica-Atrás / Fábrica).");
+    if (!elaborador?.trim() || !depositador?.trim() || elaborador.trim().toLowerCase() === depositador.trim().toLowerCase()) {
+      throw new Error("Indicá elaborador y depositador diferentes");
     }
+    const dep = await prisma.deposito.findFirst({ where: { nombre: "Fábrica-Atrás", estado: true } });
+    if (!dep) throw new Error("No se encontró el depósito activo Fábrica-Atrás");
+    if (opts.idDepositoDestino != null && opts.idDepositoDestino !== dep.id) throw new Error("La elaboración ingresa en Fábrica-Atrás");
 
     // Convertir cantidad real a gramos y porciones
     const producto = await prisma.producto.findUnique({
@@ -216,44 +212,40 @@ export class PedidosService {
     const realPaquetes = round4(cantidadRealPaquetes);
     const realGramos = cantidades.cantAProducir_gramos;
     const realPorciones = cantidades.cantAProducir_porciones;
-    const totalUnidades = Math.round(realPaquetes);
+    const totalUnidades = realPaquetes;
 
     const estadoElabFabId = await this.getEstadoId(ESTADOS.ELAB_FAB);
 
-    // ¿Registramos lote+cajas? Solo si el front manda unidades por caja (flujo nuevo).
-    // El endpoint legacy /finalizar (sin opts) mantiene el impacto al Inventario agregado.
-    const crearLote = opts?.unidadesPorCaja != null;
-
+    // Todo cierre nuevo crea lote y cajas; el inventario legacy queda intacto.
     let numeroLote: string | undefined;
     let fechaElaboracion: Date | undefined;
     let fechaVencimiento: Date | undefined;
     let cajasData: { idDeposito: number; unidades: number }[] = [];
 
-    if (crearLote) {
-      const upc = opts!.unidadesPorCaja!;
-      if (!Number.isInteger(upc) || upc <= 0) {
-        throw new Error("Las unidades por caja deben ser un entero mayor a 0");
-      }
-      fechaElaboracion = new Date();
-      const dias = opts?.diasVencimientoOverride ?? producto.diasVencimiento;
-      if (dias == null) {
-        throw new Error(
-          "Falta el vencimiento: configurá los días de vencimiento del producto o ingresalos al finalizar"
-        );
-      }
-      fechaVencimiento = calcularVencimiento(fechaElaboracion, dias);
-      numeroLote = await this.lotesService.generarNumeroDisponible(
-        producto.nombreComercial,
-        fechaElaboracion
-      );
-      // Reparto en cajas: cajas completas + una parcial con el resto.
-      const completas = Math.floor(totalUnidades / upc);
-      const resto = totalUnidades % upc;
-      for (let i = 0; i < completas; i++) cajasData.push({ idDeposito: dep.id, unidades: upc });
-      if (resto > 0) cajasData.push({ idDeposito: dep.id, unidades: resto });
+    const upc = opts!.unidadesPorCaja!;
+    if (!Number.isInteger(upc) || upc <= 0) {
+      throw new Error("Las unidades por caja deben ser un entero mayor a 0");
     }
+    fechaElaboracion = new Date();
+    const dias = opts?.diasVencimientoOverride ?? producto.diasVencimiento;
+    if (dias == null || !Number.isSafeInteger(dias) || dias <= 0) {
+      throw new Error(
+        "Falta el vencimiento: configurá los días de vencimiento del producto o ingresalos al finalizar"
+      );
+    }
+    fechaVencimiento = calcularVencimiento(fechaElaboracion, dias);
+    // Reparto en cajas: cajas completas + una parcial con el resto.
+    const completas = Math.floor(totalUnidades / upc);
+    const resto = totalUnidades % upc;
+    for (let i = 0; i < completas; i++) cajasData.push({ idDeposito: dep.id, unidades: upc });
+    if (resto > 0) cajasData.push({ idDeposito: dep.id, unidades: resto });
 
     await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "numPedido" FROM "PEDIDOS" WHERE "numPedido" = ${numPedido} FOR UPDATE`;
+      const actual = await tx.pedido.findUnique({ where: { numPedido }, include: { cambioActual: { include: { estado: true } } } });
+      if (actual?.cambioActual?.estado?.nombre !== ESTADOS.EN_ELAB) throw new Error("La orden ya fue finalizada o cambió de estado. Actualizá la pantalla.");
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(464702, hashtext(${slugProducto(producto.nombreComercial)}))`;
+      numeroLote = await this.lotesService.generarNumeroDisponible(producto.nombreComercial, fechaElaboracion!, tx);
       // 1. Cerrar estado actual y abrir nuevo estado
       if (pedido.idCambioEstadoPedido) {
         await tx.cambioEstadoPedido.update({
@@ -283,9 +275,8 @@ export class PedidosService {
         },
       });
 
-      // 3. Stock. Flujo nuevo: crear Lote + Cajas (fuente de verdad). Legacy: Inventario agregado.
-      if (crearLote) {
-        await tx.lote.create({
+      // 3. Stock físico por lote y cajas, sin incrementar el contador legacy.
+      await tx.lote.create({
           data: {
             numeroLote: numeroLote!,
             idProducto: pedido.idProducto,
@@ -295,13 +286,6 @@ export class PedidosService {
             cajas: { create: cajasData },
           },
         });
-      } else if (totalUnidades > 0) {
-        await tx.inventario.upsert({
-          where: { idDeposito_idProducto: { idDeposito: dep.id, idProducto: pedido.idProducto } },
-          update: { cantidadProducto: { increment: totalUnidades } as any },
-          create: { idDeposito: dep.id, idProducto: pedido.idProducto, cantidadProducto: totalUnidades, umbralMin: 0 },
-        });
-      }
     });
 
     // Retornar pedido actualizado completo
@@ -314,7 +298,7 @@ export class PedidosService {
       throw new Error("Solo pedidos en Creado pueden iniciarse");
     }
     const estadoEnElabId = await this.getEstadoId(ESTADOS.EN_ELAB);
-    return this.repo.transition(numPedido, estadoEnElabId, { responsable: responsable ?? null });
+    return this.repo.transition(numPedido, estadoEnElabId, { responsable: responsable ?? null }, [ESTADOS.CREADO]);
   }
 
   async aprobar(numPedido: number) {
@@ -343,6 +327,6 @@ export class PedidosService {
     return this.repo.transition(numPedido, estadoCanceladoId, {
       estaAsignado: false,
       responsable: responsable ?? null,
-    });
+    }, [ESTADOS.CREADO, ESTADOS.EN_ELAB]);
   }
 }

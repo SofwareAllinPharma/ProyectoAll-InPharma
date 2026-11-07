@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
 import DataTable from '../../../components/ui/DataTable';
 import type { Column } from '../../../components/ui/DataTable';
 import type { InventarioProducto } from '../services/inventario.service';
@@ -20,6 +21,7 @@ interface Props {
 
 const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, onCrearPedido, onCrearMovimientoPrefill }) => {
     const navigate = useNavigate();
+    const prefix = useRoutePrefix();
     const [search, setSearch] = useState('');
     const [estadoFilter, setEstadoFilter] = useState<string>('');
 
@@ -38,9 +40,9 @@ const InventarioTable: React.FC<Props> = ({ data, loading, onMovimientoStock, on
             key: 'producto',
             title: 'Producto',
             render: (r) => (
-                <div className="flex flex-col cursor-pointer" onClick={() => navigate(`/adminsis/productos/${r.idProducto}`)}>
-                    <span className="font-semibold text-[#3E3529] hover:underline">{r.nombreComercial}</span>
-                </div>
+                <span className="font-semibold text-[#3E3529]">
+                    {prefix === '/puntoventa' ? r.nombreComercial : <button type="button" className="text-left hover:underline" onClick={() => navigate(`${prefix}/productos`)}>{r.nombreComercial}</button>}
+                </span>
             ),
             className: 'min-w-[220px]'
         },

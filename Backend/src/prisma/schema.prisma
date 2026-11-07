@@ -240,7 +240,7 @@ model Producto {
   sku                    String?      @unique @db.VarChar(64)
   diasVencimiento        Int?
   pesoNeto               Float
-  cantPorcionesAportadas Int
+  cantPorcionesAportadas Float
   estaActivo             Boolean      @default(true)
   lastStockUpdatedAt     DateTime     @default(now())
   formula                Formula      @relation(fields: [idFormula], references: [id])

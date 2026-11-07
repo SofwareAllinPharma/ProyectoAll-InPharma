@@ -309,9 +309,11 @@ export class FormulasService {
       }
     }
 
+    const esParcial = insumosSinPrecio.length > 0 || detalle.length === 0;
+
     return {
-      costoPorPorcion,
-      esParcial: insumosSinPrecio.length > 0,
+      costoPorPorcion: esParcial ? null : costoPorPorcion,
+      esParcial,
       insumosSinPrecio,
       detalle,
     };

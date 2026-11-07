@@ -51,7 +51,7 @@ export class FormulaService {
   }
 
   static async getCosto(idFormula: number): Promise<{
-    costoPorPorcion: number;
+    costoPorPorcion: number | null;
     esParcial: boolean;
     insumosSinPrecio: string[];
     detalle: { insumo: string; gramos: number; precioPorKg: number | null; costoAporte: number | null }[];

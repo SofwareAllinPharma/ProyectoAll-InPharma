@@ -91,7 +91,7 @@ export default function PedidoDetailPage() {
           </svg>
           Volver
         </button>
-        <PrintPedidoButton pedido={pedido} insumos={insumos} />
+        <PrintPedidoButton pedido={pedido} producto={productoDetalle} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -104,9 +104,8 @@ export default function PedidoDetailPage() {
           />
 
           <PedidoInfoSection
+            formulaNombre={productoDetalle?.idProducto === pedido.idProducto ? productoDetalle.formula?.nombre : undefined}
             productoNombre={pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`}
-            formulaNombre={(productoDetalle?.formula as any)?.nombreFormula}
-            formulaVersion={(productoDetalle?.formula as any)?.version}
             cantidadPaquetes={pedido.cantAProducir_paquetes}
             pesoGramos={pedido.cantAProducir_gramos}
             cantElaboradaPaquetes={pedido.cantElaborada_paquetes}

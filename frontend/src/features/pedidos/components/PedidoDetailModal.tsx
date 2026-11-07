@@ -6,6 +6,7 @@ import { ProductoService } from "../../productos/services/producto.service";
 import PedidoActions from "./PedidoActions";
 import PedidoEstadoCell from "./PedidoEstadoCell";
 import PedidoModalShell from "./PedidoModalShell";
+import { computeInsumosRequeridos } from "../utils/insumos.utils";
 
 interface Props {
   isOpen: boolean;
@@ -31,56 +32,22 @@ const PedidoDetailModal: React.FC<Props> = ({
 
   const [productoDetalle, setProductoDetalle] = useState<Producto | null>(null);
 
-  // If pedido.producto.formula.insumos is empty, try fetching full producto to get the formula/insumos
   useEffect(() => {
-    if (!pedido) return;
-    const prod = pedido.producto as unknown as {
-      formula?: { insumos?: unknown[] };
-    };
-    const hasInsumos =
-      Array.isArray(prod?.formula?.insumos) &&
-      prod?.formula?.insumos.length > 0;
-    if (!hasInsumos) {
-      // fetch product detail
-      (async () => {
-        try {
-          const p = await ProductoService.getProductoById(pedido.idProducto);
-          setProductoDetalle(p);
-        } catch {
-          // silently ignore; computeInsumos will show empty
-        }
-      })();
-    }
-  }, [pedido]);
+    setProductoDetalle(null);
+    if (!isOpen || !pedido) return;
+    let cancelled = false;
+    ProductoService.getProductoById(pedido.idProducto)
+      .then(p => { if (!cancelled) setProductoDetalle(p); })
+      .catch(() => { if (!cancelled) setProductoDetalle(null); });
+    return () => { cancelled = true; };
+  }, [isOpen, pedido?.idProducto, pedido?.numPedido]);
 
   if (!isOpen || !pedido) return null;
 
   // Note: action/state logic lives in the dedicated <PedidoActions /> component.
   // This modal focuses on displaying pedido details only.
 
-  type FormulaInsumo = {
-    idInsumo: number;
-    cantidadInsumo: number;
-    insumo?: { nombre?: string };
-  };
-  const computeInsumos = (): { nombre: string; cantidad: number }[] => {
-    if (!pedido || !pedido.cantAProducir_gramos) return [];
-    const prod = (productoDetalle ?? pedido.producto) as unknown as {
-      formula?: { insumos?: FormulaInsumo[] };
-    };
-    const insumos: FormulaInsumo[] = prod?.formula?.insumos ?? [];
-    const totalFormula =
-      insumos.reduce(
-        (s: number, i: FormulaInsumo) => s + (i.cantidadInsumo || 0),
-        0
-      ) || 0;
-    const factor =
-      totalFormula > 0 ? Number(pedido.cantAProducir_gramos) / totalFormula : 0;
-    return insumos.map((fi: FormulaInsumo) => ({
-      nombre: fi.insumo?.nombre || `Insumo ${fi.idInsumo}`,
-      cantidad: +((fi.cantidadInsumo || 0) * factor).toFixed(4),
-    }));
-  };
+  const insumos = computeInsumosRequeridos(pedido, productoDetalle);
 
   const formatQty = (v: number | string | undefined | null) => {
     if (v === undefined || v === null || v === "") return "-";
@@ -228,9 +195,9 @@ const PedidoDetailModal: React.FC<Props> = ({
 
         <div className="bg-white border rounded p-4">
           <h3 className="font-semibold mb-2">Insumos Requeridos</h3>
-          {computeInsumos().length === 0 ? (
+          {insumos.length === 0 ? (
             <div className="text-sm text-gray-500">
-              No hay insumos para mostrar.
+              Composición no disponible. Verificá la fórmula antes de elaborar.
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -241,7 +208,7 @@ const PedidoDetailModal: React.FC<Props> = ({
                 </tr>
               </thead>
               <tbody>
-                {computeInsumos().map((i) => (
+                {insumos.map((i) => (
                   <tr key={i.nombre} className="border-t">
                     <td className="py-2">{i.nombre}</td>
                     <td className="py-2 text-right">{formatQty(i.cantidad)}</td>

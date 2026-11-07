@@ -11,5 +11,6 @@ export const useRoutePrefix = () => {
     return '/adminfab';
   }
   
+  if (location.pathname.startsWith('/puntoventa')) return '/puntoventa';
   return '/adminsis';
 };

@@ -21,6 +21,7 @@ export interface Formula {
   grasaTransPorPorcion: number;
   fibraPorPorcion: number;
   sodioPorPorcion: number;
+  otrosPorPorcion?: number | null;
   esProtegida: boolean;
   createdAt?: string;
   updatedAt?: string;

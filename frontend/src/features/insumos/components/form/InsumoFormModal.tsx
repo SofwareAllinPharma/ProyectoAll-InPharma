@@ -239,8 +239,6 @@ export default function InsumoFormModal({
           {showHistorial && (
             <PrecioInsumoHistorial
               precios={preciosHistoricos}
-              insumoId={insumo!.id}
-              onRefresh={loadPrecios}
             />
           )}
         </div>
