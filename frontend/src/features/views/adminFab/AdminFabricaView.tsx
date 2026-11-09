@@ -4,38 +4,30 @@ import { PedidosPage } from "../../pedidos";
 import PedidoDetailPage from '../../pedidos/pages/PedidoDetailPage';
 import DepositosPage from "../../deposito/pages/DepositosPage";
 import DepositoDetailPage from "../../deposito/pages/DepositoDetailPage";
-
-const StockComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Stock</h2>
-    <p>Consulta y control de stock.</p>
-  </div>
-);
-
-const MostradorComponent = () => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Mostrador</h2>
-    <p>No va pero para agregar uno más.</p>
-  </div>
-);
+import MovimientoDetailPage from "../../movimientos/pages/MovimientoDetailPage";
+import FormulasPage from "../../formulas/pages/FormulasPage";
+import { ProductosPage } from "../../productos";
+import Dashboard from "../../dashboard";
+import InsumosPage from "../../insumos/pages/InsumosPage";
+import ProveedoresPage from "../../proveedores/pages/ProveedoresPage";
 
 export default function AdminFabDashboard() {
   return (
     <Routes>
-      {/* Home del módulo fábrica */}
-      <Route index element={<Navigate to="pedidos" replace />} />
+      <Route index element={<Dashboard />} />
 
-    <Route path="pedidos" element={<PedidosPage />} />
-    <Route path="pedidos/:id" element={<PedidoDetailPage />} />
-      <Route path="stock" element={<StockComponent />} />
-      <Route path="mostrador" element={<MostradorComponent />} />
-
-      {/* Depósitos */}
+      <Route path="pedidos" element={<PedidosPage />} />
+      <Route path="pedidos/:id" element={<PedidoDetailPage />} />
+      <Route path="insumos" element={<InsumosPage />} />
+      <Route path="proveedores" element={<ProveedoresPage />} />
+      <Route path="formulas" element={<FormulasPage />} />
+      <Route path="productos" element={<ProductosPage />} />
       <Route path="depositos" element={<DepositosPage />} />
       <Route path="depositos/:id" element={<DepositoDetailPage />} />
+      <Route path="movimientos/:id" element={<MovimientoDetailPage />} />
 
-      {/* Fallback dentro del módulo */}
-      <Route path="*" element={<Navigate to="pedidos" replace />} />
+      {/* Fallback dentro del módulo: volver al resumen (ruta index) */}
+      <Route path="*" element={<Navigate to="." replace />} />
     </Routes>
   );
 }

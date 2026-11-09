@@ -1,0 +1,58 @@
+import type { InventarioProducto } from './inventario.service';
+import { api } from '../../../lib/api';
+
+export type StockLote = {
+  idLote: number;
+  numeroLote: string;
+  fechaVencimiento: string;
+  unidades: number;
+  cajas: number;
+};
+
+export type StockProducto = {
+  idProducto: number;
+  nombreComercial: string;
+  totalUnidades: number;
+  totalCajas: number;
+  unidadesVigentes: number;
+  unidadesVencidas: number;
+  cajasVigentes: number;
+  lotes: StockLote[];
+};
+
+export const LoteStockService = {
+  async alertasPorDeposito(idDeposito: number): Promise<InventarioProducto[]> {
+    const { data } = await api.get(`/lotes/alertas/deposito/${idDeposito}`);
+    return data;
+  },
+  // Stock de un depósito derivado de las cajas (total por producto + lotes, FIFO).
+  async stockPorDeposito(idDeposito: number): Promise<StockProducto[]> {
+    const { data } = await api.get(`/lotes/stock/deposito/${idDeposito}`);
+    return data;
+  },
+
+  // Egreso/venta por unidades desde un depósito (FIFO, puede dejar caja parcial).
+  async egresar(payload: {
+    idDeposito: number;
+    idProducto: number;
+    unidades: number;
+    motivo?: string;
+    responsable?: string;
+  }): Promise<{ unidades: number }> {
+    const { data } = await api.post('/lotes/egreso', payload);
+    return data;
+  },
+
+  // Traslado de N cajas enteras de un producto entre depósitos (doble firma).
+  async trasladar(payload: {
+    idDepositoOrigen: number;
+    idDepositoDestino: number;
+    idProducto: number;
+    cantidadCajas: number;
+    responsableEnvio: string;
+    responsableRecepcion: string;
+  }): Promise<{ movidas: number; unidades: number }> {
+    const { data } = await api.post('/lotes/traslado', payload);
+    return data;
+  },
+};

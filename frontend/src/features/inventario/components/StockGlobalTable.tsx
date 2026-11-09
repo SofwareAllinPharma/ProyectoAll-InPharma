@@ -11,12 +11,13 @@ interface Props {
   loading?: boolean;
   onCrearPedido?: (row: StockGlobalRow) => void;
   onMovimientoStock?: (row: StockGlobalRow) => void;
+  onCrearMovimientoPrefill?: (args: { producto: { idProducto: number; nombreComercial?: string }; depositoOrigen?: { id: number; nombre?: string } }) => void;
 }
 
-const StockGlobalTable: React.FC<Props> = ({ data, loading, onCrearPedido, onMovimientoStock }) => {
+const StockGlobalTable: React.FC<Props> = ({ data, loading, onCrearPedido, onMovimientoStock, onCrearMovimientoPrefill }) => {
   const navigate = useNavigate();
   const visible = (data || []).filter((r) => r.stockTotal !== 0);
-  const columns: Column<StockGlobalRow>[] = getStockGlobalColumns((p) => navigate(p), onCrearPedido, onMovimientoStock);
+  const columns: Column<StockGlobalRow>[] = getStockGlobalColumns((p) => navigate(p), onCrearPedido, onMovimientoStock, onCrearMovimientoPrefill);
 
   if (loading) return <div className="p-6 text-center text-gray-600">Cargando stock global...</div>;
 

@@ -13,10 +13,25 @@ export class DepositosService {
   //Crear un nuevo depósito
   async create(data: CrearDepositoDTO): Promise<Deposito> {
     const { nombre, direccion, responsable, capacidadTotal, estado } = data;
+    const nombreTrim = nombre.trim();
+
+    // "nombre" es @unique y la baja es lógica (estado:false): un depósito desactivado
+    // sigue ocupando el nombre y bloquearía un create nuevo. Si existe uno inactivo con
+    // ese nombre, lo reactivamos con los datos nuevos en vez de fallar con 409.
+    const existente = await prisma.deposito.findUnique({ where: { nombre: nombreTrim } });
+    if (existente) {
+      if (existente.estado) {
+        throw new Error("Ya existe un depósito con ese nombre.");
+      }
+      return prisma.deposito.update({
+        where: { id: existente.id },
+        data: { direccion, responsable, capacidadTotal, estado: true },
+      });
+    }
 
     return prisma.deposito.create({
       data: {
-        nombre,
+        nombre: nombreTrim,
         direccion,
         responsable,
         capacidadTotal,
@@ -43,7 +58,7 @@ export class DepositosService {
   // ✅ Modificar solo responsable y capacidadTotal
   async update(
     id: number,
-    data: { responsable?: string; capacidadTotal?: number }
+    data: { nombre?: string; responsable?: string; capacidadTotal?: number }
   ): Promise<Deposito> {
     if (
       data.capacidadTotal !== undefined &&
@@ -51,10 +66,14 @@ export class DepositosService {
     ) {
       throw new Error("capacidadTotal debe ser un número >= 0.");
     }
+    if (data.nombre !== undefined && data.nombre.trim().length < 3) {
+      throw new Error("El nombre debe tener al menos 3 caracteres.");
+    }
 
     return prisma.deposito.update({
       where: { id },
       data: {
+        ...(data.nombre !== undefined ? { nombre: data.nombre.trim() } : {}),
         ...(data.responsable !== undefined
           ? { responsable: data.responsable }
           : {}),

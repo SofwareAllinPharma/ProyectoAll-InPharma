@@ -43,7 +43,10 @@ export default function DataTable<T>({ columns, data, rowKey, expandable, onRowC
           <thead className="bg-[#5d5448] text-white">
             <tr>
               {columns.map(col => (
-                <th key={String(col.key)} style={{ width: col.width }} className={`px-4 py-3 text-xs font-medium uppercase tracking-wider ${col.className || ''} ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}`}>
+                <th
+                  key={String(col.key)}
+                  style={{ width: col.width }}
+                  className={`px-3 py-3 text-xs font-medium uppercase tracking-wider whitespace-normal break-words align-middle ${col.className || ''} ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}`}>
                   {col.title}
                 </th>
               ))}
@@ -53,7 +56,7 @@ export default function DataTable<T>({ columns, data, rowKey, expandable, onRowC
           <tbody className={`bg-white ${noDividers ? '' : 'divide-y divide-gray-200'}`}>
             {visibleData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">{emptyState ?? 'No hay datos'}</td>
+                <td colSpan={columns.length} className="px-3 py-8 text-center text-gray-500">{emptyState ?? 'No hay datos'}</td>
               </tr>
             ) : (
               visibleData.map((row) => {
@@ -68,7 +71,7 @@ export default function DataTable<T>({ columns, data, rowKey, expandable, onRowC
                       onClick={() => onRowClick ? onRowClick(row) : undefined}
                     > 
                       {columns.map(col => (
-                        <td key={col.key} className={`px-3 py-3 text-sm text-gray-700 whitespace-normal break-words ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''} ${col.className || ''}`}> 
+                        <td key={col.key} className={`px-3 py-3 text-sm text-gray-700 whitespace-normal break-words align-middle ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'} ${col.className || ''}`}> 
                           {col.render ? col.render(row) : (row as any)[col.key]}
                         </td>
                       ))}

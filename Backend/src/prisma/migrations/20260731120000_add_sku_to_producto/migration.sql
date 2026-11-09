@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "PRODUCTOS" ADD COLUMN     "sku" VARCHAR(64);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PRODUCTOS_sku_key" ON "PRODUCTOS"("sku");

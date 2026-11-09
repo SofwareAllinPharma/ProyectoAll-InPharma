@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PedidosService } from "../services/pedidos.service";
+import { prisma } from '../lib/prisma';
 
 const service = new PedidosService();
 
@@ -27,9 +28,32 @@ export class PedidosController {
 
   async create(req: Request, res: Response) {
     try {
-      const data = await service.create(req.body);
+      // Intentar obtener mail del usuario autenticado
+      const userMail = (req as any).user?.mail as string | undefined;
+      if (!userMail) {
+        return res.status(401).json({ error: 'Usuario no autenticado' });
+      }
+
+      let payload = { ...req.body } as any;
+      payload.mailUsuarioCreador = userMail;
+
+      // SIEMPRE resolver el idPerfilCreador desde la base de datos
+      // Ignorar lo que venga del frontend para evitar inconsistencias
+      const up = await prisma.usuarioPerfil.findFirst({
+        where: { mail: userMail },
+        orderBy: { idPerfil: 'asc' } // Usar el primer perfil asignado
+      });
+
+      if (!up) {
+        return res.status(400).json({ error: 'El usuario no tiene perfiles asignados' });
+      }
+
+      payload.idPerfilCreador = up.idPerfil;
+
+      const data = await service.create(payload);
       res.status(201).json(data);
     } catch (err: any) {
+      console.error('[CREATE PEDIDO ERROR]', err);
       res.status(400).json({ error: err.message });
     }
   }
@@ -37,7 +61,14 @@ export class PedidosController {
   async tomar(req: Request, res: Response) {
     try {
       const numPedido = Number(req.params.id);
-      const data = await service.tomarPedido(numPedido, req.body);
+      // Determinar responsable a partir del usuario logueado (persona asociada)
+      const userMail = (req as any).user?.mail as string | undefined;
+      let responsable: string | undefined = undefined;
+      if (userMail) {
+        const p = await prisma.persona.findUnique({ where: { mail: userMail } });
+        if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
+      }
+      const data = await service.tomarPedido(numPedido, req.body, responsable);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -47,17 +78,16 @@ export class PedidosController {
   async finalizar(req: Request, res: Response) {
     try {
       const numPedido = Number(req.params.id);
-      const data = await service.finalizarElaboracion(numPedido);
-      res.json(data);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  }
-
-  async iniciarElaboracion(req: Request, res: Response) {
-    try {
-      const numPedido = Number(req.params.id);
-      const data = await service.iniciarElaboracion(numPedido);
+      const userMail = (req as any).user?.mail as string | undefined;
+      let responsable: string | undefined = undefined;
+      if (userMail) {
+        const p = await prisma.persona.findUnique({ where: { mail: userMail } });
+        if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
+      }
+      const cantidadRealPaquetes = req.body?.cantidadRealPaquetes !== undefined
+        ? Number(req.body.cantidadRealPaquetes)
+        : undefined;
+      const data = await service.finalizarElaboracion(numPedido, responsable, cantidadRealPaquetes);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -67,27 +97,25 @@ export class PedidosController {
   async finalizarElaboracion(req: Request, res: Response) {
     try {
       const numPedido = Number(req.params.id);
-      const data = await service.finalizarElaboracion(numPedido);
-      res.json(data);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  }
-
-  async aprobar(req: Request, res: Response) {
-    try {
-      const numPedido = Number(req.params.id);
-      const data = await service.aprobar(numPedido);
-      res.json(data);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  }
-
-  async rechazar(req: Request, res: Response) {
-    try {
-      const numPedido = Number(req.params.id);
-      const data = await service.rechazar(numPedido);
+      const cantidadRealPaquetes = req.body?.cantidadRealPaquetes !== undefined
+        ? Number(req.body.cantidadRealPaquetes)
+        : undefined;
+      // Elaborador: puede venir en el body o se obtiene del usuario autenticado como fallback
+      let elaborador: string | undefined = req.body?.elaborador?.trim() || undefined;
+      if (!elaborador) {
+        const userMail = (req as any).user?.mail as string | undefined;
+        if (userMail) {
+          const p = await prisma.persona.findUnique({ where: { mail: userMail } });
+          if (p) elaborador = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
+        }
+      }
+      const depositador: string | undefined = req.body?.depositador?.trim() || undefined;
+      const opts = {
+        unidadesPorCaja: req.body?.unidadesPorCaja != null ? Number(req.body.unidadesPorCaja) : undefined,
+        idDepositoDestino: req.body?.idDepositoDestino != null ? Number(req.body.idDepositoDestino) : undefined,
+        diasVencimientoOverride: req.body?.diasVencimientoOverride != null ? Number(req.body.diasVencimientoOverride) : undefined,
+      };
+      const data = await service.finalizarElaboracion(numPedido, elaborador, cantidadRealPaquetes, depositador, opts);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -97,7 +125,13 @@ export class PedidosController {
   async cancelar(req: Request, res: Response) {
     try {
       const numPedido = Number(req.params.id);
-      const data = await service.cancelar(numPedido);
+      const userMail = (req as any).user?.mail as string | undefined;
+      let responsable: string | undefined = undefined;
+      if (userMail) {
+        const p = await prisma.persona.findUnique({ where: { mail: userMail } });
+        if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
+      }
+      const data = await service.cancelar(numPedido, responsable);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

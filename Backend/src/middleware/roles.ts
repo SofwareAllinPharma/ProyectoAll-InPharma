@@ -18,17 +18,26 @@ export function requireRoles(...allowed: string[]) {
           where: { mail },
           select: { perfil: { select: { nombre: true } } },
         });
+
+        // Debug: Log raw profile names
+        console.log(`[ROLES] User ${mail} has profiles:`, perfiles.map(p => p.perfil.nombre));
+
         // Normalizar nombres de perfil a códigos (TECNICO, ADMINFAB, ADMINSIS)
         roles = perfiles
           .map((p) => normalizeRoleName(p.perfil.nombre))
           .filter((x): x is import("../utils/roles").RoleCode => x !== null)
           .map((r) => r);
+
+        // Debug: Log normalized roles
+        console.log(`[ROLES] Normalized roles for ${mail}:`, roles);
+
         (req as any).roles = roles;
       }
 
       const userRoles = roles ?? [];
       const ok = userRoles.some((r) => allowedSet.has(r));
       if (!ok) {
+        console.log(`[ROLES] Access denied for ${mail}. Required: ${Array.from(allowedSet)}, Has: ${userRoles}`);
         return res.status(403).json({
           error: "Prohibido",
           required: Array.from(allowedSet),

@@ -11,21 +11,20 @@ export function useProductoForm(params: {
 
   useEffect(() => {
     if (!selectedFormula) return;
-    if (selectedFormula && formData.calculationMode === 'pesoNeto' && formData.pesoNeto > 0) {
-      const calculation = ProductoService.calculatePorcionesFromPesoNeto(
-        formData.pesoNeto,
-        selectedFormula.porcion || 0
-      );
-      setFormData((prev: any) => ({ ...prev, cantPorcionesAportadas: calculation.cantPorcionesAportadas }));
-    } else if (selectedFormula && formData.calculationMode === 'porciones' && formData.cantPorcionesAportadas > 0) {
-      const pesoNeto = ProductoService.calculatePesoNetoFromPorciones(
-        formData.cantPorcionesAportadas,
-        selectedFormula.porcion || 0
-      );
-      setFormData((prev: any) => ({ ...prev, pesoNeto }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFormula, formData.calculationMode, formData.pesoNeto, formData.cantPorcionesAportadas]);
+    // Leer los valores actuales dentro del updater para evitar incluirlos en deps
+    // (incluirlos causaría un loop: el efecto escribe el campo que está en sus propias deps)
+    setFormData((prev: any) => {
+      if (prev.calculationMode === 'pesoNeto' && prev.pesoNeto > 0) {
+        const calc = ProductoService.calculatePorcionesFromPesoNeto(prev.pesoNeto, selectedFormula.porcion || 0);
+        return { ...prev, cantPorcionesAportadas: calc.cantPorcionesAportadas };
+      }
+      if (prev.calculationMode === 'porciones' && prev.cantPorcionesAportadas > 0) {
+        const pesoNeto = ProductoService.calculatePesoNetoFromPorciones(prev.cantPorcionesAportadas, selectedFormula.porcion || 0);
+        return { ...prev, pesoNeto };
+      }
+      return prev;
+    });
+  }, [selectedFormula, formData.calculationMode]);
 
   const handleCalculationModeChange = (mode: 'pesoNeto'|'porciones') => {
     setFormData((prev: any) => {

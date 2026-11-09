@@ -1,7 +1,15 @@
 import { prisma } from "../lib/prisma";
 
 export class FormulasRepository {
-  async findAll({ estado, search }: { estado?: string; search?: string }) {
+  async findAll({
+    estado,
+    search,
+    insumoId,
+  }: {
+    estado?: string;
+    search?: string;
+    insumoId?: number;
+  }) {
     return prisma.formula.findMany({
       where: {
         activo: true,
@@ -9,6 +17,15 @@ export class FormulasRepository {
         ...(estado === "no_protegida" ? { esProtegida: false } : {}),
         ...(search
           ? { nombre: { contains: search, mode: "insensitive" } }
+          : {}),
+        ...(insumoId
+          ? {
+              formulaInsumos: {
+                some: {
+                  idInsumo: insumoId,
+                },
+              },
+            }
           : {}),
       },
       orderBy: { nombre: "asc" },

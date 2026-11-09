@@ -45,28 +45,32 @@ export default function Login() {
           className="rounded-2xl border border-[#5d5448] bg-white/70 backdrop-blur p-6 shadow-sm"
           onSubmit={onSubmit}
         >
-          <label className="block text-sm mb-1" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={mail}
-            onChange={(e) => { setMail(e.target.value); setAlert(null); }}
-            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
-            placeholder="tu@email.com"
-          />
+          <div className="mb-4">
+            <label className="block text-sm mb-1" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={mail}
+              onChange={(e) => { setMail(e.target.value); setAlert(null); }}
+              className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
+              placeholder="tu@email.com"
+            />
+          </div>
 
-          <PasswordField
-            id="password"
-            label="Contraseña"
-            required
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setAlert(null); }}
-            className="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 mb-6 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
-            placeholder="••••••••"
-          />
+          <div className="mb-6">
+            <PasswordField
+              id="password"
+              label="Contraseña"
+              required
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setAlert(null); }}
+              inputClassName="w-full rounded-lg border border-[#5d5448] bg-white/80 px-3 py-2 outline-none focus:ring-2 focus:ring-[#5d5448]/30"
+              placeholder="••••••••"
+            />
+          </div>
 
           <button
             type="submit"

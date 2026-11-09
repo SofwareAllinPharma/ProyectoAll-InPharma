@@ -14,8 +14,8 @@ const ProductSelector: React.FC<Props> = ({ productos, selectedId, setSelectedId
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">Producto</label>
-      <div className="mt-1">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Producto</label>
+      <div>
         <SearchSelect
           items={productos}
           value={selected}
@@ -26,7 +26,7 @@ const ProductSelector: React.FC<Props> = ({ productos, selectedId, setSelectedId
           noResultsText="No se encontraron productos"
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">{error}</p>}
     </div>
   );
 };

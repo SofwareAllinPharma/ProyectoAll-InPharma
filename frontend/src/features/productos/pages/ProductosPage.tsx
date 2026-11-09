@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/PageShell';
 import { ProductosTable } from '../components/table/ProductosTable';
 import { ProductoSearchBar } from '../components/ProductoSearchBar';
@@ -11,9 +12,14 @@ import type {
   ProductoSearchFilters,
   ProductoModalAction,
 } from '../types/producto.types';
+import { useAuth } from '../../../lib/auth';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 
 const ProductosPage: React.FC = () => {
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
+  const canManageProductos = !isTecnico;
+
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +42,33 @@ const ProductosPage: React.FC = () => {
   };
 
   useEffect(() => { void load(); }, []);
+  // Si hay parámetro de ruta :id, abrir modal nutricional para ese producto
+  const params = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const idParam = params.id ? Number(params.id) : undefined;
+    if (!idParam) return;
+    // Si los productos ya cargaron, seleccionar y abrir modal
+    const found = productos.find((p) => p.idProducto === idParam);
+    if (found) {
+      setSelected(found);
+      setModals((s) => ({ ...s, nutr: true }));
+    } else {
+      // intenta cargar de API individualmente
+      (async () => {
+        try {
+          const prod = await ProductoService.getProductoById(idParam);
+          setSelected(prod);
+          setModals((s) => ({ ...s, nutr: true }));
+        } catch (e) {
+          // si no existe, navegar a la lista
+          navigate('/adminsis/productos', { replace: true });
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id, productos]);
   const onSearch = useCallback((f?: ProductoSearchFilters) => void load(f ?? filters), [filters]);
 
   const { show } = useToast() as any;
@@ -48,8 +81,16 @@ const ProductosPage: React.FC = () => {
       // abrir vista/consultar -> mostramos modal nutricional
       setModals(s => ({ ...s, nutr: true }));
     } else if (action.type === 'edit') {
+      if (!canManageProductos) {
+        show({ type: 'error', message: 'No tienes permisos para editar productos' });
+        return;
+      }
       setModals(s => ({ ...s, form: true }));
     } else if (action.type === 'delete') {
+      if (!canManageProductos) {
+        show({ type: 'error', message: 'No tienes permisos para eliminar productos' });
+        return;
+      }
       setModals(s => ({ ...s, del: true }));
     }
   };
@@ -93,11 +134,21 @@ const ProductosPage: React.FC = () => {
     }
   };
 
+  const openCreateForm = () => {
+    setSelected(null);
+    setModals(s => ({ ...s, form: true }));
+  };
+
+  const closeAllAndClear = () => {
+    setSelected(null);
+    setModals({ form: false, action: false, nutr: false, del: false });
+  };
+
   return (
     <PageShell
       title="Productos"
       subtitle="Gestiona los productos"
-      onCreate={() => setModals(s => ({ ...s, form: true }))}
+      onCreate={canManageProductos ? openCreateForm : undefined}
       createLabel="Nuevo Producto"
       loading={loading}
       noContainer
@@ -106,7 +157,7 @@ const ProductosPage: React.FC = () => {
         <>
           <ProductoFormModal
             isOpen={modals.form}
-            onClose={closeAll}
+            onClose={closeAllAndClear}
             onSubmit={selected ? handleUpdateProducto : handleCreateProducto}
             producto={selected ?? undefined}
             isLoading={submitting}

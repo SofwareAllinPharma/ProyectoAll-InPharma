@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@prisma/client": "^6.16.3",
+    "prisma": "^6.16.3",
     "@types/bcryptjs": "^2.4.6",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
@@ -22,7 +23,6 @@
     "@types/nodemailer": "^7.0.1",
     "axios": "^1.12.2",
     "nodemon": "^3.1.10",
-    "prisma": "^6.16.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
@@ -41,12 +41,14 @@
     "prisma:studio": "prisma studio",
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
-    "db:sync": "prisma generate && prisma migrate dev --skip-seed && prisma db seed"
+    "db:sync": "prisma generate && prisma migrate dev --skip-seed && prisma db seed",
+    "db:seed:dev": "ts-node src/prisma/seed.dev.ts",
+    "db:seed:prod": "node dist/prisma/seed.prod.js"
+  
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma",
-    "seed": "tsx src/prisma/seed.ts"
+   "schema": "src/prisma/schema.prisma",
+    "seed": "tsx src/prisma/seed.dev.ts"
   },
   "keywords": [],
   "author": "",

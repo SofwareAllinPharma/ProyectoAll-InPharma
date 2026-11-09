@@ -1,6 +1,9 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
+import { useAuth } from '../../../lib/auth';
 import PageShell from '../../../components/PageShell';
-import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
+import TrasladoCajasModal from '../../inventario/components/TrasladoCajasModal';
+import { useDepositos } from '../../movimientos/hooks/useDepositos';
 import DepositoFormModal from '../components/DepositoFormModal';
 import ConfigurarUmbralesModal from '../../inventario/components/ConfigurarUmbralesModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -13,6 +16,10 @@ import { FaTruck, FaPlus } from 'react-icons/fa';
 
 export default function DepositoDetailPage() {
   const { id } = useParams();
+  const prefix = useRoutePrefix();
+  const { user } = useAuth();
+  const { depositos } = useDepositos();
+  const isTecnico = user?.roles.includes('TECNICO');
   const {
     dep,
     error,
@@ -24,7 +31,6 @@ export default function DepositoDetailPage() {
     setShowDeleteConfirm,
     showTrasladoModal,
     setShowTrasladoModal,
-    setShowPedidoModal,
     inventario,
     loadingInventario,
     resumen,
@@ -36,20 +42,22 @@ export default function DepositoDetailPage() {
     refreshResumen,
   } = useDepositoDetail(id);
 
+  const navigate = useNavigate();
+
   const { show } = useToast();
 
 
   if (error) return (
     <div className="space-y-2">
       <p className="text-red-600">{error}</p>
-      <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link>
+      <Link to={`${prefix}/depositos`} className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link>
     </div>
   );
 
   if (!dep) return (
     <div className="space-y-2">
       <p className="text-gray-700">Cargando depósito…</p>
-      <Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link>
+      <Link to={`${prefix}/depositos`} className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link>
     </div>
   );
 
@@ -59,14 +67,16 @@ export default function DepositoDetailPage() {
         title="Depósito"
         subtitle="Consulta y gestión del depósito seleccionado"
         noContainer={true}
-        preTitle={<div><Link to="/adminsis/depositos" className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link></div>}
+        preTitle={<div><Link to={`${prefix}/depositos`} className="text-[#7C6A55] hover:underline text-sm">← Volver a todos los depósitos</Link></div>}
         extraActions={
-          <>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" title="Registrar Traslado" icon={<FaTruck size={16} className="text-[#7C6A55]" />} onClick={() => setShowTrasladoModal(true)}>Registrar Traslado</Button>
-              <Button variant="solid" title="Registrar Pedido" icon={<FaPlus size={16} />} onClick={() => setShowPedidoModal(true)}>Registrar Pedido</Button>
-            </div>
-          </>
+          !isTecnico ? (
+            <>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" title="Registrar Traslado" icon={<FaTruck size={16} className="text-[#7C6A55]" />} onClick={() => setShowTrasladoModal(true)}>Registrar Traslado</Button>
+                <Button variant="solid" title="Crear Orden de Producción" icon={<FaPlus size={16} />} onClick={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })}>Crear Orden</Button>
+              </div>
+            </>
+          ) : undefined
         }
         modals={
           <>
@@ -79,17 +89,25 @@ export default function DepositoDetailPage() {
                 setShowUmbrales(false);
                 try {
                   await Promise.all([refreshInventario?.(), refreshResumen?.()]);
-                } catch {
-                }
+                } catch { /* empty */ }
                 show({ message: 'Umbrales actualizados correctamente', type: 'success' });
               }}
             />
 
-            <DepositoFormModal open={openForm} deposito={dep} onCancel={() => setOpenForm(false)} onSave={handleUpdate} capacidadUsadaActual={dep.capacidadUsada ?? 0} />
+            <DepositoFormModal open={openForm} deposito={dep} onCancel={() => setOpenForm(false)} onSave={handleUpdate} capacidadUsadaActual={capacidadUsada} />
 
             <DeleteConfirmModal open={showDeleteConfirm} deposito={dep} onConfirm={() => { setShowDeleteConfirm(false); handleDeactivate(); }} onCancel={() => setShowDeleteConfirm(false)} />
 
-            <RegistroMovimientoModal open={showTrasladoModal} onClose={() => setShowTrasladoModal(false)} defaultDepOrigen={{ id: dep.id, nombre: dep.nombre }} />
+            <TrasladoCajasModal
+              isOpen={showTrasladoModal}
+              depositos={depositos.filter(d => d.estado !== false)}
+              onClose={() => setShowTrasladoModal(false)}
+              onDone={() => {
+                setShowTrasladoModal(false);
+                void Promise.all([refreshInventario(), refreshResumen()]);
+                show({ message: 'Traslado de cajas registrado', type: 'success' });
+              }}
+            />
           </>
         }
       >
@@ -104,7 +122,7 @@ export default function DepositoDetailPage() {
           }}
         />
 
-        <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => setShowPedidoModal(true)} onMovimientoStock={() => setShowTrasladoModal(true)} />
+  <DepositoDetailSummary resumen={resumen} loadingResumen={loadingResumen} inventario={inventario} loadingInventario={loadingInventario} onCrearPedido={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })} onMovimientoStock={() => setShowTrasladoModal(true)} />
       </PageShell>
     </div>
   );

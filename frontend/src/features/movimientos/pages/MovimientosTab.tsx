@@ -1,24 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import MovimientosCards from '../components/MovimientosCards';
 import MovimientoFilters from '../components/MovimientoFilters';
 import MovimientosTable from '../components/MovimientosTable';
 import { useMovimientos } from '../hooks/useMovimientos';
 import type { MovimientoFilters as IMovimientoFilters, Movimiento } from '../types/movimiento.types';
-import RegistroMovimientoModal from '../components/alta/RegistroMovimientoModal';
-import MovimientoDetailModal from '../components/detalle/MovimientoDetailModal';
+import { useAuth } from '../../../lib/auth';
 
 interface Props {
-  idDeposito?: number; 
+  idDeposito?: number;
+
 }
 
 export default function MovimientosTab({ idDeposito }: Props) {
-  const { 
-    movimientos, 
-    resumen, 
+  const navigate = useNavigate();
+  const location = useLocation();
+  useAuth();
+  const {
+    movimientos,
+    resumen,
     loading,
     error,
     filtrarMovimientos,
-    recargar
   } = useMovimientos(idDeposito);
 
   const [filters, setFilters] = useState<IMovimientoFilters>({
@@ -30,48 +33,46 @@ export default function MovimientosTab({ idDeposito }: Props) {
     fechaHasta: ''
   });
 
-  // Evitar doble llamada al cargar la pestaña (mount):
-  // useMovimientos ya hace una carga inicial; este debounce para filtros
-  // se saltea la primera vez para no duplicar requests
   const firstFiltersEffect = useRef(true);
   useEffect(() => {
     if (firstFiltersEffect.current) {
       firstFiltersEffect.current = false;
       return;
     }
-    // Validación: fecha desde no puede ser posterior a fecha hasta
     if (filters.fechaDesde && filters.fechaHasta) {
       const from = new Date(filters.fechaDesde);
       const to = new Date(filters.fechaHasta);
       if (!isNaN(from.getTime()) && !isNaN(to.getTime()) && from > to) {
-        // Evitamos llamar a la API con un rango inválido
         return;
       }
     }
-    // Debounce filter changes to avoid blocking typing and rapid re-requests
     const t = setTimeout(() => {
       void filtrarMovimientos(filters);
     }, 300);
     return () => clearTimeout(t);
   }, [filters, filtrarMovimientos]);
 
-  const [detalleOpen, setDetalleOpen] = useState(false);
-  const [movSel, setMovSel] = useState<Movimiento | null>(null);
   const handleVerDetalle = (movimiento: Movimiento) => {
-    setMovSel(movimiento);
-    setDetalleOpen(true);
+    // Determinar la ruta base según la URL actual para mantener el contexto
+    const currentPath = location.pathname;
+    let basePath = '/adminsis';
+
+    if (currentPath.startsWith('/tecnico')) basePath = '/tecnico';
+    else if (currentPath.startsWith('/adminfab')) basePath = '/adminfab';
+    else if (currentPath.startsWith('/puntoventa')) basePath = '/puntoventa';
+
+    navigate(`${basePath}/movimientos/${movimiento.id}`);
   };
 
 
-  const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            {idDeposito 
-              ? 'Movimientos de Stock' 
+            {idDeposito
+              ? 'Movimientos de Stock'
               : 'Movimientos Globales de Stock'
             }
           </h2>
@@ -82,21 +83,12 @@ export default function MovimientosTab({ idDeposito }: Props) {
             }
           </p>
         </div>
-        
-        <button
-          onClick={() => setOpenRegistroModal(true)}
-          className="px-4 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 transition-all flex items-center gap-2"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>Nuevo Movimiento</span>
-        </button>
-  <RegistroMovimientoModal open={openRegistroModal} onClose={() => setOpenRegistroModal(false)} onCreated={() => { void recargar(); }} defaultDepOrigen={idDeposito ? { id: idDeposito, nombre: '' } : undefined} />
+
+        <p className="text-xs text-amber-700">Historial anterior, solo consulta. Los movimientos actuales se registran por cajas desde Depósitos.</p>
       </div>
 
-  <MovimientosCards resumen={resumen} loading={loading} />
-      
+      <MovimientosCards resumen={resumen} loading={loading} />
+
       <MovimientoFilters
         filters={filters}
         onFiltersChange={setFilters}
@@ -115,8 +107,6 @@ export default function MovimientosTab({ idDeposito }: Props) {
           onVerDetalle={handleVerDetalle}
         />
       </div>
-
-      <MovimientoDetailModal open={detalleOpen} onClose={() => setDetalleOpen(false)} movimiento={movSel} onEstadoChanged={() => { void recargar(); }} />
     </div>
   );
 }

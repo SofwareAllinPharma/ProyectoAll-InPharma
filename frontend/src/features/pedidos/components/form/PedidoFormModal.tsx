@@ -21,7 +21,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mode, setMode] = useState<"gramos" | "paquetes" | "porciones">(
-    "gramos"
+    "paquetes"
   );
   const [value, setValue] = useState<number | string>("");
   const [observacion, setObservacion] = useState("");
@@ -39,7 +39,8 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   // Reset form state when modal opens (ensure stale data doesn't persist)
   const resetForm = () => {
     setSelectedId(null);
-    setMode('gramos');
+    // force mode to paquetes so user edits only packages
+    setMode('paquetes');
     setValue('');
     setObservacion('');
     setSubmitting(false);
@@ -47,9 +48,16 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     setErrors({});
   };
 
+  // Reset form whenever the modal open state changes (open or close)
   useEffect(() => {
-    if (isOpen) resetForm();
+    resetForm();
   }, [isOpen]);
+
+  // ensure we clear state before notifying parent that modal closed
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   // Keep previous mode to convert value when switching units
   const prevModeRef = React.useRef(mode);
@@ -95,7 +103,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   }, [mode, selected]);
 
   const creatorMail = localStorage.getItem("userMail") || "adminfab@aip.com";
-  const creationDate = new Date().toLocaleString();
+  const [creationDate] = useState(() => new Date().toLocaleString());
 
 
   function calcular() {
@@ -109,16 +117,21 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     if (mode === "gramos") {
       gramos = value;
       paquetes = gramos / pesoPaquete;
-      porciones = +(gramos / porcion).toFixed(4);
+      porciones = +(gramos / porcion).toFixed(6);
     } else if (mode === "paquetes") {
       // ensure paquetes are interpreted as integer count for conversion, but keep decimal representation for UI
       paquetes = Math.round(value);
-      gramos = +(paquetes * pesoPaquete).toFixed(4);
-      porciones = +(gramos / porcion).toFixed(4);
+      gramos = +(paquetes * pesoPaquete).toFixed(6);
+      // Use cantPorcionesAportadas for exact integer-based porciones (avoids floating point drift)
+      porciones = selected.cantPorcionesAportadas
+        ? paquetes * selected.cantPorcionesAportadas
+        : +(gramos / porcion).toFixed(6);
     } else {
       porciones = value;
-      gramos = +(porciones * porcion).toFixed(4);
-      paquetes = +(gramos / pesoPaquete).toFixed(4);
+      gramos = +(porciones * porcion).toFixed(6);
+      paquetes = selected.cantPorcionesAportadas
+        ? porciones / selected.cantPorcionesAportadas
+        : +(gramos / pesoPaquete).toFixed(6);
     }
     return { gramos, paquetes, porciones };
   }
@@ -166,7 +179,9 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
         const next = Math.ceil(paquetesFloat);
         const missingPaquetes = next - paquetesFloat;
         const missingGramos = +(next * pesoPaquete - conv.gramos).toFixed(4);
-        const msg = `Cantidad en gramos no completa paquetes enteros. Faltan ${missingPaquetes.toFixed(4)} pqt (~${missingGramos} g) para llegar a ${next} pqt.`;
+        const paqLabel = Math.round(missingPaquetes) === 1 ? 'paquete' : 'paquetes';
+        const nextLabel = next === 1 ? 'paquete' : 'paquetes';
+        const msg = `Cantidad en gramos no completa paquetes enteros. Faltan ${missingPaquetes.toFixed(4)} ${paqLabel} (~${missingGramos} g) para llegar a ${next} ${nextLabel}.`;
         setErrors((s) => ({ ...s, cantidad: msg }));
         return;
       }
@@ -229,112 +244,88 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   return (
     <Modal
       open={isOpen}
-      onClose={onClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4"
+      onClose={handleClose}
+      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col"
     >
-      <div className="p-4">
-        <ModalHeader>Crear Pedido</ModalHeader>
+      <ModalHeader>Crear Orden de Producción</ModalHeader>
 
+      <div className="overflow-y-auto px-6 py-4 flex-1">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void handleSubmit();
           }}
-          className="space-y-4 mt-4"
+          className="space-y-4"
         >
-          <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
+            <ProductSelector productos={productos} selectedId={selectedId} setSelectedId={setSelectedId} error={errors.producto} />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Cantidad (seleccione unidad)
-            </label>
-            <div className="flex gap-4 items-center mt-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "gramos"}
-                  onChange={() => setMode("gramos")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Gramos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "paquetes"}
-                  onChange={() => setMode("paquetes")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Paquetes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={mode === "porciones"}
-                  onChange={() => setMode("porciones")}
-                  disabled={!selected}
-                />
-                <span className="ml-1">Porciones</span>
+            <div className="border-t border-gray-100 pt-4">
+              <div className="mb-2 text-sm text-gray-500"><span className="font-medium text-gray-700">Paquetes</span></div>
+              <QuantityControl
+                mode={mode}
+                value={value}
+                setValue={setValue}
+                selected={selected}
+                disabled={!selected}
+              />
+              {conv && (
+                <div className="mt-2 p-2 bg-[#F5F3EB] rounded-md text-xs text-gray-700 text-center border border-gray-200">
+                  <span className="text-xs text-gray-500 mr-1">Equivalencias:</span>
+                  <span className="font-medium text-[#5d5448]">{formatQty(conv.gramos)} g</span>
+                  <span className="mx-1 text-gray-400">•</span>
+                  <span className="font-medium text-[#5d5448]">{Math.round(conv.paquetes)} {Math.round(conv.paquetes) === 1 ? 'paquete' : 'paquetes'}</span>
+                  <span className="mx-1 text-gray-400">•</span>
+                  <span className="font-medium text-[#5d5448]">{formatQty(conv.porciones)} porciones</span>
+                </div>
+              )}
+              {validationError && (
+                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{validationError}</div>
+              )}
+              {errors.cantidad && <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{errors.cantidad}</p>}
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Observación
+              </label>
+              <textarea
+                className="block w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#5d5448] focus:border-[#5d5448] text-sm transition-colors"
+                rows={2}
+                maxLength={256}
+                value={observacion}
+                onChange={(e) => setObservacion(e.target.value)}
+                placeholder="Notas adicionales…"
+              />
+              <div className="mt-1 text-xs text-gray-400 text-right">
+                {observacion.length}/256
               </div>
             </div>
-            <QuantityControl
-              mode={mode}
-              value={value}
-              setValue={setValue}
-              selected={selected}
-              disabled={!selected}
-            />
-            {conv && (
-              <div className="mt-2 text-sm text-gray-600 text-center">
-                Equivalencias: <span className="font-medium">{formatQty(conv.gramos)} g</span> — <span className="font-medium">{Math.round(conv.paquetes)} pqt</span> — <span className="font-medium">{formatQty(conv.porciones)} porciones</span>
-              </div>
-            )}
-            {validationError && (
-              <div className="mt-2 text-sm text-red-600">{validationError}</div>
-            )}
-            {errors.cantidad && <p className="mt-1 text-sm text-red-600">{errors.cantidad}</p>}
-            {/* Adjust suggestion removed: equivalencias now controlled via arrows only */}
-          </div>
+            
+            <div className="border-t border-gray-100 pt-4">
+              <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Observación
-            </label>
-            <textarea
-              className="mt-1 block w-full px-4 py-3 border rounded-md"
-              rows={4}
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-            />
-          </div>
-          
-          {/* Info: creador y fecha */}
-          <CreatorInfo creatorMail={creatorMail} creationDate={creationDate} />
-
-          <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
+            <div className="border-t border-gray-100 pt-4">
+              <InsumosPreview selected={selected} gramos={conv?.gramos ?? null} error={errors.insumos} />
+            </div>
         </form>
+      </div>
 
-        <div className="mt-4 border-t pt-4">
-          <div className="flex gap-3 pt-4 px-4 py-4 justify-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} className="px-6 py-2">
-              Cancelar
-            </Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  setValidationError(null);
-                  await handleSubmit();
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="px-6 py-2"
-              ariaLabel="Crear Pedido"
-            >
-              {submitting ? "Creando..." : "Crear Pedido"}
-            </Button>
-          </div>
+      <div className="border-t border-gray-100 px-6 py-4 flex-none bg-white">
+        <div className="flex gap-3 justify-center sm:justify-end">
+          <Button variant="outline" onClick={handleClose} className="px-6 py-2">
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              setValidationError(null);
+              void handleSubmit();
+            }}
+            className="px-6 py-2"
+            ariaLabel="Crear Orden de Producción"
+          >
+            {submitting ? "Creando..." : "Crear Orden"}
+          </Button>
         </div>
       </div>
     </Modal>

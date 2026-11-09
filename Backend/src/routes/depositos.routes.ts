@@ -1,12 +1,21 @@
 import { Router } from "express";
 import { DepositosController } from "../controllers/depositos.controller";
+import { requireAuth } from "../middleware/auth";
+import { requireRoles } from "../middleware/roles";
+import { ROLE_CODES } from "../utils/roles";
 
 const router = Router();
 const controller = new DepositosController();
 
-router.post("/", (req, res) => controller.create(req, res));
-router.get("/", (req, res) => controller.getAll(req, res));
-router.get("/:id", (req, res) => controller.getById(req, res));
-router.put("/:id", (req, res) => controller.update(req, res));
-router.delete("/:id", (req, res) => controller.deactivate(req, res));
+router.use(requireAuth);
+
+router.get("/", controller.getAll);
+router.get("/:id", controller.getById);
+router.post("/", 
+    requireRoles(ROLE_CODES.ADMINFAB,ROLE_CODES.ADMINSIS), controller.create);
+router.put("/:id", 
+    requireRoles(ROLE_CODES.ADMINFAB,ROLE_CODES.ADMINSIS), controller.update);
+router.delete("/:id",
+    requireRoles(ROLE_CODES.ADMINFAB,ROLE_CODES.ADMINSIS), controller.deactivate);
+
 export default router;

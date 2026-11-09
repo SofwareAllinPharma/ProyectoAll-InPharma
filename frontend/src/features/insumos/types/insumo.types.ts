@@ -10,6 +10,7 @@ export interface Insumo {
   sodio_100g: number;
   fibra_100g: number;
   otro_100g: number;
+  otroAlias?: string;
 }
 
 export interface CreateInsumoDto {
@@ -23,6 +24,7 @@ export interface CreateInsumoDto {
   sodio_100g: number;
   fibra_100g: number;
   otro_100g: number;
+  otroAlias?: string;
 }
 
 export type UpdateInsumoDto = Partial<CreateInsumoDto>;
@@ -30,4 +32,16 @@ export type UpdateInsumoDto = Partial<CreateInsumoDto>;
 export interface InsumoModalAction {
   type: 'edit' | 'delete' | 'cancel';
   insumo?: Insumo;
+}
+
+export interface PrecioInsumo {
+  id: number;
+  idInsumo: number;
+  idProveedor: number;
+  precioPorKg: number;
+  activo: boolean;
+  fechaDesde: string;
+  fechaHasta: string | null;
+  observacion: string | null;
+  proveedor: { id: number; nombre: string };
 }

@@ -20,6 +20,11 @@ export async function login(req: Request, res: Response) {
     const user = await prisma.usuario.findUnique({ where: { mail } });
     if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
 
+    // Impedir login si el usuario fue dado de baja (activo = false)
+    if (user.activo === false) {
+      return res.status(403).json({ error: 'Usuario inactivo. Contacte al administrador.' });
+    }
+
     const hashed = user.contrasena;
     const ok = await bcrypt.compare(password, hashed);
     if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });

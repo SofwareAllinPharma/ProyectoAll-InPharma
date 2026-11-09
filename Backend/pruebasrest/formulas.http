@@ -18,11 +18,11 @@ POST http://localhost:4000/formulas
 Content-Type: application/json
 
 {
-  "nombre": "AAAform",
+  "nombre": "AAA",
   "esProtegida": true,
   "insumos": [
     { "idInsumo": 3, "cantidadInsumo": 60 },
-    { "idInsumo": 3, "cantidadInsumo": 50 },
+    { "idInsumo": 4, "cantidadInsumo": 50 },
     { "idInsumo": 5, "cantidadInsumo": 10 }
   ]
 }

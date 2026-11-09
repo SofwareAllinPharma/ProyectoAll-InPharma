@@ -24,7 +24,14 @@ export default function MovimientosTable({ data, loading, onVerDetalle }: Props)
       title: 'Fecha de Actualización',
       width: '12%',
       align: 'center',
-      render: (row) => formatFecha(row.fechaActualizacion)
+      render: (row) => (
+        <div className="leading-tight">
+          <div>{formatFecha(row.fechaActualizacion)}</div>
+          {row.horaActualizacion && (
+            <div className="text-xs text-gray-500">{row.horaActualizacion}</div>
+          )}
+        </div>
+      )
     },
     {
       key: 'producto',

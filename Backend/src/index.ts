@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
+import adminSisRoutes from "./routes/adminSis.routes";
 import insumosRoutes from "./routes/insumos.routes";
 import depositosRoutes from "./routes/depositos.routes";
 import formulasRoutes from "./routes/formulas.routes";
@@ -11,6 +12,11 @@ import inventarioRoutes from "./routes/inventario.routes";
 import inventarioGlobalRoutes from "./routes/inventarioGlobal.routes";
 import pedidosRoutes from "./routes/pedidos.routes";
 import movimientoRoutes from './routes/movimiento.routes';
+import dashboardRoutes from './routes/dashboard.routes';
+import personasRoutes from './routes/personas.routes';
+import proveedoresRoutes from './routes/proveedores.routes';
+import lotesRoutes from './routes/lotes.routes';
+import integracionRoutes from './routes/integracion.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -24,6 +30,7 @@ app.use((req, _res, next) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/admin-sis", adminSisRoutes);
 app.use("/insumos", insumosRoutes);
 app.use("/depositos", depositosRoutes);
 app.use("/formulas", formulasRoutes);
@@ -34,6 +41,11 @@ app.use("/pedidos", pedidosRoutes);
 app.use('/inventario', inventarioRoutes);
 app.use('/inventario-global', inventarioGlobalRoutes);
 app.use('/movimientos', movimientoRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/personas', personasRoutes);
+app.use('/proveedores', proveedoresRoutes);
+app.use('/lotes', lotesRoutes);
+app.use('/integracion', integracionRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API corriendo correctamente");
@@ -43,4 +55,4 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Ruta no encontrada" });
 });
 
-app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
+app.listen(PORT, process.env.HOST ?? "0.0.0.0", () => console.log(`API running on http://localhost:${PORT}`));

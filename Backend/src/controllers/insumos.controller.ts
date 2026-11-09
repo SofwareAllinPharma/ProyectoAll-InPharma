@@ -5,8 +5,8 @@ const insumosService = new InsumosService();
 
 export class InsumosController {
   async getAll(req: Request, res: Response) {
-    const insumos = await insumosService.getAll();
-    res.json(insumos);
+      const insumos = await insumosService.getAll();
+      res.json(insumos);
   }
 
   async getById(req: Request, res: Response) {
@@ -46,6 +46,7 @@ export class InsumosController {
       const actualizado = await insumosService.update(id, req.body);
       res.json(actualizado);
     } catch (error: any) {
+      console.error('[INSUMO UPDATE ERROR]', { id, body: req.body, message: error?.message, code: error?.code, meta: error?.meta });
       if (
         error.code === "P2025" ||
         (typeof error.message === "string" &&

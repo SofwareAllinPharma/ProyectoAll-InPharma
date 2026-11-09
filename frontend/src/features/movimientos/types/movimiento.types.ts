@@ -2,7 +2,7 @@
 export type TipoMovimiento = 'EGRESO' | 'TRASLADO' | 'INGRESO';
 
 // Estados según documento
-export type EstadoMovimiento = 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';
+export type EstadoMovimiento = 'CREADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO' | 'VENDIDO';
 
 // Interface principal del movimiento
 export interface Movimiento {
@@ -17,6 +17,7 @@ export interface Movimiento {
   estado: EstadoMovimiento;
   fechaCreacion: string;
   fechaActualizacion?: string | null;
+  horaActualizacion?: string | null; // nueva: hora HH:MM de la última actualización
   idUsuario: number;
   // Responsable del movimiento (nombre plano desde BD)
   responsable?: string;

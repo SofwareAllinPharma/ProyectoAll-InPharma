@@ -39,15 +39,16 @@ function UmbralRow({ p, value, onChange, disabled }: { p: InventarioProducto; va
 
 export default function ConfigurarUmbralesModal({ open, depositName, depositoId, onClose, onSuccess }: Props) {
   const [inventario, setInventario] = useState<InventarioProducto[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const inventarioOrdenado = useMemo(()=>[...inventario].sort((a,b)=>{const aSin=a.umbralMin==null?0:1;const bSin=b.umbralMin==null?0:1; return aSin-bSin||a.nombreComercial.localeCompare(b.nombreComercial)}),[inventario]);
 
   useEffect(()=>{
     if(!open){ setInventario([]); return }
-    setLoading(true); setError(null);
-    InventarioService.getProductosConUmbral(depositoId).then(d=>setInventario(d)).catch((err)=>setError(err?.message||'Error al cargar inventario')).finally(()=>setLoading(false));
+    setLoadingData(true); setError(null);
+    InventarioService.getProductosConUmbral(depositoId).then(d=>setInventario(d)).catch((err)=>setError(err?.message||'Error al cargar inventario')).finally(()=>setLoadingData(false));
   },[open, depositoId]);
 
   const [umbralMin, setUmbralMin] = useState<Record<number, number | ''>>({});
@@ -58,12 +59,12 @@ export default function ConfigurarUmbralesModal({ open, depositName, depositoId,
   const handleSave = async ()=>{
     const items = Object.entries(umbralMin).filter(([_,v])=>v!=='' && !isNaN(Number(v))).map(([id,v])=>({ idProducto: Number(id), umbralMin: Number(v) }));
     if(!items.length) return;
-    setLoading(true); setError(null);
+    setSaving(true); setError(null);
     try{
       await InventarioService.bulkUpdateUmbrales(depositoId, items);
       onSuccess?.(); onClose();
     }catch(e:any){ setError(e?.message||'Error al guardar umbrales'); }
-    finally{ setLoading(false); }
+    finally{ setSaving(false); }
   }
 
   return (
@@ -81,10 +82,10 @@ export default function ConfigurarUmbralesModal({ open, depositName, depositoId,
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Umbral mínimo</th>
               </tr></thead>
               <tbody className="divide-y divide-gray-200">
-                {loading ? <tr><td colSpan={3} className="text-center py-8 text-gray-400">Cargando productos...</td></tr>
+                {loadingData ? <tr><td colSpan={3} className="text-center py-8 text-gray-400">Cargando productos...</td></tr>
                   : error ? <tr><td colSpan={3} className="text-center py-8 text-red-400">{error}</td></tr>
                   : inventarioOrdenado.length===0 ? <tr><td colSpan={3} className="text-center py-8 text-gray-400">No hay productos registrados.</td></tr>
-                  : inventarioOrdenado.map(p=> <UmbralRow key={p.idProducto} p={p} value={umbralMin[p.idProducto]} onChange={handleUmbralChange} disabled={loading} />)
+                  : inventarioOrdenado.map(p=> <UmbralRow key={p.idProducto} p={p} value={umbralMin[p.idProducto]} onChange={handleUmbralChange} disabled={saving} />)
                 }
               </tbody>
             </table>
@@ -92,7 +93,7 @@ export default function ConfigurarUmbralesModal({ open, depositName, depositoId,
 
           <div className="flex justify-end gap-3 pt-4 mt-5">
             <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">Cancelar</button>
-            <button type="submit" className="px-6 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 disabled:opacity-50" disabled={loading}>Guardar umbrales</button>
+            <button type="submit" className="px-6 py-2 rounded-lg bg-[#5d5448] text-white hover:bg-[#5d5448]/90 disabled:opacity-50" disabled={saving || loadingData}>{saving ? 'Guardando...' : 'Guardar umbrales'}</button>
           </div>
         </form>
       </div>

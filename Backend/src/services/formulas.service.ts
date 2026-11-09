@@ -18,7 +18,11 @@ function round(num: number) {
 export class FormulasService {
   repo = new FormulasRepository();
 
-  async list(params: { estado?: string; search?: string }) {
+  async list(params: {
+    estado?: string;
+    search?: string;
+    insumoId?: number;
+  }) {
     return this.repo.findAll(params);
   }
 
@@ -40,7 +44,7 @@ export class FormulasService {
     const nombreExistente = await prisma.formula.findFirst({
       where: {
         nombre: { equals: dto.nombre, mode: "insensitive" },
-        activo: true,
+        activo: true, // Solo valida contra fórmulas activas
       },
     });
     if (nombreExistente) throw new Error("El nombre de la fórmula ya existe");
@@ -139,7 +143,7 @@ export class FormulasService {
     const nombreExistente = await prisma.formula.findFirst({
       where: {
         nombre: { equals: dto.nombre, mode: "insensitive" },
-        activo: true,
+        activo: true, // Solo valida contra fórmulas activas
         NOT: { id: id },
       },
     });
@@ -247,6 +251,71 @@ export class FormulasService {
   }
 
   async softDeleteFormula(id: number) {
+    // 1. Validar si existen productos asociados a esta fórmula
+    const productosAsociados = await prisma.producto.count({
+      where: {
+        idFormula: id,
+      },
+    });
+
+    if (productosAsociados > 0) {
+      throw new Error(
+        "No se puede eliminar la fórmula porque tiene productos asociados."
+      );
+    }
+
+    // 2. Si no hay productos, proceder con la eliminación lógica
     return this.repo.softDelete(id);
+  }
+
+  async calcularCosto(idFormula: number) {
+    const formula = await prisma.formula.findUnique({
+      where: { id: idFormula },
+      include: {
+        formulaInsumos: {
+          include: {
+            insumo: {
+              include: {
+                precios: {
+                  where: { activo: true },
+                  take: 1,
+                  include: { proveedor: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!formula) throw new Error("Fórmula no encontrada");
+
+    let costoPorPorcion = 0;
+    const insumosSinPrecio: string[] = [];
+    const detalle: { insumo: string; gramos: number; precioPorKg: number | null; costoAporte: number | null }[] = [];
+
+    for (const fi of formula.formulaInsumos) {
+      const insumo = fi.insumo;
+      const precioActivo = insumo?.precios?.[0] ?? null;
+      const gramos = fi.cantidadInsumo;
+
+      if (!precioActivo) {
+        insumosSinPrecio.push(insumo?.nombre ?? `#${fi.idInsumo}`);
+        detalle.push({ insumo: insumo?.nombre ?? `#${fi.idInsumo}`, gramos, precioPorKg: null, costoAporte: null });
+      } else {
+        const aporte = (gramos / 1000) * precioActivo.precioPorKg;
+        costoPorPorcion += aporte;
+        detalle.push({ insumo: insumo!.nombre, gramos, precioPorKg: precioActivo.precioPorKg, costoAporte: aporte });
+      }
+    }
+
+    const esParcial = insumosSinPrecio.length > 0 || detalle.length === 0;
+
+    return {
+      costoPorPorcion: esParcial ? null : costoPorPorcion,
+      esParcial,
+      insumosSinPrecio,
+      detalle,
+    };
   }
 }

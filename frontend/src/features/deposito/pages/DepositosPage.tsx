@@ -1,19 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRoutePrefix } from '../../../hooks/useRoutePrefix';
+import { useAuth } from '../../../lib/auth';
 import PageShell from '../../../components/PageShell';
 import DepositoFormModal from '../components/DepositoFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
-import RegistroMovimientoModal from '../../movimientos/components/alta/RegistroMovimientoModal';
 import DepositosToolbar from '../components/DepositosToolbar';
 import DepositoGridWithCapacidad from '../components/DepositoGridWithCapacidad';
 import useDepositosPage from '../hooks/useDepositosPage';
 import type { Deposito } from '../types/deposito.types';
 
-import StockGlobalTab from './StockGlobalTab';
-import MovimientosTab from '../../movimientos/pages/MovimientosTab';
+import StockCajasTab from '../../inventario/components/StockCajasTab';
+import TrasladoCajasModal from '../../inventario/components/TrasladoCajasModal';
+import MovimientosCajasTab from '../../inventario/components/MovimientosCajasTab';
 
 export default function DepositosPage() {
   const navigate = useNavigate();
+  const prefix = useRoutePrefix();
+  const { user } = useAuth();
+  const isTecnico = user?.roles.includes('TECNICO');
+  const [stockRefreshKey, setStockRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
 
   const {
@@ -24,14 +30,11 @@ export default function DepositosPage() {
     setOpenCreate,
     deleteTarget,
     setDeleteTarget,
-  stockGlobal,
-  loadingGlobal,
-  showTrasladoModal,
-  setShowTrasladoModal,
-  setShowPedidoModal,
-    resumenGlobal,
+    showTrasladoModal,
+    setShowTrasladoModal,
     handleCreate,
     handleDelete,
+    load,
   } = useDepositosPage();
 
   return (
@@ -41,19 +44,27 @@ export default function DepositosPage() {
   subtitle="Gestión de depósitos y su stock"
         loading={loading}
         noContainer={true}
-        onCreate={() => setOpenCreate(true)}
+        onCreate={!isTecnico ? () => setOpenCreate(true) : undefined}
         createLabel="Registrar Depósito"
         extraActions={
-          <DepositosToolbar 
-            onShowTraslado={() => setShowTrasladoModal(true)} 
-            onShowPedido={() => setShowPedidoModal(true)} 
-          />
+          !isTecnico ? (
+            <DepositosToolbar 
+              onShowTraslado={() => setShowTrasladoModal(true)} 
+              onShowPedido={() => navigate(`${prefix}/pedidos`, { state: { openCreate: true } })} 
+            />
+          ) : undefined
         }
         modals={
           <>
-            <RegistroMovimientoModal
-              open={showTrasladoModal}
+            <TrasladoCajasModal
+              isOpen={showTrasladoModal}
+              depositos={items}
               onClose={() => setShowTrasladoModal(false)}
+              onDone={() => {
+                setShowTrasladoModal(false);
+                setStockRefreshKey(key => key + 1);
+                void load();
+              }}
             />
             {/* NotImplementedModal removido: funcionalidades pendientes (Pedidos / Productos sin stock)
                 Si en el futuro se implementan, reemplazar por el modal correspondiente aquí. */}
@@ -86,7 +97,8 @@ export default function DepositosPage() {
               ) : (
                 <DepositoGridWithCapacidad
                   items={items}
-                  onOpenDetail={(id: number) => navigate(`/adminsis/depositos/${id}`)}
+                  refreshKey={stockRefreshKey}
+                  onOpenDetail={(id: number) => navigate(`${prefix}/depositos/${id}`)}
                   onDelete={(deposito: Deposito) => setDeleteTarget(deposito)}
                 />
               )}
@@ -104,7 +116,7 @@ export default function DepositosPage() {
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    Stock Global
+                    Stock (por lote)
                   </button>
                   <button
                     onClick={() => setActiveTab('movimientos')}
@@ -120,18 +132,10 @@ export default function DepositosPage() {
               </div>
 
               <div className="mt-6">
-                {activeTab === 'stock' && (
-                  <StockGlobalTab
-                    stockGlobal={stockGlobal}
-                    loadingGlobal={loadingGlobal}
-                    resumenGlobal={resumenGlobal}
-                    onCrearPedido={() => setShowPedidoModal(true)}
-                    onMovimientoStock={() => setShowTrasladoModal(true)}
-                  />
-                )}
+                {activeTab === 'stock' && <StockCajasTab refreshKey={stockRefreshKey} onStockChanged={() => { setStockRefreshKey(key => key + 1); void load(); }} />}
 
                 {activeTab === 'movimientos' && (
-                  <MovimientosTab idDeposito={undefined} />
+                  <MovimientosCajasTab />
                 )}
               </div>
             </div>

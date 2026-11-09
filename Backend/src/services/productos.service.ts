@@ -61,8 +61,20 @@ export class ProductosService {
     if (cantPorcionesAportadas <= 0)
       throw new Error("La cantidad de porciones debe ser mayor a 0");
 
+    const sku = normalizarSku(dto.sku);
+    if (sku) {
+      const skuEnUso = await prisma.producto.findFirst({
+        where: { sku, estaActivo: true },
+      });
+      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
+    }
+
+    const diasVencimiento = parseDiasVencimiento(dto.diasVencimiento);
+
     return this.repo.create({
       nombreComercial: dto.nombreComercial,
+      sku,
+      diasVencimiento,
       idFormula: dto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -123,8 +135,24 @@ export class ProductosService {
     if (cantPorcionesAportadas <= 0)
       throw new Error("La cantidad de porciones debe ser mayor a 0");
 
+    // sku undefined => no se toca; "" => se limpia a null
+    const sku = dto.sku === undefined ? producto.sku : normalizarSku(dto.sku);
+    if (sku && sku !== producto.sku) {
+      const skuEnUso = await prisma.producto.findFirst({
+        where: { sku, estaActivo: true, idProducto: { not: idProducto } },
+      });
+      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
+    }
+
+    const diasVencimiento =
+      dto.diasVencimiento === undefined
+        ? producto.diasVencimiento
+        : parseDiasVencimiento(dto.diasVencimiento);
+
     return this.repo.update(idProducto, {
       nombreComercial: dto.nombreComercial ?? producto.nombreComercial,
+      sku,
+      diasVencimiento,
       idFormula: dto.idFormula ?? producto.idFormula,
       pesoNeto,
       cantPorcionesAportadas,
@@ -152,4 +180,96 @@ export class ProductosService {
     }
     return this.repo.softDelete(idProducto);
   }
+
+  async calcularCosto(idProducto: number) {
+    const producto = await prisma.producto.findUnique({
+      where: { idProducto },
+      include: {
+        formula: {
+          include: {
+            formulaInsumos: {
+              include: {
+                insumo: {
+                  include: {
+                    precios: {
+                      where: { activo: true },
+                      take: 1,
+                      include: { proveedor: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!producto || !producto.estaActivo) throw new Error('Producto no encontrado');
+    if (!producto.formula) throw new Error('El producto no tiene fórmula asociada');
+
+    const insumosSinPrecio: string[] = [];
+    let costoPorPorcion = 0;
+
+    const detalle = producto.formula.formulaInsumos.map((fi) => {
+      const precioActivo = fi.insumo.precios[0] ?? null;
+      const gramos = fi.cantidadInsumo;
+      const precioPorKg = precioActivo?.precioPorKg ?? null;
+
+      if (precioPorKg === null) {
+        insumosSinPrecio.push(fi.insumo.nombre);
+        return {
+          insumo: fi.insumo.nombre,
+          gramos,
+          precioPorKg: null,
+          proveedor: null,
+          costoAporte: null,
+        };
+      }
+
+      const costoAporte = (gramos / 1000) * precioPorKg;
+      costoPorPorcion += costoAporte;
+
+      return {
+        insumo: fi.insumo.nombre,
+        gramos,
+        precioPorKg,
+        proveedor: precioActivo?.proveedor
+          ? { id: precioActivo.proveedor.id, nombre: precioActivo.proveedor.nombre }
+          : null,
+        costoAporte: Math.round(costoAporte * 100) / 100,
+      };
+    });
+
+    const costoPorPaquete = costoPorPorcion * producto.cantPorcionesAportadas;
+    const esParcial = insumosSinPrecio.length > 0 || detalle.length === 0;
+
+    return {
+      idProducto: producto.idProducto,
+      nombreComercial: producto.nombreComercial,
+      cantPorcionesAportadas: producto.cantPorcionesAportadas,
+      costoPorPorcion: esParcial ? null : Math.round(costoPorPorcion * 100) / 100,
+      costoPorPaquete: esParcial ? null : Math.round(costoPorPaquete * 100) / 100,
+      esParcial,
+      insumosSinPrecio,
+      detalle,
+    };
+  }
+}
+
+// Normaliza el SKU: solo trim (se preserva el case para matchear exacto
+// con WooCommerce, que es case-sensitive). Devuelve null si queda vacío.
+function normalizarSku(raw: unknown): string | null {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  return s === "" ? null : s;
+}
+
+// Días de vencimiento: entero >= 1, o null si viene vacío. Lanza si es inválido.
+function parseDiasVencimiento(raw: unknown): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0)
+    throw new Error("Los días de vencimiento deben ser un entero mayor a 0");
+  return n;
 }

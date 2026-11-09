@@ -23,7 +23,13 @@ export default function DepositoDetailSummary({ resumen, loadingResumen, inventa
 
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6 mt-4">
         <h4 className="text-lg font-semibold text-[#3E3529] mb-4">Stock de productos</h4>
-        <InventarioTable data={inventario} loading={loadingInventario} onCrearPedido={onCrearPedido} onMovimientoStock={onMovimientoStock} />
+        <InventarioTable
+          data={inventario}
+          loading={loadingInventario}
+          onCrearPedido={onCrearPedido}
+          onMovimientoStock={onMovimientoStock}
+          onCrearMovimientoPrefill={onMovimientoStock ? () => onMovimientoStock() : undefined}
+        />
       </div>
     </>
   );

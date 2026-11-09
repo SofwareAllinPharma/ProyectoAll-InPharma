@@ -1,0 +1,18 @@
+-- CreateTable
+CREATE TABLE "EGRESO_CAJA" (
+    "id" SERIAL NOT NULL,
+    "idCaja" INTEGER NOT NULL,
+    "idDeposito" INTEGER NOT NULL,
+    "unidades" INTEGER NOT NULL,
+    "motivo" VARCHAR(60),
+    "responsable" VARCHAR(255),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EGRESO_CAJA_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "EGRESO_CAJA_idCaja_idx" ON "EGRESO_CAJA"("idCaja");
+
+-- AddForeignKey
+ALTER TABLE "EGRESO_CAJA" ADD CONSTRAINT "EGRESO_CAJA_idCaja_fkey" FOREIGN KEY ("idCaja") REFERENCES "CAJA"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

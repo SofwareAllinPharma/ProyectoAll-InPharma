@@ -3,15 +3,8 @@ import { useState, useEffect } from "react";
 import NavbarPostLogin from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import type { SidebarItem } from "../components/Sidebar";
-import {
-  FaThLarge,
-  FaBoxOpen,
-  FaClipboardList,
-  FaFlask,
-  FaUsers,
-  FaCog,
-  FaWarehouse,
-} from "react-icons/fa";
+import { ROLE_NAV_ITEMS } from "../config/navigation";
+import { ArrowLeft } from "lucide-react";
 
 export default function PostLoginLoyout() {
   const location = useLocation();
@@ -20,41 +13,21 @@ export default function PostLoginLoyout() {
   );
 
   const getItemsForPath = (pathname: string): SidebarItem[] => {
-      if (pathname.startsWith('/adminsis')) {
+    if (pathname.startsWith('/adminsis')) return ROLE_NAV_ITEMS.ADMINSIS;
+    if (pathname.startsWith("/tecnico")) return ROLE_NAV_ITEMS.TECNICO;
+    if (pathname.startsWith("/adminfab")) return ROLE_NAV_ITEMS.ADMINFAB;
+    if (pathname.startsWith("/puntoventa")) return ROLE_NAV_ITEMS.ENCPTOVENTA;
+    if (pathname.startsWith("/mis-datos")) {
       return [
-        { id: 'resumen', label: 'Resumen', to: '/adminsis', icon: <FaThLarge /> },
-        { id: 'insumos', label: 'Insumos', to: '/adminsis/insumos', icon: <FaBoxOpen /> },
-        { id: 'formulas', label: 'Fórmulas', to: '/adminsis/formulas', icon: <FaFlask /> },
-        { id: 'productos', label: 'Productos', to: '/adminsis/productos', icon: <FaClipboardList /> },
-        { id: 'pedidos', label: 'Pedidos', to: '/adminsis/pedidos', icon: <FaClipboardList /> },
-        { id: 'depositos', label: 'Depósitos', to: '/adminsis/depositos', icon: <FaWarehouse /> },
-        { id: 'usuarios', label: 'Usuarios', to: '/adminsis/usuarios', icon: <FaUsers /> },
-        { id: 'configuracion', label: 'Configuración', to: '/adminsis/configuracion', icon: <FaCog /> },
-      ];
-    }
-    if (pathname.startsWith("/tecnico")) {
-      return [
-        { id: "operaciones", label: "Operaciones", to: "/tecnico" },
-        { id: "pedidos", label: "Pedidos", to: "/tecnico/pedidos" },
-        { id: "depositos", label: "Depósitos", to: "/tecnico/depositos" },
         {
-          id: "mantenimiento",
-          label: "Mantenimiento",
-          to: "/tecnico/mantenimiento",
-        },
-        { id: "reportes", label: "Reportes", to: "/tecnico/reportes" },
+          id: "volver",
+          label: "Volver",
+          icon: <ArrowLeft className="w-5 h-5" />,
+          to: "/perfiles"
+        }
       ];
     }
-    if (pathname.startsWith("/adminfab")) {
-      return [
-        { id: "pedidos", label: "Pedidos", to: "/adminfab/pedidos" },
-        { id: "depositos", label: "Depósitos", to: "/adminfab/depositos" },
-        { id: "stock", label: "Stock", to: "/adminfab/stock" },
-        { id: "mostrador", label: "Mostrador", to: "/adminfab/mostrador" },
-      ];
-    }
-
-    // Default: empty
+    
     return [];
   };
 
@@ -63,11 +36,17 @@ export default function PostLoginLoyout() {
   const isDashboard =
     pathname.startsWith("/adminsis") ||
     pathname.startsWith("/adminfab") ||
-    pathname.startsWith("/tecnico");
+    pathname.startsWith("/tecnico") ||
+    pathname.startsWith('/puntoventa') ||
+    pathname.startsWith("/mis-datos");
 
   useEffect(() => {
-    if (isDashboard) setSidebarCollapsed(undefined);
-  }, [isDashboard]);
+    if (pathname.startsWith("/mis-datos")) {
+      setSidebarCollapsed(true);
+    } else if (isDashboard) {
+      setSidebarCollapsed(undefined);
+    }
+  }, [isDashboard, pathname]);
 
   console.log(
     "[PostLoginLayout] pathname=",

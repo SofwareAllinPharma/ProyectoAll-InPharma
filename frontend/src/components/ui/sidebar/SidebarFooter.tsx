@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../lib/auth";
+import ConfirmLogoutModal from "../../nav/ConfirmLogoutModal";
 
 interface SidebarFooterProps {
   collapsed: boolean;
@@ -10,15 +11,14 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ collapsed }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+  const [showConfirm, setShowConfirm] = useState(false);
+
   if (collapsed) return null;
 
   return (
     <div className="mt-auto">
       <button
-        onClick={async () => {
-          await logout();
-          navigate("/auth/login");
-        }}
+        onClick={() => setShowConfirm(true)}
         className="w-full block rounded-xl transition-colors hover:bg-[#5d5448]/10 text-red-600"
         title="Cerrar Sesión"
       >
@@ -30,6 +30,16 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ collapsed }) => {
           <span className="truncate">Cerrar Sesión</span>
         </div>
       </button>
+
+      <ConfirmLogoutModal
+        open={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={async () => {
+          setShowConfirm(false);
+          await logout();
+          navigate("/auth/login");
+        }}
+      />
 
       <div className="mt-3 text-sm text-[#5d5448]/70">All-In Pharma · v1.0</div>
     </div>

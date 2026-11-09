@@ -1,4 +1,6 @@
 import React from "react";
+import ResumenCard from "../../../components/Card";
+import { FaClipboardList, FaClock, FaCog, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import type { Pedido } from "../types/pedido.types";
 
 interface Props {
@@ -15,72 +17,79 @@ const PedidoStats: React.FC<Props> = ({ pedidos }) => {
           .replace(/\p{Diacritic}/gu, '')
           .replace(/\s+/g, '')
           .toLowerCase();
-      const st = normalize(raw);
-      if (st === 'creado' || st === 'pendiente') acc.pendientes++;
-  else if (st === 'asignado' || pedido.estaAsignado === true) acc.asignados++;
-  else if (st === 'enelaboracion' || st === 'enproceso') acc.enProceso++;
-      else if (st === 'elaboradoydepositadoenfabrica' || st === 'finalizado' || st === 'completado') acc.finalizados++;
-      else if (st === 'aprobado') acc.aprobados++;
-      else if (st === 'cancelado' || st === 'rechazado') acc.rechazados++;
+    const st = normalize(raw);
+    // Seguir la máquina de estados con prioridad para estados terminales.
+    // 1) Finalizados (varias variantes)
+    if (st === 'elaboradoydepositadoenfabrica' || st === 'finalizado' || st === 'completado') {
+      acc.finalizados++;
+    }
+    // 2) Cancelados
+    else if (st === 'cancelado' || st === 'rechazado') {
+      acc.rechazados++;
+    }
+    // 3) En elaboración / asignado
+    else if (st === 'asignado' || st === 'enelaboracion' || st === 'enproceso') {
+      acc.enProceso++;
+    }
+    // 4) Creado / pendiente (si está asignado lo consideramos en elaboración)
+    else if (st === 'creado' || st === 'pendiente' || st === '') {
+      if (pedido.estaAsignado === true) acc.enProceso++;
+      else acc.pendientes++;
+    }
+    // 5) Fallback: contar como pendientes
+    else {
+      if (pedido.estaAsignado === true) acc.enProceso++;
+      else acc.pendientes++;
+    }
       acc.total++;
       return acc;
     },
     {
       total: 0,
       pendientes: 0,
-      asignados: 0,
       enProceso: 0,
       finalizados: 0,
-      aprobados: 0,
       rechazados: 0,
     }
   );
 
-  const statCards = [
-    { label: "Total", value: stats.total, color: "bg-gray-100 text-gray-800" },
-    {
-      label: "Pendientes",
-      value: stats.pendientes,
-      color: "bg-yellow-100 text-yellow-800",
-    },
-    {
-      label: "Asignados",
-      value: stats.asignados,
-      color: "bg-blue-100 text-blue-800",
-    },
-    {
-      label: "En Proceso",
-      value: stats.enProceso,
-      color: "bg-purple-100 text-purple-800",
-    },
-    {
-      label: "Finalizados",
-      value: stats.finalizados,
-      color: "bg-orange-100 text-orange-800",
-    },
-    {
-      label: "Aprobados",
-      value: stats.aprobados,
-      color: "bg-green-100 text-green-800",
-    },
-    {
-      label: "Cancelados",
-      value: stats.rechazados,
-      color: "bg-red-100 text-red-800",
-    },
-  ];
-
   return (
-    <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {statCards.map((stat) => (
-        <div
-          key={stat.label}
-          className={`p-3 rounded-lg ${stat.color} text-center`}
-        >
-          <div className="text-lg font-bold">{stat.value}</div>
-          <div className="text-xs font-medium">{stat.label}</div>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      <ResumenCard
+        title="Total"
+        value={stats.total}
+        icon={<FaClipboardList className="text-[#9D977B]" size={18} />}
+        borderColor="#9D977B"
+        bgIcon="#F5F3EB"
+      />
+      <ResumenCard
+        title="Pendientes"
+        value={stats.pendientes}
+        icon={<FaClock className="text-yellow-500" size={18} />}
+        borderColor="#eab308"
+        bgIcon="#FEF9C3"
+      />
+      <ResumenCard
+        title="En Elaboración"
+        value={stats.enProceso}
+        icon={<FaCog className="text-purple-600" size={18} />}
+        borderColor="#9333ea"
+        bgIcon="#E9D5FF"
+      />
+      <ResumenCard
+        title="Finalizados"
+        value={stats.finalizados}
+        icon={<FaCheckCircle className="text-green-600" size={18} />}
+        borderColor="#16a34a"
+        bgIcon="#D1FAE5"
+      />
+      <ResumenCard
+        title="Cancelados"
+        value={stats.rechazados}
+        icon={<FaTimesCircle className="text-red-500" size={18} />}
+        borderColor="#ef4444"
+        bgIcon="#FEE2E2"
+      />
     </div>
   );
 };

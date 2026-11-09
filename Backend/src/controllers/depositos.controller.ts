@@ -91,12 +91,13 @@ export class DepositosController {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) return res.status(400).json({ error: "ID inválido." });
 
-      const { responsable, capacidadTotal } = req.body ?? {};
-      if (responsable === undefined && capacidadTotal === undefined) {
-        return res.status(400).json({ error: "No hay campos válidos para actualizar (solo responsable o capacidadTotal)." });
+      const { nombre, responsable, capacidadTotal } = req.body ?? {};
+      if (nombre === undefined && responsable === undefined && capacidadTotal === undefined) {
+        return res.status(400).json({ error: "No hay campos válidos para actualizar (nombre, responsable o capacidadTotal)." });
       }
 
       const actualizado = await depositosService.update(id, {
+        nombre: nombre !== undefined ? String(nombre).trim() : undefined,
         responsable: responsable ? String(responsable).trim() : undefined,
         capacidadTotal: capacidadTotal !== undefined ? Number(capacidadTotal) : undefined,
       });
@@ -104,6 +105,7 @@ export class DepositosController {
       return res.json(actualizado);
     } catch (error: any) {
       if (error?.code === "P2025") return res.status(404).json({ error: "Depósito no encontrado." });
+      if (error?.code === "P2002") return res.status(409).json({ error: "Ya existe un depósito con ese nombre." });
       return res.status(400).json({ error: error?.message ?? "Error al modificar depósito" });
     }
   }

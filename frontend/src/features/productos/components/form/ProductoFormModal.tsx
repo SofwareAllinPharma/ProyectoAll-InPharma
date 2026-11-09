@@ -15,7 +15,7 @@ interface Props {
 
 export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, producto }) => {
   const mgr = useProductoFormManager({ producto, isOpen, onSubmit, onClose });
-  const { formData, selectedFormula, errors, serverError, isSubmitting, onNombreChange, onFormulaChange, onCalcModeChange, onValueChange, handleSubmit } = mgr;
+  const { formData, selectedFormula, errors, serverError, isSubmitting, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange, onValueChange, handleSubmit } = mgr;
 
   
 
@@ -25,34 +25,35 @@ export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
     <Modal
       open={isOpen}
       onClose={onClose}
-      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh]"
+      containerClass="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col"
     >
-      <div className="flex flex-col max-h-[90vh]">
-        <ModalHeader>{producto ? 'Editar Producto' : 'Agregar Nuevo Producto'}</ModalHeader>
+      <ModalHeader>{producto ? 'Editar Producto' : 'Agregar Nuevo Producto'}</ModalHeader>
 
-  <form onSubmit={(e)=>{ e.preventDefault(); handleSubmit(); }} className="flex flex-col flex-1 overflow-hidden">
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="flex flex-col flex-1 min-h-0">
+        <div className="flex-1 overflow-auto min-h-0">
           <ProductoFormBody
             formData={formData}
             selectedFormula={selectedFormula}
             errors={errors}
             serverError={serverError}
             onNombreChange={onNombreChange}
+            onSkuChange={onSkuChange}
+            onDiasVencimientoChange={onDiasVencimientoChange}
             onFormulaChange={onFormulaChange}
             onCalcModeChange={onCalcModeChange}
             onValueChange={onValueChange}
           />
+        </div>
 
-          {/* Footer: permanece visible al fondo y dentro del form para que el submit funcione */}
-          <div className="border-t border-gray-100 bg-white p-4 rounded-b-xl">
-            <ModalFooter
-              onCancel={onClose}
-              submitLabel={producto ? 'Actualizar' : 'Crear Producto'}
-              submitting={isSubmitting}
-              disabledSubmit={!selectedFormula}
-            />
-          </div>
-        </form>
-      </div>
+        <div className="border-t border-gray-100 bg-white p-4 rounded-b-xl flex-none">
+          <ModalFooter
+            onCancel={onClose}
+            submitLabel={producto ? 'Actualizar' : 'Crear Producto'}
+            submitting={isSubmitting}
+            disabledSubmit={!selectedFormula}
+          />
+        </div>
+      </form>
     </Modal>
   );
 };

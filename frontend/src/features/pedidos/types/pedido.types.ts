@@ -9,6 +9,8 @@ export type CambioEstado = {
   idEstadoPedido: number;
   fechaHoraInicio: string | Date;
   fechaHoraFin?: string | Date | null;
+  responsable?: string | null;
+  depositador?: string | null;
   estado?: EstadoPedido;
 };
 
@@ -16,6 +18,8 @@ export type ProductoMin = {
   idProducto: number;
   nombreComercial: string;
   pesoNeto: number;
+  cantPorcionesAportadas?: number | null;
+  diasVencimiento?: number | null;
   formula?: {
     porcion: number;
   } | null;
@@ -28,6 +32,9 @@ export type Pedido = {
   cantAProducir_gramos: number;
   cantAProducir_paquetes: number;
   cantAProducir_porciones: number;
+  cantElaborada_paquetes?: number | null;
+  cantElaborada_gramos?: number | null;
+  cantElaborada_porciones?: number | null;
   observacion?: string | null;
   idCambioEstadoPedido?: number | null;
   mailUsuarioCreador: string;
@@ -39,6 +46,15 @@ export type Pedido = {
   updatedAt: string;
   cambioActual?: CambioEstado | null;
   cambios?: CambioEstado[];
+  // Relaciones opcionales incluidas cuando el backend las retorna mediante include
+  creador?: {
+    usuario?: { persona?: { nombre?: string | null; apellido?: string | null } | null } | null;
+    perfil?: { id?: number; nombre?: string } | null;
+  } | null;
+  cocinero?: {
+    usuario?: { persona?: { nombre?: string | null; apellido?: string | null } | null } | null;
+    perfil?: { id?: number; nombre?: string } | null;
+  } | null;
 };
 
 export type CreatePedidoRequest = {

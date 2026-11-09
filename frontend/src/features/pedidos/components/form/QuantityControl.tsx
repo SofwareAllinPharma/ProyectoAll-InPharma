@@ -44,7 +44,7 @@ const QuantityControl: React.FC<Props> = ({ mode, value, setValue, selected, dis
     <div className={className}>
       <div className="mt-2 flex items-center">
         <input
-          className="flex-1 px-4 py-3 border rounded-md text-lg text-center"
+          className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-lg text-center font-medium focus:outline-none focus:ring-1 focus:ring-[#5d5448] focus:border-[#5d5448]"
           type="text"
           inputMode="numeric"
           readOnly
