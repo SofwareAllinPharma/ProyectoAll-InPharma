@@ -42,12 +42,12 @@ export class ProductoService {
 
   static async createProducto(data: CreateProductoRequest): Promise<Producto> {
     const { data: responseData } = await api.post<Producto>('/productos', data);
-    return responseData;
+    return { ...responseData, formula: responseData.formula ? mapFormulaFromApi(responseData.formula as any) : undefined };
   }
 
   static async updateProducto(id: number, data: UpdateProductoRequest): Promise<Producto> {
     const { data: responseData } = await api.put<Producto>(`/productos/${id}`, data);
-    return responseData;
+    return { ...responseData, formula: responseData.formula ? mapFormulaFromApi(responseData.formula as any) : undefined };
   }
 
   static async deleteProducto(id: number): Promise<void> {

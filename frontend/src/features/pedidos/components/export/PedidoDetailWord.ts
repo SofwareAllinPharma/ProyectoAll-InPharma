@@ -1,7 +1,7 @@
 import { Document, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, Packer, Header, Footer, PageNumber } from 'docx';
 import type { Pedido } from '../../types/pedido.types';
 import type { Producto } from '../../../productos/types/producto.types';
-import { buildOrdenExport, COMPOSICION_ACTUAL, ESTADO_LABELS, formatOrdenDate, formatOrdenNumber as fmt } from '../../utils/ordenExport';
+import { buildOrdenExport, ESTADO_LABELS, formatOrdenDate, formatOrdenNumber as fmt } from '../../utils/ordenExport';
 
 const paragraph = (text: string, bold = false) => new Paragraph({ children: [new TextRun({ text, bold, size: 20 })], spacing: { after: 80 } });
 const title = (text: string) => new Paragraph({ children: [new TextRun({ text, bold: true, size: 26 })], spacing: { before: 220, after: 100 }, keepNext: true });
@@ -16,11 +16,11 @@ export function buildPedidoWord(pedido: Pedido, producto?: Producto | null) {
     title(`Orden de producción PED-${pedido.numPedido}`),
     paragraph(`Emitido: ${formatOrdenDate(new Date())} | Creado: ${formatOrdenDate(pedido.createdAt)} | Hora Argentina`),
     table([
-      ['Producto', pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`], ['Estado', data.estado],
-      ['Fórmula actual', data.formula ? `${data.formula.nombre} (#${data.formula.id})` : 'No disponible'],
+      ['Producto', data.producto?.nombreComercial ?? pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`], ['Estado', data.estado],
+      ['Composición utilizada', data.formula ? `${data.formula.nombre} (#${data.formula.id})` : 'No disponible'],
       ['Porción de fórmula', data.formula ? `${fmt(data.formula.porcion)} g` : 'No disponible'],
-      ['Porciones por envase', fmt(producto?.cantPorcionesAportadas)],
-    ]), paragraph(COMPOSICION_ACTUAL),
+      ['Porciones por envase', fmt(data.producto?.cantPorcionesAportadas)],
+    ]), paragraph(data.descripcionComposicion),
     ...(data.advertencia ? [paragraph(data.advertencia, true)] : []),
     title('Cantidades de la orden'),
     table([
@@ -32,7 +32,7 @@ export function buildPedidoWord(pedido: Pedido, producto?: Producto | null) {
     ]),
     title(`Nutrición de la fórmula por porción${data.formula ? ` (${fmt(data.formula.porcion)} g)` : ''}`),
     ...(data.nutrientes.length ? [table(data.nutrientes.map(n => [n.label, n.value]))] : [paragraph('No disponible.')]),
-    paragraph('Datos registrados en la ficha actual. Sodio conserva la unidad del sistema; no se convirtió a mg.'),
+    paragraph('Valores de la composición indicada. Sodio conserva la unidad del sistema; no se convirtió a mg.'),
     title('Insumos requeridos (estimado)'),
     ...(data.insumos.length ? [table([
       ['Insumo / identificación', 'g por porción', 'g para la orden'],

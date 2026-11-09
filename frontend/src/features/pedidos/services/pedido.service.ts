@@ -1,4 +1,6 @@
 import { api } from '../../../lib/api';
+import type { User } from '../../../lib/auth';
+import { selectAssignedProfile } from '../../../utils/roles';
 import type {
   Pedido,
   CreatePedidoRequest,
@@ -30,15 +32,13 @@ class PedidoServiceClass {
   }
 
   async tomarPedido(numPedido: number): Promise<Pedido> {
-    // Nota: Idealmente el backend debería saber quién es el usuario por el token,
-    // pero si tu endpoint requiere estos campos en el body, los enviamos.
-    // Si el backend ya usa req.user, esto podría simplificarse.
-    const userMail = localStorage.getItem("userMail") || "tecnico@aip.com";
-    const userPerfil = Number(localStorage.getItem("userPerfil")) || 1;
+    const { data: session } = await api.get<{ user: User }>('/auth/me');
+    const profile = selectAssignedProfile(session.user.perfiles, localStorage.getItem('activeRole'), ['ADMINSIS', 'ADMINFAB', 'TECNICO']);
+    if (!profile) throw new Error('Tu usuario no tiene un perfil habilitado para tomar órdenes.');
 
     const { data } = await api.post(`/pedidos/${numPedido}/tomar`, {
-      mailUsuarioCocinero: userMail,
-      idPerfilCocinero: userPerfil,
+      mailUsuarioCocinero: session.user.mail,
+      idPerfilCocinero: profile.idPerfil,
     });
     return data;
   }

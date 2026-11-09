@@ -33,6 +33,9 @@ export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
         <div className="flex-1 overflow-auto min-h-0">
           <ProductoFormBody
             formData={formData}
+            insumos={mgr.insumos}
+            onInsumosChange={mgr.setInsumos}
+            onCompositionModeChange={mgr.onCompositionModeChange}
             selectedFormula={selectedFormula}
             errors={errors}
             serverError={serverError}
@@ -50,7 +53,7 @@ export const ProductoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
             onCancel={onClose}
             submitLabel={producto ? 'Actualizar' : 'Crear Producto'}
             submitting={isSubmitting}
-            disabledSubmit={!selectedFormula}
+            disabledSubmit={isSubmitting}
           />
         </div>
       </form>

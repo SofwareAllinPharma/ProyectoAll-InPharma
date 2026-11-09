@@ -1,14 +1,15 @@
 interface Props {
+  title?: string;
   onAdd: () => void;
   onImport?: () => void;
   disabled?: boolean;
 }
 
-export default function FormulaInsumoHeader({ onAdd, onImport, disabled = false }: Props) {
+export default function FormulaInsumoHeader({ title = 'Insumos de la Fórmula', onAdd, onImport, disabled = false }: Props) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">
-        Insumos de la Fórmula
+        {title}
       </h3>
 
       <div className="flex gap-2">

@@ -1,6 +1,8 @@
 import type { Pedido } from "../types/pedido.types";
 import type { Producto } from "../../productos/types/producto.types";
 
+import { productoParaOrden } from './productoOrden';
+
 type FormulaInsumo = {
   idInsumo: number;
   cantidadInsumo: number;
@@ -20,7 +22,7 @@ export function computeInsumosRequeridos(
 ): InsumoRequerido[] {
   if (!pedido || !Number.isFinite(pedido.cantAProducir_gramos) || pedido.cantAProducir_gramos <= 0) return [];
 
-  const prod = (productoDetalle?.idProducto === pedido.idProducto ? productoDetalle : null) as unknown as {
+  const prod = productoParaOrden(pedido, productoDetalle) as unknown as {
     formula?: { insumos?: FormulaInsumo[] };
   };
 

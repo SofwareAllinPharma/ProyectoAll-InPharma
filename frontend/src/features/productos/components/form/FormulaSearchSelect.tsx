@@ -21,7 +21,7 @@ export default function FormulaSearchSelect({ value, onChange, className, noResu
       try {
         const data = await FormulaService.getAllFormulas();
         if (!mounted) return;
-        setFormulas(data.filter(f => f.insumos && f.insumos.length > 0));
+        setFormulas(data.filter(f => f.tipoComposicion !== 'producto' && f.insumos && f.insumos.length > 0));
       } catch (err) {
         console.error('Error cargando fórmulas en FormulaSearchSelect', err);
         if (!mounted) return;

@@ -1,3 +1,4 @@
+import { useAuth } from '../../lib/auth';
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmLogoutModal from "./ConfirmLogoutModal";
@@ -55,9 +56,10 @@ export default function UserAvatar({ name, showPerfilesOption = true }: UserAvat
     setLogoutModalOpen(true);
   };
 
+  const { logout } = useAuth();
+
   const handleConfirmLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("userPerfil");
+    logout();
     navigate("/auth/login");
   };
 

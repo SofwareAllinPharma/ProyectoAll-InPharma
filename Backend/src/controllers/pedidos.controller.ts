@@ -1,8 +1,18 @@
 import { Request, Response } from "express";
 import { PedidosService } from "../services/pedidos.service";
 import { prisma } from '../lib/prisma';
+import type { AuthenticatedRequest } from '../middleware/auth';
+import type { RoleCode } from '../utils/roles';
 
 const service = new PedidosService();
+
+function perfilParaOperacion(req: Request, roles: RoleCode[], solicitado: unknown) {
+  const perfiles = (req as AuthenticatedRequest).user?.perfiles ?? [];
+  const habilitados = perfiles.filter(perfil => perfil.role != null && roles.includes(perfil.role));
+  const perfil = habilitados.find(perfil => perfil.idPerfil === Number(solicitado)) ?? habilitados[0];
+  if (!perfil) throw new Error('Tu cuenta no tiene un perfil habilitado para esta operación');
+  return perfil;
+}
 
 export class PedidosController {
   async list(req: Request, res: Response) {
@@ -37,18 +47,8 @@ export class PedidosController {
       let payload = { ...req.body } as any;
       payload.mailUsuarioCreador = userMail;
 
-      // SIEMPRE resolver el idPerfilCreador desde la base de datos
-      // Ignorar lo que venga del frontend para evitar inconsistencias
-      const up = await prisma.usuarioPerfil.findFirst({
-        where: { mail: userMail },
-        orderBy: { idPerfil: 'asc' } // Usar el primer perfil asignado
-      });
-
-      if (!up) {
-        return res.status(400).json({ error: 'El usuario no tiene perfiles asignados' });
-      }
-
-      payload.idPerfilCreador = up.idPerfil;
+      const perfil = perfilParaOperacion(req, ['ADMINSIS', 'ADMINFAB'], req.body?.idPerfilCreador);
+      payload.idPerfilCreador = perfil.idPerfil;
 
       const data = await service.create(payload);
       res.status(201).json(data);
@@ -68,7 +68,11 @@ export class PedidosController {
         const p = await prisma.persona.findUnique({ where: { mail: userMail } });
         if (p) responsable = `${(p.nombre || '').trim()} ${(p.apellido || '').trim()}`.trim();
       }
-      const data = await service.tomarPedido(numPedido, req.body, responsable);
+      const perfil = perfilParaOperacion(req, ['TECNICO', 'ADMINSIS', 'ADMINFAB'], req.body?.idPerfilCocinero);
+      const data = await service.tomarPedido(numPedido, {
+        mailUsuarioCocinero: userMail!,
+        idPerfilCocinero: perfil.idPerfil,
+      }, responsable);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

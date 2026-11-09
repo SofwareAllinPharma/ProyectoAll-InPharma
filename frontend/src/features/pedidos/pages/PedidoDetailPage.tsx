@@ -7,6 +7,7 @@ import PedidoStatusSidebar from '../components/detail/PedidoStatusSidebar';
 import LocalToast from '../components/detail/LocalToast';
 import { PrintPedidoButton } from '../components/export/PrintPedidoButton';
 import { usePedidoDetail } from '../hooks/usePedidoDetail';
+import { descripcionComposicion } from '../utils/productoOrden';
 import { computeInsumosRequeridos } from '../utils/insumos.utils';
 
 export default function PedidoDetailPage() {
@@ -81,6 +82,7 @@ export default function PedidoDetailPage() {
         onClose={hideToast}
       />
 
+      <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{descripcionComposicion(pedido)}</p>
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={handleBack}
@@ -105,7 +107,7 @@ export default function PedidoDetailPage() {
 
           <PedidoInfoSection
             formulaNombre={productoDetalle?.idProducto === pedido.idProducto ? productoDetalle.formula?.nombre : undefined}
-            productoNombre={pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`}
+            productoNombre={productoDetalle?.nombreComercial ?? pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`}
             cantidadPaquetes={pedido.cantAProducir_paquetes}
             pesoGramos={pedido.cantAProducir_gramos}
             cantElaboradaPaquetes={pedido.cantElaborada_paquetes}

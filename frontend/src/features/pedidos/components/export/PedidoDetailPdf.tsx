@@ -1,7 +1,7 @@
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import type { Pedido } from '../../types/pedido.types';
 import type { Producto } from '../../../productos/types/producto.types';
-import { buildOrdenExport, COMPOSICION_ACTUAL, ESTADO_LABELS, formatOrdenDate, formatOrdenNumber as fmt } from '../../utils/ordenExport';
+import { buildOrdenExport, ESTADO_LABELS, formatOrdenDate, formatOrdenNumber as fmt } from '../../utils/ordenExport';
 
 const styles = StyleSheet.create({
   page: { padding: 34, paddingBottom: 48, fontFamily: 'Helvetica', fontSize: 8.5, color: '#202020' },
@@ -30,12 +30,12 @@ export const PedidoDetailPdf = ({ pedido, producto }: PedidoDetailPdfProps) => {
     <Page size="A4" style={styles.page}>
       <Text style={styles.title}>Orden de producción PED-{pedido.numPedido}</Text>
       <Text style={styles.subtitle}>Emitido: {formatOrdenDate(new Date())} | Creado: {formatOrdenDate(pedido.createdAt)} | Hora Argentina</Text>
-      <Row label="Producto" value={pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`} />
+      <Row label="Producto" value={data.producto?.nombreComercial ?? pedido.producto?.nombreComercial ?? `#${pedido.idProducto}`} />
       <Row label="Estado" value={data.estado} />
-      <Row label="Fórmula actual" value={data.formula ? `${data.formula.nombre} (#${data.formula.id})` : 'No disponible'} />
+      <Row label="Composición utilizada" value={data.formula ? `${data.formula.nombre} (#${data.formula.id})` : 'No disponible'} />
       <Row label="Porción de fórmula" value={data.formula ? `${fmt(data.formula.porcion)} g` : 'No disponible'} />
-      <Row label="Porciones por envase" value={fmt(producto?.cantPorcionesAportadas)} />
-      <Text style={styles.note}>{COMPOSICION_ACTUAL}</Text>
+      <Row label="Porciones por envase" value={fmt(data.producto?.cantPorcionesAportadas)} />
+      <Text style={styles.note}>{data.descripcionComposicion}</Text>
       {data.advertencia && <Text style={styles.warning}>{data.advertencia}</Text>}
       <Text style={styles.sectionTitle}>Cantidades de la orden</Text>
       <Row label="Planificado: paquetes / porciones" value={`${fmt(pedido.cantAProducir_paquetes)} / ${fmt(pedido.cantAProducir_porciones)}`} />
@@ -45,7 +45,7 @@ export const PedidoDetailPdf = ({ pedido, producto }: PedidoDetailPdfProps) => {
       {pedido.observacion && <Row label="Observación" value={pedido.observacion} />}
       <Text style={styles.sectionTitle}>Nutrición de la fórmula por porción{data.formula ? ` (${fmt(data.formula.porcion)} g)` : ''}</Text>
       {data.nutrientes.length ? data.nutrientes.map(n => <Row key={n.label + n.value} label={n.label} value={n.value} />) : <Text>No disponible.</Text>}
-      <Text style={styles.subtitle}>Datos registrados en la ficha actual. Sodio conserva la unidad del sistema; no se convirtió a mg.</Text>
+      <Text style={styles.subtitle}>Valores de la composición indicada. Sodio conserva la unidad del sistema; no se convirtió a mg.</Text>
       <Text style={styles.sectionTitle}>Responsables e historial</Text>
       <Row label="Creador" value={pedido.mailUsuarioCreador} />
       <Row label="Técnico asignado" value={pedido.mailUsuarioCocinero ?? 'No registrado'} />
@@ -65,7 +65,7 @@ export const PedidoDetailPdf = ({ pedido, producto }: PedidoDetailPdfProps) => {
     {composicionSeparada && <Page size="A4" style={[styles.page, { paddingTop: 145 }]}>
       <View fixed style={styles.compositionHeader}>
         <Text style={styles.title}>Composición requerida - PED-{pedido.numPedido}</Text>
-        <Text style={styles.note}>{COMPOSICION_ACTUAL}</Text>
+        <Text style={styles.note}>{data.descripcionComposicion}</Text>
         <View style={styles.tableHead}><Text style={styles.colName}>Insumo / identificación</Text><Text style={styles.colQty}>g por porción</Text><Text style={styles.colQty}>g para la orden</Text></View>
       </View>
       {data.insumos.map((ins, n) => <View key={n} style={styles.tableRow} wrap={false}><Text style={styles.colName}>#{ins.idInsumo} - {ins.nombre}</Text><Text style={styles.colQty}>{fmt(ins.gramosPorPorcion)}</Text><Text style={styles.colQty}>{fmt(ins.cantidad)}</Text></View>)}

@@ -2,6 +2,16 @@ import { prisma } from "../lib/prisma";
 import { PedidosRepository } from "../repositories/pedidos.repository";
 import { LotesService } from "./lotes.service";
 import { slugProducto, calcularVencimiento } from "../utils/lote";
+import { z } from 'zod';
+
+const productoRegistradoSchema = z.object({
+  idProducto: z.number().int().positive(),
+  nombreComercial: z.string().min(1),
+  pesoNeto: z.number().finite().positive(),
+  cantPorcionesAportadas: z.number().finite().positive(),
+  diasVencimiento: z.number().int().nullable(),
+  formula: z.object({ porcion: z.number().finite().positive() }),
+});
 
 const ESTADOS = {
   CREADO: "Creado",
@@ -50,8 +60,10 @@ export class PedidosService {
   ) {
     const pesoPaquete = Number(producto.pesoNeto);
     const porcion = Number(producto.formula?.porcion);
-    if (!pesoPaquete || !porcion)
+    if (![pesoPaquete, porcion].every(v => Number.isFinite(v) && v > 0))
       throw new Error("Producto o fórmula inválidos para conversión");
+
+    if ([gramos, paquetes, porciones].some(v => v !== undefined && (!Number.isFinite(v) || v <= 0))) throw new Error("Las cantidades deben ser finitas y mayores a 0");
 
     let g = gramos,
       pqt = paquetes,
@@ -75,7 +87,7 @@ export class PedidosService {
       pqt = round4(g / pesoPaquete);
     }
 
-    if (g! <= 0 || pqt! <= 0 || por! <= 0)
+    if (![g, pqt, por].every(v => typeof v === "number" && Number.isFinite(v) && v > 0))
       throw new Error("Las cantidades convertidas deben ser > 0");
 
     return {
@@ -135,7 +147,7 @@ export class PedidosService {
       estaAsignado: false,
     };
 
-    return this.repo.createWithEstadoCreado(dataPedido, estadoCreadoId);
+    return this.repo.createWithEstadoCreado(dataPedido, estadoCreadoId, producto);
   }
 
   async tomarPedido(
@@ -202,11 +214,14 @@ export class PedidosService {
     if (opts.idDepositoDestino != null && opts.idDepositoDestino !== dep.id) throw new Error("La elaboración ingresa en Fábrica-Atrás");
 
     // Convertir cantidad real a gramos y porciones
-    const producto = await prisma.producto.findUnique({
-      where: { idProducto: pedido.idProducto },
-      include: { formula: true },
-    });
+    const producto = pedido.productoSnapshot != null
+      ? productoRegistradoSchema.parse(pedido.productoSnapshot)
+      : await prisma.producto.findUnique({
+          where: { idProducto: pedido.idProducto },
+          include: { formula: true },
+        });
     if (!producto) throw new Error("Producto no encontrado");
+    if (producto.idProducto !== pedido.idProducto) throw new Error('La composición registrada no corresponde al producto de la orden');
 
     const cantidades = this.convertirCantidades({ paquetes: cantidadRealPaquetes }, producto);
     const realPaquetes = round4(cantidadRealPaquetes);

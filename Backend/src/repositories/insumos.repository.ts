@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { Insumo } from "@prisma/client";
+import { Prisma, Insumo } from "@prisma/client";
 
 export class InsumosRepository {
   async findAll(): Promise<Insumo[]> {
@@ -17,7 +17,7 @@ export class InsumosRepository {
     return prisma.insumo.create({ data });
   }
 
-  async update(id: number, data: Partial<Omit<Insumo, "id">>): Promise<Insumo> {
+  async update(id: number, data: Partial<Omit<Insumo, "id">>, db: Prisma.TransactionClient = prisma): Promise<Insumo> {
     const d = data as any;
 
     // Build payload with only the fields that were provided, coercing numeric nulls to 0
@@ -40,7 +40,7 @@ export class InsumosRepository {
       updateData.otroAlias = d.otroAlias?.trim() || null;
     }
 
-    return prisma.insumo.update({ where: { id }, data: updateData });
+    return db.insumo.update({ where: { id }, data: updateData });
   }
 
   async delete(id: number): Promise<Insumo> {

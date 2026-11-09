@@ -16,8 +16,13 @@ export default function Login() {
     try {
       await login(mail, password);
       navigate('/perfiles', { replace: true });
-    } catch {
-      setAlert({ type: 'danger', msg: 'Credenciales inválidas. Mail y/o contraseña incorrectos. Por favor, intente nuevamente' });
+    } catch (error) {
+      const response = error as { response?: { status?: number; data?: { error?: unknown } } };
+      const backendMessage = response.response?.data?.error;
+      const msg = response.response?.status === 403 && typeof backendMessage === 'string'
+        ? backendMessage
+        : response.response?.status === 401 ? 'Mail o contraseña incorrectos.' : 'No se pudo iniciar sesión. Revisá la conexión y reintentá.';
+      setAlert({ type: 'danger', msg });
     }
   };
 

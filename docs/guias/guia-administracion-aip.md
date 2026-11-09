@@ -1,6 +1,6 @@
 # Guía de administración de AIP
 
-Entrega de mejoras operativas · 4 de noviembre de 2026
+Entrega de mejoras operativas · Actualizada el 9 de noviembre de 2026
 
 Esta guía explica la configuración operativa y los controles que acompañan la entrega. Para tareas diarias de fábrica y venta, usar la [guía de usuario](guia-usuario-aip.md).
 
@@ -10,7 +10,7 @@ Esta guía explica la configuración operativa y los controles que acompañan la
 - Costos incompletos identificados, sin convertir faltantes en cero.
 - Consulta de proveedores e insumos asociados a sus referencias vigentes e históricas.
 - Ficha de insumo con nutrición por 100 g.
-- Orden PDF/Word con fórmula actual, nutrición por porción, composición estimada y responsables.
+- Orden PDF/Word con nutrición por porción, composición requerida y responsables. La versión con historial usa la composición registrada al crear cada orden nueva.
 - Finalización con paquetes y unidades por caja enteros, dos responsables distintos y entrada de lote/cajas en Atrás.
 - Venta desde Estantería; ajustes separados de ventas.
 - Alertas de stock basadas en cajas, incluyendo faltantes con saldo cero según los umbrales configurados.
@@ -81,9 +81,9 @@ El costo mostrado es de insumos según referencia; no incorpora automáticamente
 
 ## Revisar órdenes e informes
 
-Antes de entregar una orden para elaborar, verificar producto, fórmula y cantidades. PDF y Word usan la composición **actual al emitir**, con requerimientos estimados. No hay una copia histórica inmutable de la receta por orden.
+Antes de entregar una orden para elaborar, verificar producto, fórmula y cantidades. En la versión con historial, PDF y Word usan la copia de composición registrada en la orden. Los requerimientos de insumos son estimados.
 
-Si se modifica una fórmula, una reimpresión antigua puede mostrar esa nueva composición. Conservar el documento usado en la elaboración conforme al procedimiento documental de la fábrica; no atribuirle al sistema un historial de recetas que todavía no tiene.
+En órdenes anteriores sin copia, una reimpresión puede mostrar cambios posteriores del catálogo. Conservar el documento usado en la elaboración conforme al procedimiento documental de la fábrica.
 
 Lote, vencimiento y ubicación se consultan en Inventario. Exportar el informe no crea lotes y los responsables impresos no acreditan firma digital.
 

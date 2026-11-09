@@ -1,5 +1,6 @@
 import type { Pedido } from '../types/pedido.types';
 import type { Producto } from '../../productos/types/producto.types';
+import { productoParaOrden, descripcionComposicion } from './productoOrden';
 import { computeInsumosRequeridos } from './insumos.utils';
 
 export const COMPOSICION_ACTUAL = 'Composición actual al emitir. Requerimientos estimados; no representan consumo real ni una copia histórica de la receta.';
@@ -17,8 +18,9 @@ export const formatOrdenDate = (value: string | Date) => {
 };
 
 export function buildOrdenExport(pedido: Pedido, producto: Producto | null | undefined) {
-  const formula = producto?.idProducto === pedido.idProducto ? producto.formula : undefined;
-  const insumos = computeInsumosRequeridos(pedido, formula ? producto! : null);
+  const productoRegistrado = productoParaOrden(pedido, producto);
+  const formula = productoRegistrado?.formula;
+  const insumos = computeInsumosRequeridos(pedido, productoRegistrado);
   const nutrientes = formula ? [
     ['Energía', formula.kcaloriasPorPorcion, 'kcal'], ['Energía', formula.kjPorPorcion, 'kJ'],
     ['Proteínas', formula.proteinasPorPorcion, 'g'], ['Carbohidratos', formula.carbohidratosPorPorcion, 'g'],
@@ -30,7 +32,8 @@ export function buildOrdenExport(pedido: Pedido, producto: Producto | null | und
   const faltantes = !formula || insumos.length === 0 || !Number.isFinite(formula.porcion) || formula.porcion <= 0;
   const finalizacion = [...(pedido.cambios ?? [])].reverse().find(c => c.estado?.nombre === 'ElaboradoYDepositadoEnFábrica');
   return {
-    formula, insumos, nutrientes,
+    formula, insumos, nutrientes, producto: productoRegistrado,
+    descripcionComposicion: descripcionComposicion(pedido),
     advertencia: faltantes ? 'Composición incompleta o no disponible. No usar este informe como receta de elaboración sin verificar la fórmula.' : null,
     estado: ESTADO_LABELS[pedido.cambioActual?.estado?.nombre ?? ''] ?? pedido.cambioActual?.estado?.nombre ?? 'No disponible',
     elaborador: finalizacion?.responsable ?? null,

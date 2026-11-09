@@ -38,7 +38,7 @@ export default function ProductInfoCollapse({
     >
       <div className="text-sm text-gray-700 space-y-1">
         <p>
-          <strong>Fórmula:</strong> {formula.nombre}
+          <strong>{formula.tipoComposicion === 'producto' ? 'Composición:' : 'Fórmula:'}</strong> {formula.tipoComposicion === 'producto' ? 'Propia del producto' : formula.nombre}
         </p>
         <p>
           <strong>Peso por porción:</strong> {formula.porcion || 0}g

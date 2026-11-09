@@ -72,3 +72,24 @@ test('detalle muestra el nombre de fórmula recibido y nunca inventa una fórmul
   assert.ok(sinFormula.includes('No disponible'));
   assert.ok(!sinFormula.includes('Producto sintético Pura'));
 });
+
+
+test('orden registrada prioriza composición propia histórica y conserva aviso para órdenes anteriores', () => {
+  const snapshot = {
+    ...producto, nombreComercial: 'Producto al crear orden',
+    formula: {
+      id: 7, nombre: 'Composición registrada', porcion: 40, kcalorias: 120, kjuls: 502.08,
+      grasaTotal: 3, grasaSaturada: 1, grasaTrans: 0, proteinas: 4, carbohidratos: 20,
+      sodio: .01, fibra: 2, otros: 0, esProtegida: true, tipoComposicion: 'producto',
+      formulaInsumos: [{ id: 1, idFormula: 7, idInsumo: 1, cantidadInsumo: 40, insumo: { nombre: 'Insumo histórico' } }],
+    },
+  };
+  const registrada = { ...pedido, productoSnapshot: snapshot, composicionCapturadaAt: '2026-11-08T10:00:00Z' };
+  const data = buildOrdenExport(registrada, { ...producto, nombreComercial: 'Catálogo cambiado' });
+  assert.equal(data.producto?.nombreComercial, 'Producto al crear orden');
+  assert.equal(data.formula?.nombre, 'Composición registrada');
+  assert.equal(data.insumos[0].nombre, 'Insumo histórico');
+  assert.ok(data.descripcionComposicion.includes('registradas'));
+  assert.ok(buildOrdenExport(pedido, producto).descripcionComposicion.includes('sin copia histórica'));
+  assert.ok(buildOrdenExport({ ...pedido, productoSnapshot: {} }, producto).advertencia);
+});

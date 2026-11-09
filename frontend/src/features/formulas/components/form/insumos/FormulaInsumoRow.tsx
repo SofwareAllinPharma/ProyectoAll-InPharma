@@ -42,8 +42,8 @@ export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumo
   // We keep a text state for editing (so empty shows blank). Commit on blur.
 
   return (
-    <div ref={rowRef} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-      <div className="flex-1">
+    <div ref={rowRef} className="flex flex-wrap items-center gap-3 p-3 border border-gray-200 rounded-lg">
+      <div className="min-w-0 basis-full sm:basis-0 flex-1">
         <SearchSelect<Insumo>
           items={availableInsumos}
           value={formulaInsumo.insumo ?? null}
@@ -59,7 +59,7 @@ export default function FormulaInsumoRow({ index, formulaInsumo, availableInsumo
         </div>
       </div>
 
-      <div className="w-32">
+      <div className="min-w-0 flex-1 sm:flex-none sm:w-32">
         <input
           type="number"
           step="0.001"

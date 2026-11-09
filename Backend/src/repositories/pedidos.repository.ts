@@ -1,3 +1,4 @@
+import { bloquearCatalogoComposicion } from '../services/composicion';
 import { prisma } from "../lib/prisma";
 
 export class PedidosRepository {
@@ -46,9 +47,37 @@ export class PedidosRepository {
     });
   }
 
-  async createWithEstadoCreado(data: any, estadoCreadoId: number) {
+  async createWithEstadoCreado(
+    data: any,
+    estadoCreadoId: number,
+    productoEsperado: { idFormula: number; pesoNeto: number; cantPorcionesAportadas: number; formula: { updatedAt: Date } }
+  ) {
     return prisma.$transaction(async (tx) => {
-      const pedido = await tx.pedido.create({ data });
+      await bloquearCatalogoComposicion(tx);
+      await tx.$queryRaw`SELECT "idProducto" FROM "PRODUCTOS" WHERE "idProducto" = ${data.idProducto} FOR SHARE`;
+      const referencia = await tx.producto.findUnique({ where: { idProducto: data.idProducto } });
+      if (!referencia?.estaActivo) throw new Error('Producto no disponible');
+      await tx.$queryRaw`SELECT "id" FROM "FORMULA" WHERE "id" = ${referencia.idFormula} FOR SHARE`;
+      const producto = await tx.producto.findUnique({
+        where: { idProducto: data.idProducto },
+        include: { formula: { include: { formulaInsumos: { include: { insumo: true } } } } },
+      });
+      if (!producto || !producto.formula.activo || producto.formula.formulaInsumos.length === 0) {
+        throw new Error('La composición del producto no está disponible');
+      }
+      if (producto.idFormula !== productoEsperado.idFormula ||
+          producto.pesoNeto !== productoEsperado.pesoNeto ||
+          producto.cantPorcionesAportadas !== productoEsperado.cantPorcionesAportadas ||
+          producto.formula.updatedAt.getTime() !== productoEsperado.formula.updatedAt.getTime()) {
+        throw new Error('La composición o presentación cambió. Actualizá el producto antes de crear la orden.');
+      }
+      const pedido = await tx.pedido.create({
+        data: {
+          ...data,
+          productoSnapshot: JSON.parse(JSON.stringify(producto)),
+          composicionCapturadaAt: new Date(),
+        },
+      });
       // Determine responsable from creator persona if available
       let responsable: string | null = null;
       try {

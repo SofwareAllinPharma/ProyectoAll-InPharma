@@ -9,6 +9,7 @@ export interface FormulaInsumo {
 }
 
 export interface Formula {
+  tipoComposicion?: 'reutilizable' | 'producto';
   id: number;
   nombre: string;
   porcion: number;

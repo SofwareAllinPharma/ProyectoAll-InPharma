@@ -4,20 +4,16 @@ import NumberField from '../../../../components/form/NumberField';
 import FormulaSearchSelect from './FormulaSearchSelect';
 import ProductInfoCollapse from './ProductInfoCollapse';
 import ProductNutritionCollapse from './ProductNutritionCollapse';
-import type { Formula } from '../../../formulas/types/formula.types';
+import type { Formula, FormulaInsumo } from '../../../formulas/types/formula.types';
+import { FormulaInsumoManager } from '../../../formulas/components/form/insumos/FormulaInsumoManager';
+import type { ProductoFormState } from '../../lib/composition';
 
-type FormState = {
-  idFormula: number;
-  nombreComercial: string;
-  sku: string;
-  diasVencimiento: string;
-  pesoNeto: number;
-  cantPorcionesAportadas: number;
-  calculationMode: 'pesoNeto' | 'porciones';
-};
 
 type Props = {
-  formData: FormState;
+  formData: ProductoFormState;
+  insumos: FormulaInsumo[];
+  onInsumosChange: (insumos: FormulaInsumo[]) => void;
+  onCompositionModeChange: (modo: 'formula' | 'insumos') => void;
   selectedFormula: Formula | null;
   errors: Record<string,string>;
   serverError: string | null;
@@ -29,7 +25,7 @@ type Props = {
   onValueChange: (field:'pesoNeto'|'cantPorcionesAportadas', v:number)=>void;
 };
 
-export default function ProductoFormBody({ formData, selectedFormula, errors, serverError, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
+export default function ProductoFormBody({ formData, insumos, onInsumosChange, onCompositionModeChange, selectedFormula, errors, serverError, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange, onValueChange }: Props) {
   return (
     <div className="overflow-y-auto p-6 space-y-6">
       <div>
@@ -59,16 +55,23 @@ export default function ProductoFormBody({ formData, selectedFormula, errors, se
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Fórmula</label>
-        <FormulaSearchSelect
-          value={selectedFormula}
-          onChange={(f) => onFormulaChange(f)}
-          className={`${errors.idFormula ? 'border-red-500' : ''}`}
-          noResultsText="No se encontraron fórmulas"
-        />
-        {errors.idFormula && <p className="mt-1 text-sm text-red-600">{errors.idFormula}</p>}
-      </div>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium text-gray-700">Composición del producto</legend>
+        <div className="flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 text-sm"><input type="radio" name="tipoComposicion" checked={formData.tipoComposicion === 'formula'} onChange={() => onCompositionModeChange('formula')} />Usar fórmula</label>
+          <label className="flex items-center gap-2 text-sm"><input type="radio" name="tipoComposicion" checked={formData.tipoComposicion === 'insumos'} onChange={() => onCompositionModeChange('insumos')} />Cargar insumos</label>
+        </div>
+        {formData.tipoComposicion === 'formula' ? <div>
+          <FormulaSearchSelect value={selectedFormula} onChange={onFormulaChange} className={errors.idFormula ? 'border-red-500' : ''} noResultsText="No se encontraron fórmulas reutilizables" />
+          {errors.idFormula && <p role="alert" className="mt-1 text-sm text-red-600">{errors.idFormula}</p>}
+        </div> : <div className="space-y-3">
+          <p className="text-sm text-gray-600">Cargá los insumos y gramos que componen <strong>una porción</strong>. Se guarda como composición propia de este producto, sin crear una fórmula reutilizable.</p>
+          <FormulaInsumoManager title="Insumos del producto" formulaInsumos={insumos} onChange={onInsumosChange} />
+          <p className="text-sm font-medium">Peso de una porción: {selectedFormula?.porcion.toLocaleString('es-AR', { maximumFractionDigits: 4 }) ?? 'Completá los insumos'}{selectedFormula ? ' g' : ''}</p>
+          {errors.insumos && <p role="alert" className="text-sm text-red-600">{errors.insumos}</p>}
+          <p className="text-xs text-gray-500">El costo se consulta al guardar. Si falta un precio de referencia válido, se indica Costo incompleto.</p>
+        </div>}
+      </fieldset>
 
       {selectedFormula && (
         <div>
@@ -87,12 +90,12 @@ export default function ProductoFormBody({ formData, selectedFormula, errors, se
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Peso Neto (g){formData.calculationMode==='porciones'&&<span className="text-xs text-gray-500"> (calculado)</span>}</label>
-              <NumberField value={formData.pesoNeto} onChange={(v)=>onValueChange('pesoNeto',v)} disabled={formData.calculationMode==='porciones'} className={`${errors.pesoNeto ? 'border-red-500' : ''}`} />
+              <NumberField step={0.0001} value={formData.pesoNeto} onChange={(v)=>onValueChange('pesoNeto',v)} disabled={formData.calculationMode==='porciones'} className={`${errors.pesoNeto ? 'border-red-500' : ''}`} />
               {errors.pesoNeto && <p className="mt-1 text-sm text-red-600">{errors.pesoNeto}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad de Porciones{formData.calculationMode==='pesoNeto'&&<span className="text-xs text-gray-500"> (calculado)</span>}</label>
-              <NumberField value={formData.cantPorcionesAportadas} onChange={(v)=>onValueChange('cantPorcionesAportadas',v)} disabled={formData.calculationMode==='pesoNeto'} className={`${errors.cantPorcionesAportadas ? 'border-red-500' : ''}`} />
+              <NumberField step={0.0001} value={formData.cantPorcionesAportadas} onChange={(v)=>onValueChange('cantPorcionesAportadas',v)} disabled={formData.calculationMode==='pesoNeto'} className={`${errors.cantPorcionesAportadas ? 'border-red-500' : ''}`} />
               {errors.cantPorcionesAportadas && <p className="mt-1 text-sm text-red-600">{errors.cantPorcionesAportadas}</p>}
             </div>
           </div>

@@ -17,8 +17,7 @@ import { useToast } from '../../../components/ui/toast/ToastContext';
 
 const ProductosPage: React.FC = () => {
   const { user } = useAuth();
-  const isTecnico = user?.roles.includes('TECNICO');
-  const canManageProductos = !isTecnico;
+  const canManageProductos = user?.roles.some(role => role === 'ADMINSIS' || role === 'ADMINFAB') ?? false;
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);

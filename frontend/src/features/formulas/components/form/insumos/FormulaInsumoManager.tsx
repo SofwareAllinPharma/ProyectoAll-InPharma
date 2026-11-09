@@ -10,9 +10,9 @@ import FormulaInsumoEmpty from './FormulaInsumoEmpty';
 import FormulaInsumoSummary from './FormulaInsumoSummary';
 import SearchSelect from '../../../../../components/ui/SearchSelect';
 
-interface Props { formulaInsumos: FormulaInsumo[]; onChange: (ins: FormulaInsumo[], touched?: boolean) => void; disabled?: boolean }
+interface Props { title?: string; formulaInsumos: FormulaInsumo[]; onChange: (ins: FormulaInsumo[], touched?: boolean) => void; disabled?: boolean }
 
-export const FormulaInsumoManager: React.FC<Props> = ({ formulaInsumos, onChange, disabled }) => {
+export const FormulaInsumoManager: React.FC<Props> = ({ title, formulaInsumos, onChange, disabled }) => {
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [loading, setLoading] = useState(false);
   const firstRef = useRef<HTMLDivElement | null>(null);
@@ -102,7 +102,7 @@ export const FormulaInsumoManager: React.FC<Props> = ({ formulaInsumos, onChange
 
   return (
     <div className="space-y-4">
-      <FormulaInsumoHeader onAdd={add} onImport={openImport} disabled={disabled} />
+      <FormulaInsumoHeader title={title} onAdd={add} onImport={openImport} disabled={disabled} />
 
       {/* Import formula panel */}
       {importOpen && (

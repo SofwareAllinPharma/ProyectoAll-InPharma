@@ -15,7 +15,9 @@ export interface Producto {
 }
 
 export interface CreateProductoRequest {
-  idFormula: number;
+  idFormula?: number;
+  tipoComposicion?: 'formula' | 'insumos';
+  insumos?: { idInsumo: number; cantidadInsumo: number }[];
   nombreComercial: string;
   sku?: string | null;
   diasVencimiento?: number | null;

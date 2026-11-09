@@ -1,5 +1,12 @@
+import { bloquearCatalogoComposicion } from './composicion';
 import { ProductosRepository } from "../repositories/productos.repository";
 import { prisma } from "../lib/prisma";
+import type { Prisma } from '@prisma/client';
+import { calcularComposicion, validarLineasComposicion } from './composicion';
+
+const productoInclude = { formula: { include: { formulaInsumos: { include: { insumo: true } } } } } as const;
+type ProductoCompleto = Prisma.ProductoGetPayload<{ include: typeof productoInclude }>;
+
 
 export class ProductosService {
   repo = new ProductosRepository();
@@ -13,151 +20,66 @@ export class ProductosService {
   }
 
   async createProducto(dto: any) {
-    if (
-      !dto.nombreComercial ||
-      typeof dto.nombreComercial !== "string" ||
-      !dto.nombreComercial.trim()
-    ) {
-      throw new Error("El nombre comercial es obligatorio");
-    }
-
-    // Verificar que no exista un producto activo con el mismo nombre
-    const existingProduct = await prisma.producto.findFirst({
-      where: {
-        nombreComercial: dto.nombreComercial.trim(),
-        estaActivo: true,
-      },
-    });
-
-    if (existingProduct) {
-      throw new Error("Ya existe un producto activo con ese nombre comercial");
-    }
-
-    if (!dto.idFormula) throw new Error("Debe indicar una fórmula");
-    const formula = await prisma.formula.findUnique({
-      where: { id: dto.idFormula },
-    });
-    if (!formula) throw new Error("Fórmula no encontrada");
-    //if (formula.esProtegida)
-    //throw new Error("No se puede crear producto con fórmula protegida");
-
-    let pesoNeto = dto.pesoNeto;
-    let cantPorcionesAportadas = dto.cantPorcionesAportadas;
-
-    if (pesoNeto && cantPorcionesAportadas) {
-      cantPorcionesAportadas =
-        Math.round((pesoNeto / formula.porcion) * 10000) / 10000;
-    } else if (pesoNeto) {
-      cantPorcionesAportadas =
-        Math.round((pesoNeto / formula.porcion) * 10000) / 10000;
-    } else if (cantPorcionesAportadas) {
-      pesoNeto =
-        Math.round(cantPorcionesAportadas * formula.porcion * 10000) / 10000;
-    } else {
-      throw new Error("Debe indicar peso neto o cantidad de porciones");
-    }
-
-    if (pesoNeto <= 0) throw new Error("El peso neto debe ser mayor a 0");
-    if (cantPorcionesAportadas <= 0)
-      throw new Error("La cantidad de porciones debe ser mayor a 0");
-
-    const sku = normalizarSku(dto.sku);
-    if (sku) {
-      const skuEnUso = await prisma.producto.findFirst({
-        where: { sku, estaActivo: true },
+    const nombre = nombreProducto(dto.nombreComercial);
+    return prisma.$transaction(async tx => {
+      await bloquearCatalogoComposicion(tx);
+      if (await tx.producto.findFirst({ where: { nombreComercial: { equals: nombre, mode: 'insensitive' }, estaActivo: true } })) throw new Error('Ya existe un producto activo con ese nombre comercial');
+      const formula = await this.resolverComposicion(tx, dto, nombre);
+      const dimensiones = dimensionesProducto(dto, formula.porcion);
+      const sku = normalizarSku(dto.sku);
+      if (sku && await tx.producto.findFirst({ where: { sku } })) throw new Error('Ya existe un producto con ese SKU');
+      return tx.producto.create({
+        data: { nombreComercial: nombre, sku, diasVencimiento: parseDiasVencimiento(dto.diasVencimiento), idFormula: formula.id, ...dimensiones, estaActivo: true },
+        include: productoInclude,
       });
-      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
-    }
-
-    const diasVencimiento = parseDiasVencimiento(dto.diasVencimiento);
-
-    return this.repo.create({
-      nombreComercial: dto.nombreComercial,
-      sku,
-      diasVencimiento,
-      idFormula: dto.idFormula,
-      pesoNeto,
-      cantPorcionesAportadas,
-      estaActivo: true,
     });
   }
 
   async updateProducto(idProducto: number, dto: any) {
-    const producto = await prisma.producto.findUnique({
-      where: { idProducto },
-    });
-    if (!producto) throw new Error("Producto no encontrado");
-
-    // Verificar que no exista otro producto activo con el mismo nombre (si se está cambiando el nombre)
-    if (
-      dto.nombreComercial &&
-      dto.nombreComercial.trim() !== producto.nombreComercial
-    ) {
-      const existingProduct = await prisma.producto.findFirst({
-        where: {
-          nombreComercial: dto.nombreComercial.trim(),
-          estaActivo: true,
-          idProducto: { not: idProducto }, // Excluir el producto actual
-        },
+    return prisma.$transaction(async tx => {
+      await bloquearCatalogoComposicion(tx);
+      await tx.$queryRaw`SELECT "idProducto" FROM "PRODUCTOS" WHERE "idProducto" = ${idProducto} FOR UPDATE`;
+      const producto = await tx.producto.findUnique({ where: { idProducto }, include: productoInclude });
+      if (!producto || !producto.estaActivo) throw new Error('Producto no encontrado');
+      const nombre = dto.nombreComercial === undefined ? producto.nombreComercial : nombreProducto(dto.nombreComercial);
+      if (await tx.producto.findFirst({ where: { nombreComercial: { equals: nombre, mode: 'insensitive' }, estaActivo: true, idProducto: { not: idProducto } } })) throw new Error('Ya existe un producto activo con ese nombre comercial');
+      const formula = await this.resolverComposicion(tx, dto, nombre, producto);
+      const dimensiones = dimensionesProducto(dto, formula.porcion, producto);
+      const sku = dto.sku === undefined ? producto.sku : normalizarSku(dto.sku);
+      if (sku && await tx.producto.findFirst({ where: { sku, idProducto: { not: idProducto } } })) throw new Error('Ya existe un producto con ese SKU');
+      return tx.producto.update({
+        where: { idProducto },
+        data: { nombreComercial: nombre, sku, diasVencimiento: dto.diasVencimiento === undefined ? producto.diasVencimiento : parseDiasVencimiento(dto.diasVencimiento), idFormula: formula.id, ...dimensiones },
+        include: productoInclude,
       });
-
-      if (existingProduct) {
-        throw new Error(
-          "Ya existe un producto activo con ese nombre comercial"
-        );
-      }
-    }
-
-    const formula = await prisma.formula.findUnique({
-      where: { id: dto.idFormula ?? producto.idFormula },
     });
-    if (!formula) throw new Error("Fórmula no encontrada");
-    if (formula.esProtegida)
-      throw new Error("No se puede modificar producto con fórmula protegida");
+  }
 
-    let pesoNeto = dto.pesoNeto;
-    let cantPorcionesAportadas = dto.cantPorcionesAportadas;
-
-    if (pesoNeto && cantPorcionesAportadas) {
-      cantPorcionesAportadas =
-        Math.round((pesoNeto / formula.porcion) * 10000) / 10000;
-    } else if (pesoNeto) {
-      cantPorcionesAportadas =
-        Math.round((pesoNeto / formula.porcion) * 10000) / 10000;
-    } else if (cantPorcionesAportadas) {
-      pesoNeto =
-        Math.round(cantPorcionesAportadas * formula.porcion * 10000) / 10000;
-    } else {
-      throw new Error("Debe indicar peso neto o cantidad de porciones");
+  private async resolverComposicion(tx: Prisma.TransactionClient, dto: any, nombre: string, producto?: ProductoCompleto) {
+    const tipo = dto.tipoComposicion;
+    if (tipo !== undefined && tipo !== 'formula' && tipo !== 'insumos') throw new Error('El tipo de composición debe ser fórmula o insumos');
+    if (tipo === 'insumos') {
+      if (dto.idFormula != null) throw new Error('No se puede enviar una fórmula al cargar insumos directamente');
+      const lineas = validarLineasComposicion(dto.insumos);
+      const actual = producto?.formula;
+      if (actual?.tipoComposicion === 'producto' && actual.formulaInsumos.length === lineas.length && lineas.every(l => actual.formulaInsumos.some(a => a.idInsumo === l.idInsumo && a.cantidadInsumo === l.cantidadInsumo))) return actual;
+      const { lineas: validadas, ...nutricion } = await calcularComposicion(tx, lineas);
+      return tx.formula.create({ data: {
+        nombre: `Composición de ${nombre}`,
+        tipoComposicion: 'producto', esProtegida: true, activo: true, ...nutricion,
+        formulaInsumos: { create: validadas },
+      } });
     }
-
-    if (pesoNeto <= 0) throw new Error("El peso neto debe ser mayor a 0");
-    if (cantPorcionesAportadas <= 0)
-      throw new Error("La cantidad de porciones debe ser mayor a 0");
-
-    // sku undefined => no se toca; "" => se limpia a null
-    const sku = dto.sku === undefined ? producto.sku : normalizarSku(dto.sku);
-    if (sku && sku !== producto.sku) {
-      const skuEnUso = await prisma.producto.findFirst({
-        where: { sku, estaActivo: true, idProducto: { not: idProducto } },
-      });
-      if (skuEnUso) throw new Error("Ya existe un producto activo con ese SKU");
-    }
-
-    const diasVencimiento =
-      dto.diasVencimiento === undefined
-        ? producto.diasVencimiento
-        : parseDiasVencimiento(dto.diasVencimiento);
-
-    return this.repo.update(idProducto, {
-      nombreComercial: dto.nombreComercial ?? producto.nombreComercial,
-      sku,
-      diasVencimiento,
-      idFormula: dto.idFormula ?? producto.idFormula,
-      pesoNeto,
-      cantPorcionesAportadas,
-      estaActivo: true,
-    });
+    if (dto.insumos !== undefined) throw new Error('Para cargar insumos elegí el modo de composición directa');
+    const id = dto.idFormula ?? producto?.idFormula;
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Debe indicar una fórmula reutilizable');
+    await tx.$queryRaw`SELECT "id" FROM "FORMULA" WHERE "id" = ${id} FOR SHARE`;
+    const formula = await tx.formula.findUnique({ where: { id } });
+    if (!formula || !formula.activo) throw new Error('Fórmula inexistente o inactiva');
+    // Una edición parcial conserva su propia composición; nunca puede tomar la de otro producto.
+    const conservaPropia = tipo === undefined && producto?.idFormula === id && formula.tipoComposicion === 'producto';
+    if (formula.tipoComposicion !== 'reutilizable' && !conservaPropia) throw new Error('La composición propia de un producto no es una fórmula reutilizable');
+    return formula;
   }
 
   async softDeleteProducto(idProducto: number) {
@@ -272,4 +194,30 @@ function parseDiasVencimiento(raw: unknown): number | null {
   if (!Number.isInteger(n) || n <= 0)
     throw new Error("Los días de vencimiento deben ser un entero mayor a 0");
   return n;
+}
+
+function nombreProducto(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw.trim()) throw new Error('El nombre comercial es obligatorio');
+  return raw.trim();
+}
+
+function dimensionesProducto(dto: { pesoNeto?: unknown; cantPorcionesAportadas?: unknown }, porcion: number, actual?: { pesoNeto: number }) {
+  if (!Number.isFinite(porcion) || porcion <= 0) throw new Error('La composición debe tener una porción válida');
+  let pesoNeto: number;
+  let cantPorcionesAportadas: number;
+  for (const value of [dto.pesoNeto, dto.cantPorcionesAportadas]) {
+    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)) throw new Error('Peso neto y porciones deben ser números finitos mayores a 0');
+  }
+  if (typeof dto.pesoNeto === 'number') {
+    pesoNeto = dto.pesoNeto;
+    cantPorcionesAportadas = Math.round(pesoNeto / porcion * 10000) / 10000;
+  } else if (typeof dto.cantPorcionesAportadas === 'number') {
+    cantPorcionesAportadas = dto.cantPorcionesAportadas;
+    pesoNeto = Math.round(cantPorcionesAportadas * porcion * 10000) / 10000;
+  } else if (actual) {
+    pesoNeto = actual.pesoNeto;
+    cantPorcionesAportadas = Math.round(pesoNeto / porcion * 10000) / 10000;
+  } else throw new Error('Debe indicar peso neto o cantidad de porciones');
+  if (!Number.isFinite(pesoNeto) || !Number.isFinite(cantPorcionesAportadas) || pesoNeto <= 0 || cantPorcionesAportadas <= 0) throw new Error('La presentación calculada debe ser finita y mayor a 0');
+  return { pesoNeto, cantPorcionesAportadas };
 }

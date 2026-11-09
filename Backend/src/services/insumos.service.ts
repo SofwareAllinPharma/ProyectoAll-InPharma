@@ -1,3 +1,5 @@
+import type { Prisma } from '@prisma/client';
+import { bloquearCatalogoComposicion } from './composicion';
 import { InsumosRepository } from "../repositories/insumos.repository";
 import { prisma } from "../lib/prisma";
 
@@ -32,9 +34,10 @@ export class InsumosService {
   }
 
   async update(id: number, data: UpdateData) {
-    // Opcional: También deberías validar al editar para no duplicar nombres
+    return prisma.$transaction(async tx => {
+    await bloquearCatalogoComposicion(tx);
     if (data.nombre) {
-      const insumoExistente = await prisma.insumo.findFirst({
+      const insumoExistente = await tx.insumo.findFirst({
         where: {
           nombre: { equals: data.nombre, mode: "insensitive" },
           activo: true,
@@ -48,10 +51,10 @@ export class InsumosService {
     }
 
     // 1. Realizamos la actualización del insumo
-    const insumoActualizado = await insumosRepository.update(id, data);
+    const insumoActualizado = await insumosRepository.update(id, data, tx);
 
     // 2. Buscamos todas las fórmulas que utilizan este insumo
-    const formulasAfectadas = await prisma.formulaInsumo.findMany({
+    const formulasAfectadas = await tx.formulaInsumo.findMany({
       where: { idInsumo: id },
       select: { idFormula: true },
       distinct: ["idFormula"],
@@ -59,10 +62,11 @@ export class InsumosService {
 
     // 3. Recalculamos los valores nutricionales de cada fórmula afectada
     for (const f of formulasAfectadas) {
-      await this.recalcularValoresFormula(f.idFormula);
+      await this.recalcularValoresFormula(f.idFormula, tx);
     }
 
     return insumoActualizado;
+    });
   }
 
   async delete(id: number) {
@@ -83,8 +87,8 @@ export class InsumosService {
   }
 
   // --- MÉTODO PRIVADO PARA RECALCULAR FÓRMULAS ---
-  private async recalcularValoresFormula(idFormula: number) {
-    const formula = await prisma.formula.findUnique({
+  private async recalcularValoresFormula(idFormula: number, db: Prisma.TransactionClient) {
+    const formula = await db.formula.findUnique({
       where: { id: idFormula },
       include: {
         formulaInsumos: {
@@ -136,7 +140,7 @@ export class InsumosService {
 
     const ratio = porcion / totalPesoBatch;
 
-    await prisma.formula.update({
+    await db.formula.update({
       where: { id: idFormula },
       data: {
         kcalorias: totalKcal * ratio,

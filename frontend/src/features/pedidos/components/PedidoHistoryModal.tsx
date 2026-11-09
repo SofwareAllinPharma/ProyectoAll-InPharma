@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../../../lib/auth";
 import { PedidoService } from "../services/pedido.service";
 import type { Pedido, CambioEstado } from "../types/pedido.types";
 import { useToast } from "../../../components/ui/toast/ToastContext";
@@ -22,6 +23,7 @@ const PedidoHistoryModal: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
   const { show } = useToast();
+  const { isAdminSis, isAdminFab } = useAuth();
 
   if (!isOpen || !pedido) return null;
 
@@ -35,7 +37,6 @@ const PedidoHistoryModal: React.FC<Props> = ({
   const currentState = pedido.cambioActual?.estado?.nombre || "";
   const normalize = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, '').toLowerCase();
   const estadoNorm = normalize(currentState);
-  const userProfile = localStorage.getItem("userPerfil") || "";
 
   const getAvailableActions = () => {
     const actions: Array<{ label: string; action: string; variant?: string }> =
@@ -46,27 +47,27 @@ const PedidoHistoryModal: React.FC<Props> = ({
       case 'creado':
       case 'pendiente':
       case 'aprobado':
-        if (userProfile === "3" || userProfile === "2") {
+        if (isAdminSis || isAdminFab) {
           actions.push({ label: "Tomar Pedido", action: "tomar" });
           // Permitir cancelar pedido desde estado Pendiente/Creado para los mismos perfiles
           actions.push({ label: "Cancelar Pedido", action: "cancelar", variant: "danger" });
         }
         break;
       case 'asignado':
-        if (userProfile === "3") {
+        if (isAdminSis) {
           actions.push({ label: "Iniciar Elaboración", action: "iniciar" });
         }
         break;
       case 'enelaboracion':
       case 'enproceso':
-        if (userProfile === "3") {
+        if (isAdminSis) {
           actions.push({ label: "Finalizar Elaboración", action: "finalizar" });
         }
         break;
       case 'elaboradoydepositadoenfabrica':
       case 'finalizado':
       case 'completado':
-        if (userProfile === "2") {
+        if (isAdminFab) {
           actions.push({ label: "Aprobar", action: "aprobar" });
           actions.push({
             label: "Rechazar",

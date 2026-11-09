@@ -45,7 +45,7 @@ export default function SearchSelect<T>({
   const ref = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const portalRef = useRef<HTMLDivElement | null>(null);
-  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [rect, setRect] = useState<{ top: number; bottom: number; left: number; width: number; upwards: boolean; maxHeight: number } | null>(null);
 
   useEffect(() => {
     if (value) setQuery(getLabel(value));
@@ -109,7 +109,15 @@ export default function SearchSelect<T>({
       const inp = inputRef.current;
       if (!inp) return setRect(null);
       const r = inp.getBoundingClientRect();
-      setRect({ top: r.bottom, left: r.left, width: r.width });
+      const below = window.innerHeight - r.bottom - 8;
+      const above = r.top - 8;
+      const upwards = below < Math.min(240, above);
+      const width = Math.min(r.width, window.innerWidth - 16);
+      setRect({
+        top: r.bottom + 4, bottom: window.innerHeight - r.top + 4,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width,
+        upwards, maxHeight: Math.min(240, Math.max(0, upwards ? above : below)),
+      });
     };
     update();
     window.addEventListener('resize', update);
@@ -121,7 +129,7 @@ export default function SearchSelect<T>({
   }, [open, inputRef.current]);
 
   const dropdown = (
-    <div style={rect ? { position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px' } : undefined} className="z-[12000] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+    <div style={rect ? { position: 'fixed', top: rect.upwards ? undefined : rect.top, bottom: rect.upwards ? rect.bottom : undefined, left: rect.left, width: rect.width, maxHeight: rect.maxHeight } : undefined} className="z-[12000] bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
       {filtered.length === 0 ? (
         <div className="p-3 text-sm text-gray-500">{noResultsText}</div>
       ) : (

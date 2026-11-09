@@ -1,6 +1,7 @@
 import type { Insumo } from '../../insumos/types/insumo.types';
 
 export type ApiFormula = {
+  tipoComposicion?: 'reutilizable' | 'producto';
   id: number;
   nombre: string;
   porcion: number;

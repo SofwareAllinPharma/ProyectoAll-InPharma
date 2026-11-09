@@ -32,7 +32,7 @@ export const DeleteConfirmModal: React.FC<Props> = ({
         </p>
         <p>
           <strong>Fórmula:</strong>{" "}
-          {producto.formula?.nombre || "No disponible"}
+          {producto.formula?.tipoComposicion === "producto" ? "Composición propia" : producto.formula?.nombre || "No disponible"}
         </p>
         <p>
           <strong>Peso neto:</strong> {producto.pesoNeto.toFixed(4)}g

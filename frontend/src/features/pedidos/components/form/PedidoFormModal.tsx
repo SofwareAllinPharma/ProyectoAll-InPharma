@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../../../lib/auth";
+import { selectAssignedProfile } from "../../../../utils/roles";
 import { useToast } from "../../../../components/ui/toast/ToastContext";
 import Modal from "../../../../components/ui/modales/Modal";
 import ModalHeader from "../../../../components/ui/modales/ModalHeader";
@@ -18,6 +20,7 @@ interface Props {
 }
 
 const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
+  const { user } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mode, setMode] = useState<"gramos" | "paquetes" | "porciones">(
@@ -102,7 +105,7 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, selected]);
 
-  const creatorMail = localStorage.getItem("userMail") || "adminfab@aip.com";
+  const creatorMail = user?.mail ?? "Sesión no disponible";
   const [creationDate] = useState(() => new Date().toLocaleString());
 
 
@@ -206,6 +209,11 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
       }
     }
 
+    const creatorProfile = selectAssignedProfile(user?.perfiles ?? [], localStorage.getItem('activeRole'), ['ADMINSIS', 'ADMINFAB']);
+    if (!user || !creatorProfile) {
+      setValidationError('Tu usuario no tiene un perfil habilitado para crear órdenes. Iniciá sesión nuevamente.');
+      return;
+    }
     const payload: CreatePedidoRequest = {
       idProducto: selectedId,
       gramos: Number(Number(conv.gramos).toFixed(4)),
@@ -213,10 +221,8 @@ const PedidoFormModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
       paquetes: Math.round(Number(conv.paquetes)),
       porciones: Number(Number(conv.porciones).toFixed(4)),
       observacion: observacion || undefined,
-      // Anotar creador: intentamos usar el token si existe, si no pedirá en backend
-      mailUsuarioCreador:
-        localStorage.getItem("userMail") || "adminfab@aip.com",
-      idPerfilCreador: Number(localStorage.getItem("userPerfil")) || 2,
+      mailUsuarioCreador: user.mail,
+      idPerfilCreador: creatorProfile.idPerfil,
     };
     setSubmitting(true);
     try {

@@ -66,7 +66,7 @@ export const ProductosTable: React.FC<Props> = ({
     },
     {
       key: "formula",
-      title: "Fórmula",
+      title: "Composición",
       width: "16%",
       align: "center",
       render: (r) => <ProductoFormulaCell producto={r} />,
@@ -98,7 +98,7 @@ export const ProductosTable: React.FC<Props> = ({
       title: "Costo/paquete",
       width: "12%",
       align: "center",
-      render: (r) => <CostoProductoCell idProducto={r.idProducto} />,
+      render: (r) => <CostoProductoCell key={`${r.idFormula}:${r.cantPorcionesAportadas}:${r.updatedAt ?? ""}`} idProducto={r.idProducto} />,
     },
     {
       key: "acciones",

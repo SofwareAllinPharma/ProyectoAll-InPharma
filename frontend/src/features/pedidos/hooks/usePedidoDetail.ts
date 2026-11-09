@@ -3,6 +3,7 @@ import { PedidoService } from '../services/pedido.service';
 import { ProductoService } from '../../productos/services/producto.service';
 import type { Pedido } from '../types/pedido.types';
 import type { Producto } from '../../productos/types/producto.types';
+import { productoParaOrden } from '../utils/productoOrden';
 import { useToast } from '../../../components/ui/toast/ToastContext';
 
 export function usePedidoDetail(id: string | undefined) {
@@ -23,6 +24,10 @@ export function usePedidoDetail(id: string | undefined) {
       const p = await PedidoService.detail(Number(id));
       if (!isCurrent()) return;
       setPedido(p);
+      if (p.productoSnapshot != null) {
+        setProductoDetalle(productoParaOrden(p));
+        return;
+      }
       try {
         const prod = await ProductoService.getProductoById(p.idProducto);
         if (isCurrent()) setProductoDetalle(prod);

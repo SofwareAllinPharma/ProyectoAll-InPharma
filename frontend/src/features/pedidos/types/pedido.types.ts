@@ -26,6 +26,8 @@ export type ProductoMin = {
 };
 
 export type Pedido = {
+  productoSnapshot?: unknown;
+  composicionCapturadaAt?: string | null;
   numPedido: number;
   idProducto: number;
   producto?: ProductoMin | null;

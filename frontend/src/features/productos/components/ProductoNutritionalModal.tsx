@@ -89,13 +89,17 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
               {producto.nombreComercial}
             </h3>
             <p className="text-base text-gray-700 mt-0.5">
-              Fórmula: {formula.nombre}
+              {formula.tipoComposicion === 'producto' ? 'Composición propia del producto' : `Fórmula: ${formula.nombre}`}
             </p>
           </div>
           <PrintLabelButton producto={producto} />
         </div>
 
         <ProductInfoCard producto={producto} pesoPorPorcion={pesoPorPorcion} />
+        <section className="border border-gray-200 rounded-lg p-4">
+          <h4 className="font-semibold mb-2">Composición por porción ({pesoPorPorcion} g)</h4>
+          {formula.insumos?.length ? <ul className="divide-y divide-gray-100 text-sm">{formula.insumos.map(ins => <li key={ins.idInsumo} className="py-2 flex justify-between gap-4"><span>{ins.insumo?.nombre ?? `Insumo #${ins.idInsumo}`}</span><span>{ins.cantidadInsumo.toLocaleString('es-AR', { maximumFractionDigits: 4 })} g</span></li>)}</ul> : <p className="text-sm text-amber-700">Composición no disponible.</p>}
+        </section>
 
         {/* Card de costo estimado */}
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -121,7 +125,7 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
                 </div>
               </div>
               {costo.esParcial && (
-                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.'}</p>
+                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La composición no tiene insumos.'}</p>
               )}
               {costo.detalle.length > 0 && (
                 <details className="mt-1">

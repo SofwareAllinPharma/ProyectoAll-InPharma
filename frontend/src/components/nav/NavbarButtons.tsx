@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import UserAvatar from "./UserAvatar";
 import { useAuth } from "../../lib/auth";
 
@@ -58,6 +58,7 @@ export default function NavbarButtons({ variant }: { variant:
   | "dashboard";
 }) {
   const { user } = useAuth();
+  const { pathname } = useLocation();
 
   // Mostrar avatar en profiles-root, profiles-item y dashboard
   const showUserAvatar = variant === "profiles-root" || variant === "profiles-item" || variant === "dashboard";
@@ -108,11 +109,12 @@ export default function NavbarButtons({ variant }: { variant:
 
   // profiles-item and dashboard
   // Mostrar acceso rápido a Pedidos cuando estemos en dashboard (mejor UX si el sidebar no aparece)
-  const perfil = localStorage.getItem("userPerfil");
-  let pedidosPath: string | undefined;
-  if (perfil === "1") pedidosPath = "/tecnico/pedidos";
-  else if (perfil === "2") pedidosPath = "/adminfab/pedidos";
-  else if (perfil === "3") pedidosPath = "/adminsis/pedidos";
+  const rolePaths = { TECNICO: '/tecnico', ADMINFAB: '/adminfab', ADMINSIS: '/adminsis' } as const;
+  const roleFromScreen = Object.entries(rolePaths).find(([, path]) => pathname.startsWith(path))?.[0];
+  const preferredRole = roleFromScreen ?? localStorage.getItem('activeRole');
+  const role = Object.keys(rolePaths).find(code => code === preferredRole && (user?.roles.includes(code as keyof typeof rolePaths) || user?.roles.includes('ADMINSIS')))
+    ?? Object.keys(rolePaths).find(code => user?.roles.includes(code as keyof typeof rolePaths));
+  const pedidosPath = role ? `${rolePaths[role as keyof typeof rolePaths]}/pedidos` : undefined;
 
   return (
     <div className="flex items-center gap-3">

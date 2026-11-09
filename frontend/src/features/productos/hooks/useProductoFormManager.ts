@@ -1,76 +1,52 @@
-import { useEffect, useState } from 'react';
-import { useProductoForm } from './useProductoForm';
-import type { Producto } from '../types/producto.types';
-import type { Formula } from '../../formulas/types/formula.types';
-
-type FormState = {
-  idFormula: number;
-  nombreComercial: string;
-  sku: string;
-  diasVencimiento: string;
-  pesoNeto: number;
-  cantPorcionesAportadas: number;
-  calculationMode: 'pesoNeto' | 'porciones';
-};
+import { useEffect, useMemo, useState } from 'react';
+import type { CreateProductoRequest, Producto, UpdateProductoRequest } from '../types/producto.types';
+import type { Formula, FormulaInsumo } from '../../formulas/types/formula.types';
+import { calculatePresentation, directComposition, initialProductoForm, productoFormPayload, validateProductoForm } from '../lib/composition';
 
 export function useProductoFormManager(args: {
-  producto?: Producto;
-  isOpen: boolean;
-  onSubmit: (data: any) => Promise<void>;
+  producto?: Producto; isOpen: boolean;
+  onSubmit: (data: CreateProductoRequest | UpdateProductoRequest) => Promise<void>;
   onClose: () => void;
-}){
+}) {
   const { producto, isOpen, onSubmit, onClose } = args;
-  const [formData, setFormData] = useState<FormState>({ idFormula:0, nombreComercial:'', sku:'', diasVencimiento:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
-  const [selectedFormula, setSelectedFormula] = useState<Formula | null>(null);
-  const [errors, setErrors] = useState<Record<string,string>>({});
+  const [state, setFormData] = useState(() => initialProductoForm());
+  const [formula, setSelectedFormula] = useState<Formula | null>(null);
+  const [insumos, setInsumos] = useState<FormulaInsumo[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
-      setIsSubmitting(false);
-      setFormData({ idFormula:0, nombreComercial:'', sku:'', diasVencimiento:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
-      setSelectedFormula(null);
-      setErrors({});
-      setServerError(null);
-      return;
-    }
-    if (producto) {
-      setFormData({ idFormula: producto.idFormula, nombreComercial: producto.nombreComercial, sku: producto.sku ?? '', diasVencimiento: producto.diasVencimiento != null ? String(producto.diasVencimiento) : '', pesoNeto: producto.pesoNeto, cantPorcionesAportadas: producto.cantPorcionesAportadas, calculationMode:'pesoNeto' });
-      setSelectedFormula(producto.formula || null);
-    } else {
-      setFormData({ idFormula:0, nombreComercial:'', sku:'', diasVencimiento:'', pesoNeto:0, cantPorcionesAportadas:0, calculationMode:'pesoNeto' });
-      setSelectedFormula(null);
-    }
-    setErrors({}); setServerError(null);
+    setFormData(initialProductoForm(isOpen ? producto : undefined));
+    setSelectedFormula(isOpen && producto?.formula?.tipoComposicion !== 'producto' ? producto?.formula ?? null : null);
+    setInsumos(isOpen && producto?.formula?.tipoComposicion === 'producto' ? producto.formula.insumos ?? [] : []);
+    setErrors({}); setServerError(null); setIsSubmitting(false);
   }, [isOpen, producto]);
 
-  const { handleCalculationModeChange, handleValueChange, validateForm } = useProductoForm({ formData, setFormData, selectedFormula });
-
-  const onNombreChange = (v: string) => setFormData(prev => ({ ...prev, nombreComercial: v }));
-  const onSkuChange = (v: string) => setFormData(prev => ({ ...prev, sku: v }));
-  const onDiasVencimientoChange = (v: string) => setFormData(prev => ({ ...prev, diasVencimiento: v }));
-  const onFormulaChange = (f: Formula) => { setSelectedFormula(f); setFormData(prev => ({ ...prev, idFormula: f.id, pesoNeto: 0, cantPorcionesAportadas: 0 })); };
+  const selectedFormula = useMemo(() => state.tipoComposicion === 'insumos' ? directComposition(insumos) : formula, [state.tipoComposicion, insumos, formula]);
+  const formData = calculatePresentation(state, selectedFormula?.porcion ?? 0);
+  const onNombreChange = (value: string) => setFormData(prev => ({ ...prev, nombreComercial: value }));
+  const onSkuChange = (value: string) => setFormData(prev => ({ ...prev, sku: value }));
+  const onDiasVencimientoChange = (value: string) => setFormData(prev => ({ ...prev, diasVencimiento: value }));
+  const onFormulaChange = (f: Formula) => { setSelectedFormula(f); setFormData(prev => ({ ...prev, idFormula: f.id })); };
+  const onCompositionModeChange = (tipoComposicion: 'formula' | 'insumos') => {
+    setErrors({}); setServerError(null);
+    setFormData(prev => ({ ...calculatePresentation(prev, selectedFormula?.porcion ?? 0), tipoComposicion, calculationMode: tipoComposicion === 'insumos' ? 'porciones' : prev.calculationMode }));
+  };
+  const onCalcModeChange = (calculationMode: 'pesoNeto' | 'porciones') => setFormData({ ...formData, calculationMode });
+  const onValueChange = (field: 'pesoNeto' | 'cantPorcionesAportadas', value: number) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSubmit = async () => {
-    const newErrors = validateForm(formData);
+    const newErrors = validateProductoForm(formData, insumos);
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return false; }
+    if (isSubmitting) return false;
     setIsSubmitting(true); setServerError(null);
     try {
-      const submitData: any = { idFormula: formData.idFormula, nombreComercial: formData.nombreComercial.trim(), sku: formData.sku.trim(), diasVencimiento: formData.diasVencimiento.trim() };
-      if (formData.calculationMode === 'pesoNeto') submitData.pesoNeto = formData.pesoNeto; else submitData.cantPorcionesAportadas = formData.cantPorcionesAportadas;
-      await onSubmit(submitData);
-      onClose();
-      return true;
-    } catch (err: any) {
-      setServerError(err?.message || 'Error desconocido al guardar el producto');
-      return false;
+      await onSubmit(productoFormPayload(formData, insumos));
+      onClose(); return true;
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Error al guardar el producto'); return false;
     } finally { setIsSubmitting(false); }
   };
-
-  return {
-    formData, selectedFormula, errors, serverError, isSubmitting,
-    onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCalcModeChange: handleCalculationModeChange, onValueChange: handleValueChange,
-    handleSubmit, setFormData, setSelectedFormula, setErrors,
-  } as const;
+  return { formData, selectedFormula, insumos, setInsumos, errors, serverError, isSubmitting, onNombreChange, onSkuChange, onDiasVencimientoChange, onFormulaChange, onCompositionModeChange, onCalcModeChange, onValueChange, handleSubmit };
 }

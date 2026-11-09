@@ -6,6 +6,7 @@ import { ProductoService } from "../../productos/services/producto.service";
 import PedidoActions from "./PedidoActions";
 import PedidoEstadoCell from "./PedidoEstadoCell";
 import PedidoModalShell from "./PedidoModalShell";
+import { productoParaOrden, descripcionComposicion } from '../utils/productoOrden';
 import { computeInsumosRequeridos } from "../utils/insumos.utils";
 
 interface Props {
@@ -35,6 +36,10 @@ const PedidoDetailModal: React.FC<Props> = ({
   useEffect(() => {
     setProductoDetalle(null);
     if (!isOpen || !pedido) return;
+    if (pedido.productoSnapshot != null) {
+      setProductoDetalle(productoParaOrden(pedido));
+      return;
+    }
     let cancelled = false;
     ProductoService.getProductoById(pedido.idProducto)
       .then(p => { if (!cancelled) setProductoDetalle(p); })
@@ -93,6 +98,7 @@ const PedidoDetailModal: React.FC<Props> = ({
       }
     >
       <div className="space-y-4">
+        <p className="rounded bg-amber-50 p-3 text-sm text-amber-900">{descripcionComposicion(pedido)}</p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {/* Reuse ProductInfoCard used in Productos for consistent look */}
@@ -104,7 +110,7 @@ const PedidoDetailModal: React.FC<Props> = ({
                   portions > 0 ? Number((grams / portions).toFixed(4)) : 0;
                 return (
                   <ProductInfoCard
-                    producto={pedido.producto as unknown as Producto}
+                    producto={(productoDetalle ?? pedido.producto) as Producto}
                     pesoPorPorcion={pesoPorPorcion}
                   />
                 );
