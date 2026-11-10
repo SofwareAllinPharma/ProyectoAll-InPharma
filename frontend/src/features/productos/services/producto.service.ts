@@ -1,3 +1,4 @@
+import type { CotizacionBlue } from '../../insumos/components/precio/PrecioReferencia';
 import { api } from '../../../lib/api';
 import type {
   Producto,
@@ -91,6 +92,7 @@ export interface CostoProducto {
   idProducto: number;
   nombreComercial: string;
   cantPorcionesAportadas: number;
+  cotizacionBlue?: CotizacionBlue | null;
   costoPorPorcion: number | null;
   costoPorPaquete: number | null;
   esParcial: boolean;

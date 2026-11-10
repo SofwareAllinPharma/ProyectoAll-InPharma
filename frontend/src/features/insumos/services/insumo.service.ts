@@ -56,8 +56,8 @@ export class InsumoService {
     return data;
   }
 
-  static async setNuevoPrecio(id: number, dto: { idProveedor: number; precioPorKg: number; observacion?: string }): Promise<PrecioInsumo> {
-    const { data } = await api.post(`/insumos/${id}/precios`, dto);
+  static async setNuevoPrecio(id: number, dto: { idProveedor: number; precioPorKg: number; moneda: 'USD'; observacion?: string }): Promise<PrecioInsumo> {
+    const { data } = await api.post(`/insumos/${id}/precios/usd`, dto);
     return data;
   }
 

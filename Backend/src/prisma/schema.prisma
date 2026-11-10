@@ -114,6 +114,7 @@ model PrecioInsumo {
   id          Int       @id @default(autoincrement())
   idInsumo    Int
   idProveedor Int
+  moneda      String    @default("ARS")
   precioPorKg Float
   activo      Boolean   @default(true)
   fechaDesde  DateTime  @default(now())
@@ -404,4 +405,11 @@ model WooOrderProcesada {
   createdAt DateTime @default(now())
 
   @@map("WOO_ORDER_PROCESADA")
+}
+model CotizacionBlue {
+  publicadaEn DateTime @id
+  ventaArsPorUsd Float
+  consultadaEn DateTime @default(now())
+
+  @@map("COTIZACION_BLUE")
 }

@@ -1,3 +1,4 @@
+import { NotaCotizacion } from '../../insumos/components/precio/PrecioReferencia';
 import React, { useEffect, useState } from "react";
 import Modal from "../../../components/ui/modales/Modal";
 import ModalHeader from "../../../components/ui/modales/ModalHeader";
@@ -104,6 +105,7 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
         {/* Card de costo estimado */}
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Costo estimado</p>
+          {costo?.cotizacionBlue && <p className="mb-2 text-xs"><NotaCotizacion blue={costo.cotizacionBlue} /></p>}
           {costoLoading ? (
             <p className="text-sm text-gray-400">Calculando…</p>
           ) : !costo ? (
@@ -125,7 +127,7 @@ export const ProductoNutritionalModal: React.FC<Props> = ({
                 </div>
               </div>
               {costo.esParcial && (
-                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La composición no tiene insumos.'}</p>
+                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio en ARS disponible: ${costo.insumosSinPrecio.join(', ')}` : 'La composición no tiene insumos.'}</p>
               )}
               {costo.detalle.length > 0 && (
                 <details className="mt-1">

@@ -68,6 +68,35 @@ test('entrega AIP sobre PostgreSQL temporal: stock, producción, precios y permi
       assert.equal(faltante.costoPorPorcion, null); assert.equal(faltante.esParcial, true);
       await precios.setNuevoPrecio(insumo.id, { idProveedor: proveedor.id, precioPorKg: 1000 });
     });
+    await t.test('USD conserva el importe y recalcula costos con la última venta blue', async () => {
+      const path = `/insumos/${insumo.id}/precios`;
+      const carga = await request(path + '/usd', 'ADMINFAB', { idProveedor: proveedor.id, precioPorKg: 10 });
+      assert.equal(carga.status, 201);
+      assert.equal((await carga.json() as { moneda: string }).moneda, 'USD');
+
+      const leerCosto = async (path: string) => (await (await request(path, 'ADMINFAB')).json()) as {
+        costoPorPorcion: number | null; costoPorPaquete?: number | null;
+      };
+      const costoProducto = `/productos/${producto.idProducto}/costo`;
+      assert.equal((await leerCosto(costoProducto)).costoPorPorcion, null);
+
+      const publicadaEn = new Date(Date.now() - 60_000);
+      await prisma.cotizacionBlue.create({ data: { publicadaEn, ventaArsPorUsd: 1555 } });
+      assert.equal((await leerCosto(costoProducto)).costoPorPaquete, 3110);
+      assert.equal((await leerCosto(`/formulas/${formula.id}/costo`)).costoPorPorcion, 622);
+      await prisma.cotizacionBlue.create({ data: { publicadaEn: new Date(), ventaArsPorUsd: 1600 } });
+      assert.equal((await leerCosto(costoProducto)).costoPorPaquete, 3200);
+
+      const historial = await (await request(path, 'ADMINFAB')).json() as {
+        activo: boolean; moneda: string; precioPorKg: number; precioArsPorKg: number | null;
+      }[];
+      assert.deepEqual(
+        historial.filter(p => p.activo).map(p => [p.moneda, p.precioPorKg, p.precioArsPorKg]),
+        [['USD', 10, 16000]],
+      );
+      assert.ok(historial.some(p => !p.activo && p.moneda === 'ARS' && p.precioPorKg === 1000));
+      await precios.setNuevoPrecio(insumo.id, { idProveedor: proveedor.id, precioPorKg: 1000 });
+    });
     const pedido = await prisma.pedido.create({ data: { idProducto: producto.idProducto, mailUsuarioCreador: `aip-test-ADMINFAB-${stamp}@example.invalid`, idPerfilCreador: perfiles.ADMINFAB, cantAProducir_gramos: 5000, cantAProducir_paquetes: 25, cantAProducir_porciones: 125 } });
     const enElab = await prisma.estadoPedido.upsert({ where: { nombre: 'EnElaboración' }, create: { nombre: 'EnElaboración' }, update: {} });
     await prisma.estadoPedido.upsert({ where: { nombre: 'ElaboradoYDepositadoEnFábrica' }, create: { nombre: 'ElaboradoYDepositadoEnFábrica' }, update: {} });

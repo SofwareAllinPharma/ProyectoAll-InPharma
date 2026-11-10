@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { InventarioService, type InventarioProducto } from "../../inventario/services/inventario.service";
+import { LoteStockService } from "../../inventario/services/lote.service";
 import type { Deposito } from "../types/deposito.types";
 import DepositCard from "./DepositoCard";
 
@@ -12,22 +12,22 @@ interface Props {
 
 export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete, refreshKey = 0 }: Props) {
   // Estado para mapear idDeposito -> suma de productos
-  const [capacidadPorDeposito, setCapacidadPorDeposito] = useState<Record<number, number>>({});
+  const [capacidadPorDeposito, setCapacidadPorDeposito] = useState<Record<number, number | null>>({});
 
   useEffect(() => {
     let isMounted = true;
     async function fetchAll() {
-      const result: Record<number, number> = {};
+      const result: Record<number, number | null> = {};
       await Promise.all(
         items.map(async (d) => {
           try {
-            const inventario: InventarioProducto[] = await InventarioService.getInventarioByDeposito(d.id);
+            const inventario = await LoteStockService.stockPorDeposito(d.id);
             result[d.id] = inventario.reduce(
-              (acc, prod) => acc + (typeof prod.cantidadProducto === "number" ? prod.cantidadProducto : 0),
+              (acc, prod) => acc + prod.totalUnidades,
               0
             );
           } catch {
-            result[d.id] = 0;
+            result[d.id] = null;
           }
         })
       );
@@ -49,7 +49,7 @@ export default function DepositGridWithCapacidad({ items, onOpenDetail, onDelete
           d={d}
           onOpenDetail={onOpenDetail}
           onDelete={onDelete}
-          productosEnDeposito={capacidadPorDeposito[d.id]}
+          productosEnDeposito={capacidadPorDeposito[d.id] ?? null}
         />
       ))}
     </div>

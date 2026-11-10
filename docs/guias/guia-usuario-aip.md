@@ -1,8 +1,8 @@
 # Manual de usuario de All-In-Pharma
 
-Edición del 9 de noviembre de 2026 · Administración, fábrica y punto de venta.
+Edición del 10 de noviembre de 2026 · Administración, fábrica y punto de venta.
 
-La aplicación organiza el catálogo, las órdenes de producción y el stock de productos terminados. Este manual describe la versión revisada localmente. Los pasos marcados **Versión actualizada** requieren que esa función esté disponible en tu instalación. La entrega anterior de precios e inventario ya fue desplegada. La composición propia y las órdenes históricas requieren el despliegue de este paquete. [Estado del despliegue](../entregas/2026-11-09-estado-desplegado.md).
+La aplicación organiza el catálogo, las órdenes de producción y el stock de productos terminados. Este manual describe la versión revisada localmente. Los pasos marcados **Versión actualizada** requieren que esa función esté disponible en tu instalación. Esta edición incluye referencias en dólares y su equivalente en pesos. [Estado del despliegue](../entregas/2026-11-09-estado-desplegado.md).
 
 ## Índice
 
@@ -59,7 +59,7 @@ Desde la ficha nutricional, usá la acción **Imprimir Etiqueta** cuando esté d
 1. Entrá a **Insumos** y buscá por nombre.
 2. Abrí el menú de tres puntos de la fila y elegí la consulta de ficha.
 3. Revisá su identificación y los valores nutricionales: están expresados **por 100 g de insumo**.
-4. Si tu perfil permite consultar precios, también vas a ver el proveedor de referencia, el precio en **ARS/kg**, su vigencia y el historial.
+4. Si tu perfil permite consultar precios, también vas a ver el proveedor de referencia, el importe en su moneda original, su vigencia y el historial. Para referencias en USD se muestra también el equivalente en ARS/kg.
 
 Si aparece **Pendiente de carga**, falta registrar un precio. Si aparece un error de consulta, volvé a abrir la ficha; no lo interpretes como ausencia de precio.
 
@@ -67,7 +67,7 @@ Elegir otro proveedor para el precio no modifica la nutrición ni la receta del 
 
 ## Registrar proveedores y precios
 
-**Versión actualizada.** Las fichas ampliadas y el historial de referencias requieren la entrega de precios.
+**Versión actualizada.** Los precios nuevos se cargan en USD/kg.
 
 Estas acciones corresponden a administración de fábrica o de sistema.
 
@@ -87,19 +87,21 @@ Desde el menú de la fila podés editar los datos de contacto e identificación 
 1. Entrá a **Insumos**, buscá el insumo y abrí **Editar**.
 2. Elegí **Cargar precio** o **Actualizar precio**.
 3. Seleccioná el proveedor.
-4. Ingresá el importe **en pesos argentinos por kilogramo**, mayor que cero. Si la cotización viene por bolsa u otra presentación, verificá su equivalente por kilogramo antes de cargarla.
+4. Ingresá el importe **en dólares por kilogramo (USD/kg)**, mayor que cero. Si la cotización viene por bolsa u otra presentación, verificá su equivalente por kilogramo antes de cargarla.
 5. Agregá una observación si corresponde y guardá.
 6. Comprobá el nuevo precio y el proveedor en la ficha.
 
 Hay **un único precio de referencia vigente por insumo**. Cargar otro reemplaza al anterior, incluso cuando cambia el proveedor. El anterior queda en el historial y no se borra. Para corregir un importe, cargá uno nuevo.
 
-El sistema usa el valor ingresado: no suma ni descuenta IVA automáticamente. Administración debe acordar el criterio de carga antes de ingresar precios comerciales.
+La ficha muestra **USD/kg** y su equivalente en **ARS/kg** usando la **venta del dólar blue de DolarHoy**, con fecha y hora. El backend consulta al iniciar y cada hora. Si la publicación es anterior, aparece **Última disponible**. Si falta cotización, el equivalente queda sin calcular.
+
+Los precios anteriores en ARS conservan moneda e importe. Los equivalentes en el historial se calculan con la cotización disponible al consultar. El valor en USD se mantiene hasta que cargues otra referencia. Acordá con Administración el criterio de IVA antes de cargar precios.
 
 ## Entender el costo
 
-El costo mostrado corresponde a los insumos de la fórmula según sus precios de referencia. El costo por envase utiliza la cantidad de porciones del producto, que puede tener decimales.
+El costo mostrado corresponde a los insumos de la fórmula según sus precios de referencia. El costo se muestra en ARS y convierte los aportes en USD con la venta blue disponible. El costo por envase utiliza las porciones del producto, que pueden tener decimales.
 
-**Costo incompleto** significa que falta algún precio o que no hay composición suficiente para calcularlo. Revisá los insumos indicados; no significa que fabricar ese producto cueste cero. El desglose puede mostrar aportes conocidos aunque todavía no exista un total completo.
+**Costo incompleto** significa que falta algún precio, falta la cotización necesaria o no hay composición suficiente para calcularlo. Revisá los insumos indicados; no significa que fabricar ese producto cueste cero. El desglose puede mostrar aportes conocidos aunque todavía no exista un total completo.
 
 Este costo no incluye automáticamente envases, mano de obra, gastos generales ni otros adicionales. Tampoco representa el costo real de un lote comprado o elaborado.
 
@@ -151,6 +153,8 @@ Ejemplo de reparto: 25 paquetes con 10 unidades por caja generan dos cajas de 10
 Una orden ya finalizada no se vuelve a finalizar para corregir un saldo. Si algo no coincide, informá el número de orden y la diferencia a administración.
 
 ## Administrar depósitos y alertas
+
+Las tarjetas de **Depósitos** muestran unidades físicas registradas por lote y capacidad configurada. Si falla la consulta, se muestra **Stock no disponible**.
 
 En **Depósitos** podés abrir cada ficha para consultar responsable, capacidad, stock y movimientos. Administración puede crear o modificar depósitos con los datos del lugar. Antes de desactivar o cambiar el nombre de un depósito, verificá existencias y coordiná el cambio con el responsable. Fábrica-Atrás, Intermedio y Estantería identifican las etapas del circuito.
 

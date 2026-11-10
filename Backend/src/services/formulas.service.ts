@@ -1,3 +1,4 @@
+import { cotizacionParaPrecios, precioEnArs } from './cotizacionBlue';
 import { FormulasRepository } from "../repositories/formulas.repository";
 import { prisma } from "../lib/prisma";
 
@@ -84,6 +85,7 @@ export class FormulasService {
 
     if (!formula || formula.tipoComposicion === "producto") throw new Error("Fórmula reutilizable no encontrada");
 
+    const blue = await cotizacionParaPrecios(formula.formulaInsumos.map(fi => fi.insumo?.precios[0]));
     let costoPorPorcion = 0;
     const insumosSinPrecio: string[] = [];
     const detalle: { insumo: string; gramos: number; precioPorKg: number | null; costoAporte: number | null }[] = [];
@@ -93,19 +95,21 @@ export class FormulasService {
       const precioActivo = insumo?.precios?.[0] ?? null;
       const gramos = fi.cantidadInsumo;
 
-      if (!precioActivo) {
+      const precioPorKg = precioEnArs(precioActivo, blue);
+      if (precioPorKg === null) {
         insumosSinPrecio.push(insumo?.nombre ?? `#${fi.idInsumo}`);
         detalle.push({ insumo: insumo?.nombre ?? `#${fi.idInsumo}`, gramos, precioPorKg: null, costoAporte: null });
       } else {
-        const aporte = (gramos / 1000) * precioActivo.precioPorKg;
+        const aporte = (gramos / 1000) * precioPorKg;
         costoPorPorcion += aporte;
-        detalle.push({ insumo: insumo!.nombre, gramos, precioPorKg: precioActivo.precioPorKg, costoAporte: aporte });
+        detalle.push({ insumo: insumo!.nombre, gramos, precioPorKg, costoAporte: aporte });
       }
     }
 
     const esParcial = insumosSinPrecio.length > 0 || detalle.length === 0;
 
     return {
+      cotizacionBlue: blue,
       costoPorPorcion: esParcial ? null : costoPorPorcion,
       esParcial,
       insumosSinPrecio,

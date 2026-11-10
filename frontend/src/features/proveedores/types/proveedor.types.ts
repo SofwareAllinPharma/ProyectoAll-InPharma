@@ -1,3 +1,4 @@
+import type { ImporteReferencia } from '../../insumos/components/precio/PrecioReferencia';
 export interface Proveedor {
   id: number;
   nombre: string;
@@ -19,7 +20,7 @@ export interface CreateProveedorDto {
 export type UpdateProveedorDto = Partial<CreateProveedorDto>;
 
 export interface ProveedorDetalle extends Proveedor {
-  precios: {
+  precios: (ImporteReferencia & {
     id: number;
     idInsumo: number;
     precioPorKg: number;
@@ -28,5 +29,5 @@ export interface ProveedorDetalle extends Proveedor {
     fechaHasta: string | null;
     observacion: string | null;
     insumo: { id: number; nombre: string; activo: boolean };
-  }[];
+  })[];
 }

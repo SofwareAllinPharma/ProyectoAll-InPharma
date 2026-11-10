@@ -1,3 +1,4 @@
+import { cotizacionParaPrecios, precioEnArs } from './cotizacionBlue';
 import { bloquearCatalogoComposicion } from './composicion';
 import { ProductosRepository } from "../repositories/productos.repository";
 import { prisma } from "../lib/prisma";
@@ -133,10 +134,11 @@ export class ProductosService {
     const insumosSinPrecio: string[] = [];
     let costoPorPorcion = 0;
 
+    const blue = await cotizacionParaPrecios(producto.formula.formulaInsumos.map(fi => fi.insumo.precios[0]));
     const detalle = producto.formula.formulaInsumos.map((fi) => {
       const precioActivo = fi.insumo.precios[0] ?? null;
       const gramos = fi.cantidadInsumo;
-      const precioPorKg = precioActivo?.precioPorKg ?? null;
+      const precioPorKg = precioEnArs(precioActivo, blue);
 
       if (precioPorKg === null) {
         insumosSinPrecio.push(fi.insumo.nombre);
@@ -170,6 +172,7 @@ export class ProductosService {
       idProducto: producto.idProducto,
       nombreComercial: producto.nombreComercial,
       cantPorcionesAportadas: producto.cantPorcionesAportadas,
+      cotizacionBlue: blue,
       costoPorPorcion: esParcial ? null : Math.round(costoPorPorcion * 100) / 100,
       costoPorPaquete: esParcial ? null : Math.round(costoPorPaquete * 100) / 100,
       esParcial,

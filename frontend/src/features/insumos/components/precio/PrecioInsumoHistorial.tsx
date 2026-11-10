@@ -1,3 +1,4 @@
+import PrecioReferencia from './PrecioReferencia';
 import type { PrecioInsumo } from '../../types/insumo.types';
 
 interface Props {
@@ -18,7 +19,7 @@ export default function PrecioInsumoHistorial({ precios }: Props) {
         <thead>
           <tr className="border-b border-gray-100 text-gray-500 uppercase tracking-wide">
             <th className="pb-2 text-left font-medium">Proveedor</th>
-            <th className="pb-2 text-right font-medium">ARS/kg</th>
+            <th className="pb-2 text-right font-medium">Referencia por kg</th>
             <th className="pb-2 text-center font-medium">Desde</th>
             <th className="pb-2 text-center font-medium">Hasta</th>
             <th className="pb-2 text-center font-medium">Estado</th>
@@ -29,7 +30,7 @@ export default function PrecioInsumoHistorial({ precios }: Props) {
             <tr key={p.id} className={p.activo ? 'bg-green-50/50' : ''}>
               <td className="py-2 pr-3 text-gray-800">{p.proveedor.nombre}</td>
               <td className="py-2 text-right font-semibold text-gray-800">
-                ${p.precioPorKg.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <PrecioReferencia precio={p} detalle />
               </td>
               <td className="py-2 text-center text-gray-600">{fmt(p.fechaDesde)}</td>
               <td className="py-2 text-center text-gray-600">{p.fechaHasta ? fmt(p.fechaHasta) : '—'}</td>

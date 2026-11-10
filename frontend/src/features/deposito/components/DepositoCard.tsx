@@ -13,7 +13,7 @@ export default function DepositCard({
   d: Deposito;
   onOpenDetail?: (id: number) => void;
   onDelete?: (deposito: Deposito) => void;
-  productosEnDeposito?: number;
+  productosEnDeposito?: number | null;
   responsableLabel?: string | undefined;
 }) {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ export default function DepositCard({
     navigate(`${prefix}/depositos/${d.id}`);
   };
 
-  const used = typeof productosEnDeposito === 'number' ? productosEnDeposito : d.capacidadUsada;
+  const used = productosEnDeposito === undefined ? d.capacidadUsada : productosEnDeposito;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
@@ -59,20 +59,20 @@ export default function DepositCard({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Capacidad:</span>
+          <span className="text-gray-600">Unidades / capacidad:</span>
           <span className="font-semibold text-gray-800">
-            {used} / {d.capacidadTotal}
+            {used === null ? 'Stock no disponible' : `${used} / ${d.capacidadTotal}`}
           </span>
         </div>
 
-        <CapacityBar
+        {used !== null && <CapacityBar
           used={used}
           total={d.capacidadTotal}
           showHeader={false}
           height={10}
           trackClassName="bg-gray-200"
           barClassName="bg-[#9D977B]"
-        />
+        />}
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Responsable:</span>
           <span className="font-semibold text-gray-900">{responsableLabel || d.responsable}</span>

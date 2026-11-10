@@ -41,6 +41,7 @@ export default function PrecioInsumoModal({ open, insumoId, insumoNombre, onSave
       await InsumoService.setNuevoPrecio(insumoId, {
         idProveedor: proveedor.id,
         precioPorKg: num,
+        moneda: 'USD',
         observacion: obs.trim() || undefined,
       });
       onSaved();
@@ -56,7 +57,7 @@ export default function PrecioInsumoModal({ open, insumoId, insumoNombre, onSave
       <ModalHeader>Actualizar precio — {insumoNombre}</ModalHeader>
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
         <div className="p-6 flex-1 overflow-auto min-h-0 space-y-4">
-          <p className="text-xs text-gray-500">Precio de referencia en ARS/kg. Reemplaza el vigente del insumo aunque cambie el proveedor; el anterior se conserva en el historial. No registra una compra ni el costo real de un lote.</p>
+          <p className="text-xs text-gray-500">Precio de referencia en USD/kg. Reemplaza el vigente del insumo aunque cambie el proveedor; el anterior se conserva en el historial. No registra una compra ni el costo real de un lote.</p>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor <span className="text-red-500">*</span></label>
@@ -74,7 +75,7 @@ export default function PrecioInsumoModal({ open, insumoId, insumoNombre, onSave
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Precio por kg (ARS) <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Precio por kg (USD) <span className="text-red-500">*</span></label>
             <input
               type="number"
               min="0.01"

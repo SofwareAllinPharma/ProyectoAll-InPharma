@@ -1,3 +1,4 @@
+import type { CotizacionBlue } from '../../insumos/components/precio/PrecioReferencia';
 import { api } from '../../../lib/api';
 import type {
   Formula,
@@ -51,6 +52,7 @@ export class FormulaService {
   }
 
   static async getCosto(idFormula: number): Promise<{
+    cotizacionBlue?: CotizacionBlue | null;
     costoPorPorcion: number | null;
     esParcial: boolean;
     insumosSinPrecio: string[];

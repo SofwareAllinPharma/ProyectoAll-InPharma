@@ -1,3 +1,4 @@
+import { cotizacionParaPrecios, presentarPrecio } from './cotizacionBlue';
 import { prisma } from '../lib/prisma';
 
 export class ProveedoresService {
@@ -20,7 +21,8 @@ export class ProveedoresService {
       },
     });
     if (!proveedor) throw new Error('Proveedor no encontrado');
-    return proveedor;
+    const blue = await cotizacionParaPrecios(proveedor.precios);
+    return { ...proveedor, precios: proveedor.precios.map(p => presentarPrecio(p, blue)) };
   }
 
   async create(data: {

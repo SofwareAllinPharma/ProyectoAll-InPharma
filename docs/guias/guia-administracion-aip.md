@@ -1,12 +1,12 @@
 # Guía de administración de AIP
 
-Entrega de mejoras operativas · Actualizada el 9 de noviembre de 2026
+Entrega de mejoras operativas · Actualizada el 10 de noviembre de 2026
 
 Esta guía explica la configuración operativa y los controles que acompañan la entrega. Para tareas diarias de fábrica y venta, usar la [guía de usuario](guia-usuario-aip.md).
 
 ## Qué incorpora la entrega
 
-- Precio de referencia único por insumo en **ARS/kg**, con proveedor y conservación del historial.
+- Precio de referencia único por insumo, con nuevas cargas en **USD/kg** y conservación del historial y la moneda original.
 - Costos incompletos identificados, sin convertir faltantes en cero.
 - Consulta de proveedores e insumos asociados a sus referencias vigentes e históricas.
 - Ficha de insumo con nutrición por 100 g.
@@ -65,13 +65,17 @@ Contrastar unidades y valores con documentación confiable del insumo antes de c
 
 1. Buscar primero por nombre, razón social o CUIT.
 2. Mantener una ficha de proveedor con los datos reales disponibles.
-3. Para cada insumo, registrar proveedor e importe **ARS/kg**, positivo y vigente desde su carga.
+3. Para cada insumo, registrar proveedor e importe **USD/kg**, positivo y vigente desde su carga.
 4. Revisar que figure en la ficha del insumo y en la del proveedor.
 5. Consultar una fórmula y un producto que usen ese insumo para comprobar el resultado.
 
 Hay una referencia vigente por insumo, no una cotización activa por cada proveedor. Reemplazar A por B cambia la referencia de costeo y conserva el registro anterior de A.
 
 La baja de un proveedor es lógica y no borra sus referencias históricas. Si tiene precios vigentes, primero reemplazarlos por la referencia válida que corresponda; no crear importes ficticios para permitir la baja.
+
+### Conversión a pesos
+
+La aplicación conserva USD/kg y calcula ARS/kg con la última venta blue publicada por DolarHoy. El backend consulta al arrancar en producción y cada hora. Revisá fecha y hora de la referencia. Si es anterior, figura como última disponible. Sin cotización, el costo en pesos queda incompleto. Los importes en ARS registrados previamente conservan su valor.
 
 ### Criterio de IVA y adicionales
 

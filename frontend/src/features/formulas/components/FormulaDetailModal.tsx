@@ -1,3 +1,4 @@
+import { NotaCotizacion } from '../../insumos/components/precio/PrecioReferencia';
 import React, { useEffect, useState } from "react";
 import Modal from "../../../components/ui/modales/Modal";
 import ModalHeader from "../../../components/ui/modales/ModalHeader";
@@ -75,6 +76,7 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
         {/* Costo estimado por porción */}
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 mb-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Costo estimado por porción</p>
+          {costo?.cotizacionBlue && <p className="mb-2 text-xs"><NotaCotizacion blue={costo.cotizacionBlue} /></p>}
           {costoLoading ? (
             <p className="text-sm text-gray-400">Calculando…</p>
           ) : costoError ? (
@@ -87,7 +89,7 @@ const FormulaDetailModal: React.FC<Props> = ({ isOpen, formula, onClose }) => {
                 {costo.esParcial || costo.costoPorPorcion == null ? 'Costo incompleto' : `$${costo.costoPorPorcion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               </p>
               {costo.esParcial && (
-                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.'}</p>
+                <p className="text-xs text-amber-600">{costo.insumosSinPrecio.length > 0 ? `Sin precio en ARS disponible: ${costo.insumosSinPrecio.join(', ')}` : 'La fórmula no tiene insumos.'}</p>
               )}
             </div>
           )}

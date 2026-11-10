@@ -1,3 +1,4 @@
+import PrecioReferencia from '../precio/PrecioReferencia';
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Insumo, CreateInsumoDto, PrecioInsumo } from "../../types/insumo.types";
 import InsumoFormFields from "./InsumoFormFields";
@@ -210,7 +211,7 @@ export default function InsumoFormModal({
               {precioActivo
                 ? (
                     <p className="text-sm font-medium text-gray-800 mt-0.5">
-                      ${precioActivo.precioPorKg.toLocaleString('es-AR', { minimumFractionDigits: 2 })}/kg
+                      <PrecioReferencia precio={precioActivo} detalle />
                       <span className="ml-2 text-xs font-normal text-gray-500">— {precioActivo.proveedor.nombre}</span>
                     </p>
                   )

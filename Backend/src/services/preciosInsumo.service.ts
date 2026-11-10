@@ -1,20 +1,25 @@
+import { cotizacionParaPrecios, presentarPrecio } from './cotizacionBlue';
 import { prisma } from '../lib/prisma';
 
 export class PreciosInsumoService {
   async listByInsumo(idInsumo: number) {
     const insumo = await prisma.insumo.findUnique({ where: { id: idInsumo } });
     if (!insumo) throw new Error('Insumo no encontrado');
-    return prisma.precioInsumo.findMany({
+    const precios = await prisma.precioInsumo.findMany({
       where: { idInsumo },
       include: { proveedor: true },
       orderBy: [{ activo: 'desc' }, { fechaDesde: 'desc' }],
     });
+    const blue = await cotizacionParaPrecios(precios);
+    return precios.map(p => presentarPrecio(p, blue));
   }
 
   async setNuevoPrecio(
     idInsumo: number,
-    data: { idProveedor: number; precioPorKg: number; observacion?: string }
+    data: { idProveedor: number; precioPorKg: number; moneda?: string; observacion?: string }
   ) {
+    const moneda = data.moneda ?? 'ARS';
+    if (moneda !== 'ARS' && moneda !== 'USD') throw new Error('Moneda inválida');
     const insumo = await prisma.insumo.findUnique({ where: { id: idInsumo } });
     if (!insumo || !insumo.activo) throw new Error('Insumo no encontrado');
 
@@ -42,6 +47,7 @@ export class PreciosInsumoService {
           idInsumo,
           idProveedor: data.idProveedor,
           precioPorKg: data.precioPorKg,
+          moneda,
           observacion: data.observacion?.trim() || null,
           activo: true,
           fechaDesde: ahora,

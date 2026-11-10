@@ -1,10 +1,10 @@
+import PrecioReferencia from '../../insumos/components/precio/PrecioReferencia';
 import { useEffect, useState } from 'react';
 import Modal from '../../../components/ui/modales/Modal';
 import { ProveedorService } from '../services/proveedor.service';
 import type { Proveedor, ProveedorDetalle } from '../types/proveedor.types';
 
 const fecha = (value: string) => new Date(value).toLocaleString('es-AR');
-const precio = (value: number) => value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function ProveedorDetailModal({ proveedor, onClose }: { proveedor: Proveedor | null; onClose: () => void }) {
   const [detalle, setDetalle] = useState<ProveedorDetalle | null>(null);
@@ -37,7 +37,7 @@ export default function ProveedorDetailModal({ proveedor, onClose }: { proveedor
           <div><dt className="text-gray-500">Teléfono</dt><dd>{proveedor?.telefono || 'Sin registrar'}</dd></div>
           <div><dt className="text-gray-500">Email</dt><dd>{proveedor?.email || 'Sin registrar'}</dd></div>
         </dl>
-        <p className="text-xs text-gray-500">Precios de referencia en ARS/kg. No representan compras ni existencias del proveedor.</p>
+        <p className="text-xs text-gray-500">Importes registrados y equivalentes según la cotización disponible. No representan compras ni existencias del proveedor.</p>
         {loading && <p role="status">Cargando referencias…</p>}
         {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
         {detalle && <>
@@ -45,10 +45,10 @@ export default function ProveedorDetailModal({ proveedor, onClose }: { proveedor
             <h3 className="font-semibold mb-2">Insumos con referencia vigente ({vigentes.length})</h3>
             {vigentes.length === 0 ? <p className="text-sm text-gray-500">Este proveedor no tiene precios de referencia vigentes.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm">
-                <thead><tr className="border-b text-left text-gray-500"><th className="py-2">Insumo</th><th className="py-2 text-right">ARS/kg</th><th className="py-2 pl-3">Vigente desde</th></tr></thead>
+                <thead><tr className="border-b text-left text-gray-500"><th className="py-2">Insumo</th><th className="py-2 text-right">Referencia por kg</th><th className="py-2 pl-3">Vigente desde</th></tr></thead>
                 <tbody>{vigentes.map(p => <tr key={p.id} className="border-b border-gray-100">
                   <td className="py-2">{p.insumo.nombre}{!p.insumo.activo && <span className="text-xs text-gray-500"> (inactivo)</span>}</td>
-                  <td className="py-2 text-right tabular-nums">{precio(p.precioPorKg)}</td><td className="py-2 pl-3">{fecha(p.fechaDesde)}</td>
+                  <td className="py-2 text-right tabular-nums"><PrecioReferencia precio={p} detalle /></td><td className="py-2 pl-3">{fecha(p.fechaDesde)}</td>
                 </tr>)}</tbody>
               </table></div>
             )}
@@ -57,7 +57,7 @@ export default function ProveedorDetailModal({ proveedor, onClose }: { proveedor
             <summary className="cursor-pointer text-sm font-medium">Historial de referencias ({historicos.length})</summary>
             {historicos.length === 0 ? <p className="text-sm text-gray-500 mt-2">Sin precios anteriores.</p> : (
               <ul className="divide-y divide-gray-100 mt-2 text-sm">{historicos.map(p => <li key={p.id} className="py-3">
-                <p className="font-medium">{p.insumo.nombre} · {precio(p.precioPorKg)} ARS/kg</p>
+                <p className="font-medium">{p.insumo.nombre} · <PrecioReferencia precio={p} detalle /></p>
                 <p className="text-xs text-gray-500">Desde {fecha(p.fechaDesde)} · Hasta {p.fechaHasta ? fecha(p.fechaHasta) : 'Sin registrar'}</p>
                 {p.observacion && <p className="text-xs mt-1">{p.observacion}</p>}
               </li>)}</ul>

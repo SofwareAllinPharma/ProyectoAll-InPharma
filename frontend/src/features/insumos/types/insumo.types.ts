@@ -1,3 +1,4 @@
+import type { ImporteReferencia } from '../components/precio/PrecioReferencia';
 export interface Insumo {
   id: number;
   nombre: string;
@@ -34,7 +35,7 @@ export interface InsumoModalAction {
   insumo?: Insumo;
 }
 
-export interface PrecioInsumo {
+export interface PrecioInsumo extends ImporteReferencia {
   id: number;
   idInsumo: number;
   idProveedor: number;

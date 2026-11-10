@@ -1,3 +1,4 @@
+import PrecioReferencia from './precio/PrecioReferencia';
 import { useEffect, useState } from 'react';
 import Modal from '../../../components/ui/modales/Modal';
 import { useAuth } from '../../../lib/auth';
@@ -51,7 +52,7 @@ export default function InsumoDetailModal({ insumo, onClose }: { insumo: Insumo 
         {canReadPrice && <section className="rounded-lg bg-gray-50 border border-gray-200 p-4">
           <h3 className="font-semibold mb-2">Precio de referencia</h3>
           {loading ? <p role="status" className="text-sm">Cargando precio…</p> : error ? <p role="alert" className="text-sm text-red-700">{error}</p> : vigente ? <>
-            <p className="text-lg font-semibold">{fmt(vigente.precioPorKg, 'ARS/kg')}</p>
+            <p className="text-lg font-semibold"><PrecioReferencia precio={vigente} detalle /></p>
             <p className="text-sm">Proveedor: {vigente.proveedor.nombre}</p>
             <p className="text-xs text-gray-500">Vigente desde {new Date(vigente.fechaDesde).toLocaleString('es-AR')}</p>
           </> : <p className="text-sm text-amber-700">Pendiente de carga. Sin precio no se puede completar el costo.</p>}

@@ -19,6 +19,7 @@ router.delete("/:id", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), co
 // Precios
 router.get("/:id/precios", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.listByInsumo);
 router.post("/:id/precios", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.setNuevoPrecio);
+router.post("/:id/precios/usd", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.setPrecioUsd);
 router.delete("/:id/precios/:precioId", requireRoles(ROLE_CODES.ADMINSIS, ROLE_CODES.ADMINFAB), preciosCtrl.deletePrecio);
 
 export default router;

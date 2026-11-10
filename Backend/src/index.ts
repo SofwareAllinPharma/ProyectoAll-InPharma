@@ -1,3 +1,4 @@
+import { actualizarBlue } from './services/cotizacionBlue';
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -56,3 +57,9 @@ app.use((_req, res) => {
 });
 
 app.listen(PORT, process.env.HOST ?? "0.0.0.0", () => console.log(`API running on http://localhost:${PORT}`));
+
+if (process.env.NODE_ENV === "production") {
+  const actualizar = () => void actualizarBlue().catch(err => console.warn("[DolarHoy]", err.message));
+  actualizar();
+  setInterval(actualizar, 60 * 60 * 1000).unref();
+}
